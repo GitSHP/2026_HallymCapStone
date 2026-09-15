@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8f5ffa668bab104ebcf0900180ce568, type: 3}
+  m_Name: EnemyGrunt
+  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Data.PieceDefinition
+  displayName: Grunt
+  glyph: E
+  sprite: {fileID: 0}
+  playerColor: {r: 0.95, g: 0.95, b: 0.92, a: 1}
+  enemyColor: {r: 0.36, g: 0.16, b: 0.2, a: 1}
+  moveApCost: 1
+  deployApCost: 0
+  maxHp: 2
+  attack: 1
+  isObjective: 0
+  patterns:
+  - directions:
+    - {x: 1, y: 0}
+    - {x: -1, y: 0}
+    - {x: 0, y: 1}
+    - {x: 0, y: -1}
+    - {x: 1, y: 1}
+    - {x: 1, y: -1}
+    - {x: -1, y: 1}
+    - {x: -1, y: -1}
+    sliding: 0
+    maxDistance: 8
+    canMoveToEmpty: 1
+    canCapture: 1
+    relativeToFacing: 0
