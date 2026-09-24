@@ -1,13 +1,14 @@
 using System.Collections;
-using System.Collections.Generics;
+using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "ItemData", menuName = "Scriptable Objects/ItemData")]
 public class ItemData : ScriptableObject    // 아이템의 데이터를 저장하는 ScriptableObject 파일
 {
-    public enum ItemType    // 아이템의 유형
+    public enum ItemType    // 아이템의 유형을 정의하는 Enum
     {
-        
+        Artifact, // 인벤토리에 보유 시에 효과를 발동하는 아이템
+        Usable // 인벤토리에서 꺼내서 사용해야 효과를 발동하는 아이템
     }
 
     public string itemName; // 아이템 이름
