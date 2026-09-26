@@ -34,11 +34,12 @@ public class Slot : MonoBehaviour
             itemCountImage.SetActive(true); // 저장한 아이템의 갯수 이미지 UI를 보이도록 활성화하고
             itemTextCount.text = itemCount.ToString();  // 현재 저장된 아이템의 갯수가 보이도록 텍스트 UI로 현재 저장된 아이템 갯수를 표시함
         } 
-        else // 만약 인벤토리에 저장할 아이템이 아티팩트라면 -> 아티팩트는 패시브처럼 1개만 있어도 발동되는 아이템이므로 한 개만 있어야함
+        else if(item.itemType == ItemData.ItemType.Artifact)// 만약 인벤토리에 저장할 아이템이 아티팩트라면 
+        //  -> 아티팩트는 패시브처럼 1개만 있어도 발동되는 아이템이므로 한 개만 있어야함
         {
             itemTextCount.text = "0";   // 아이템의 갯수는 의미가 없으므로 String 타입의 0으로 초기화
             itemCountImage.SetActive(false);    // 아이템 갯수 이미지가 보이지 않도록 설정
-        }
+        } 
 
         SetImageAlpha(1);
     }
