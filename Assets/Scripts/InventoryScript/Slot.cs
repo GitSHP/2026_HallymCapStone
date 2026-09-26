@@ -39,6 +39,8 @@ public class Slot : MonoBehaviour
             itemTextCount.text = "0";   // 아이템의 갯수는 의미가 없으므로 String 타입의 0으로 초기화
             itemCountImage.SetActive(false);    // 아이템 갯수 이미지가 보이지 않도록 설정
         }
+
+        SetImageAlpha(1);
     }
 
     public void SetSlotCount(int _count)    // 현재 슬롯의 아이템 갯수를 업데이트해주는 함수
@@ -55,8 +57,9 @@ public class Slot : MonoBehaviour
     private void ClearSlot() // 현재 슬롯에 저장된 아이템을 삭제하는 함수
     {
         item = null;    // 현재 저장된 아이템 정보를 삭제하고
-        itemCount = 0;  // 아이템과 관련된 모든 정보를 초기화(아이템 갯수, 이미지, 텍스트 UI)
+        itemCount = 0;  // 아이템과 관련된 모든 정보를 초기화(아이템 갯수, 이미지, 텍스트 UI, 이미지 투명도)
         itemImage.sprite = null;
+        SetImageAlpha(0);
 
         itemTextCount.text = "0";
         itemCountImage.SetActive(false);    // 마지막으로 아이템 갯수 UI가 보이지 않도록 설정
