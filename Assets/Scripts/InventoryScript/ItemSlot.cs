@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -58,11 +56,11 @@ public class Slot : MonoBehaviour
     private void ClearSlot() // 현재 슬롯에 저장된 아이템을 삭제하는 함수
     {
         item = null;    // 현재 저장된 아이템 정보를 삭제하고
-        itemCount = 0;  // 아이템과 관련된 모든 정보를 초기화(아이템 갯수, 이미지, 텍스트 UI, 이미지 투명도)
+        itemCount = 0;  // 아이템과 관련된 모든 정보(아이템 갯수, 이미지, 텍스트 UI, 이미지 투명도)를 초기화 후 UI에서 보이지 않도록 함
         itemImage.sprite = null;
         SetImageAlpha(0);
-
         itemTextCount.text = "0";
+        
         itemCountImage.SetActive(false);    // 마지막으로 아이템 갯수 UI가 보이지 않도록 설정
     }
 }
