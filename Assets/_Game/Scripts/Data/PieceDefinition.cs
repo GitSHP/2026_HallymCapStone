@@ -25,6 +25,10 @@ namespace Gambonanza.Data
         public int moveApCost = 1;
         [Tooltip("Action points spent to deploy it from the deck.")]
         public int deployApCost = 1;
+        [Tooltip("Gold price when this piece is offered in the shop.")]
+        [Min(0)] public int shopCost = 3;
+        [Tooltip("Higher weight appears in the shop more often. Zero keeps it out of the shop entirely.")]
+        [Min(0f)] public float shopWeight = 1f;
 
         [Header("Combat")]
         public int maxHp = 3;

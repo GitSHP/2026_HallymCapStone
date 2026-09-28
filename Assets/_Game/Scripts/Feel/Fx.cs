@@ -61,7 +61,10 @@ namespace Gambonanza.Feel
         /// <summary>Drops a piece onto a square: settle, punch, and shake the board underneath it.</summary>
         public static Sequence Drop(Transform piece, Vector3 worldTarget, Transform boardRoot, float baseScale = 1f)
         {
-            Tween.LocalRotation(piece, Quaternion.identity, P.dropDuration, Ease.OutQuad);
+            // Only straighten a piece that was actually tilted; tweening a value
+            // to itself is wasted work and PrimeTween warns about it.
+            if (piece.localRotation != Quaternion.identity)
+                Tween.LocalRotation(piece, Quaternion.identity, P.dropDuration, Ease.OutQuad);
 
             var seq = Sequence.Create()
                 .Group(Tween.Position(piece, worldTarget, P.dropDuration, P.dropEase))
@@ -112,6 +115,35 @@ namespace Gambonanza.Feel
                 .Chain(Tween.Position(attacker, origin, P.lungeDuration * 1.4f, Ease.OutBack));
         }
 
+        /// <summary>
+        /// Capture and advance as one motion: lunge in, take the piece, settle on
+        /// the square. Kept in a single sequence because two position tweens on
+        /// one transform fight, and the longer one wins — which parked the
+        /// attacker wherever the cursor happened to be.
+        /// </summary>
+        public static Sequence CaptureAdvance(Transform attacker, Vector3 victimWorld, Vector3 destination,
+            Transform boardRoot, float baseScale, Action onImpact = null)
+        {
+            var dir = (victimWorld - attacker.position).normalized;
+            var peak = attacker.position + dir * P.lungeDistance;
+
+            if (attacker.localRotation != Quaternion.identity)
+                Tween.LocalRotation(attacker, Quaternion.identity, P.lungeDuration, Ease.OutQuad);
+
+            return Sequence.Create()
+                .Chain(Tween.Position(attacker, peak, P.lungeDuration, Ease.OutQuad))
+                .ChainCallback(() => onImpact?.Invoke())
+                .Chain(Tween.Position(attacker, destination, P.dropDuration, P.dropEase))
+                .Group(Tween.Scale(attacker, baseScale, P.dropDuration, P.dropEase))
+                .ChainCallback(() =>
+                {
+                    Tween.PunchScale(attacker, new ShakeSettings(
+                        P.dropPunchStrength, P.dropPunchDuration, P.dropPunchFrequency));
+                    if (boardRoot != null)
+                        ShakeBoard(boardRoot);
+                });
+        }
+
         public static void HitFlash(SpriteRenderer sr, Color baseColor)
         {
             Tween.Color(sr, P.hitFlashColor, P.hitFlashDuration, Ease.OutQuad, cycles: 2,
@@ -127,6 +159,11 @@ namespace Gambonanza.Feel
                 .Group(Tween.LocalRotation(t, Quaternion.Euler(0f, 0f, P.deathSpinDegrees), P.deathDuration, Ease.InQuad))
                 .ChainCallback(() => onComplete?.Invoke());
         }
+
+        /// <summary>A plain slide to another square, staggered so a wave reads as a wave.</summary>
+        public static void StepTo(Transform t, Vector3 worldTarget, int index = 0)
+            => Tween.Position(t, worldTarget, P.dropDuration * 1.6f, Ease.InOutQuad,
+                startDelay: index * P.spawnStagger);
 
         // ---------- Spawn ----------
 

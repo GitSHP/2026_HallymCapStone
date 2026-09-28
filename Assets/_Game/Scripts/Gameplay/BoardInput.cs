@@ -59,6 +59,15 @@ namespace Gambonanza.Gameplay
             if (worldCamera == null)
                 return;
 
+            // An overlay screen is up: drop the hover so the board does not sit
+            // lit under a menu the player is actually looking at.
+            if (!InputGate.WorldInputEnabled)
+            {
+                HoveredCoord = Coord.Invalid;
+                _grid.SetHover(Coord.Invalid);
+                return;
+            }
+
             var screen = _pointAction.ReadValue<Vector2>();
             // Distance from the camera to the board plane (z = 0 in a 2D scene).
             float depth = -worldCamera.transform.position.z;

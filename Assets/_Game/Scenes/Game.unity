@@ -422,6 +422,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &857455060
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 857455062}
+  - component: {fileID: 857455061}
+  m_Layer: 0
+  m_Name: HUD
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &857455061
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 857455060}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5c07b7905f3d1548a168f280cacd2c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.UI.HudView
+--- !u!4 &857455062
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 857455060}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1641209534
 GameObject:
   m_ObjectHideFlags: 0
@@ -437,6 +481,14 @@ GameObject:
   - component: {fileID: 1641209540}
   - component: {fileID: 1641209539}
   - component: {fileID: 1641209538}
+  - component: {fileID: 1641209547}
+  - component: {fileID: 1641209546}
+  - component: {fileID: 1641209545}
+  - component: {fileID: 1641209544}
+  - component: {fileID: 1641209543}
+  - component: {fileID: 1641209542}
+  - component: {fileID: 1641209548}
+  - component: {fileID: 1641209549}
   m_Layer: 0
   m_Name: Board
   m_TagString: Untagged
@@ -503,27 +555,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.DebugStageSetup
   placements:
-  - definition: {fileID: 11400000, guid: 4673ccbc3890e1143b1bce35a79076e4, type: 2}
-    team: 0
-    coord: {x: 3, y: 0}
-  - definition: {fileID: 11400000, guid: 9ec2daed356162a47bb402d293a0c8a9, type: 2}
-    team: 0
-    coord: {x: 0, y: 0}
-  - definition: {fileID: 11400000, guid: 1c48c9228ef6cc14d96083af0e1804a1, type: 2}
-    team: 0
-    coord: {x: 1, y: 0}
-  - definition: {fileID: 11400000, guid: 54f87a6fd608e8241ae3ae1dd82ee643, type: 2}
-    team: 0
-    coord: {x: 2, y: 0}
-  - definition: {fileID: 11400000, guid: d78b5575554df5742a56e92de4d2e10f, type: 2}
-    team: 0
-    coord: {x: 4, y: 0}
-  - definition: {fileID: 11400000, guid: f67a518ee14ae324484f9ab773792fbc, type: 2}
-    team: 0
-    coord: {x: 2, y: 1}
-  - definition: {fileID: 11400000, guid: f67a518ee14ae324484f9ab773792fbc, type: 2}
-    team: 0
-    coord: {x: 5, y: 1}
   - definition: {fileID: 11400000, guid: 9a27053adb279ae4ca9ef6b909d2b154, type: 2}
     team: 1
     coord: {x: 3, y: 4}
@@ -570,6 +601,113 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1a10a54ca1076e43b59047e632164c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Core.BoardState
+--- !u!114 &1641209542
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1641209534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a17819ff0d418f4c85c8c31506f2394, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.StageDirector
+  stage: {fileID: 11400000, guid: 67bbabed91c91ce4dab09054de5c1185, type: 2}
+  phaseDelay: 0.35
+  enemyResolveDelay: 0.5
+--- !u!114 &1641209543
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1641209534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e0db9dd6ad81ee47b1cfcceea2af28b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.DeployController
+  deployRows: 3
+--- !u!114 &1641209544
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1641209534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 836795b9fe2f14b44bcbb4bd9cc3b7e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.EnemyMover
+  moveDiagonally: 1
+--- !u!114 &1641209545
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1641209534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd8560f03209b9e4793bfddd0aa0dcb0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.WaveSpawner
+  spawnRows: 2
+--- !u!114 &1641209546
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1641209534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54b384eb4581c1d43beb9290073c0bb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.CombatResolver
+--- !u!114 &1641209547
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1641209534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65bf33664d901294c89af8ebeb613428, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.TurnManager
+--- !u!114 &1641209548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1641209534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a63cb066b4fa1040b309220aeeb5f88, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.ShopLauncher
+  shopPool: {fileID: 11400000, guid: e69e65240b3e41a418db6c7eb3c651a9, type: 2}
+  clearReward: 6
+  shopDelay: 1.1
+  nextSceneName: 
+--- !u!114 &1641209549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1641209534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5368392b5bc5cc4ea7ff9caedc0cdd6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.DevTools
+  visibleOnStart: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -578,3 +716,4 @@ SceneRoots:
   - {fileID: 1641209537}
   - {fileID: 428452573}
   - {fileID: 757462777}
+  - {fileID: 857455062}

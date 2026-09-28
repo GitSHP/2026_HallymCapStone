@@ -19,6 +19,8 @@ MonoBehaviour:
   enemyColor: {r: 0.25, g: 0.22, b: 0.28, a: 1}
   moveApCost: 1
   deployApCost: 3
+  shopCost: 5
+  shopWeight: 1
   maxHp: 3
   attack: 2
   isObjective: 0

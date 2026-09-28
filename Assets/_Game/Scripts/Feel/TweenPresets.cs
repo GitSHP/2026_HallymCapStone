@@ -57,6 +57,36 @@ namespace Gambonanza.Feel
         public Ease spawnEase = Ease.InQuad;
         public float spawnStagger = 0.06f;
 
+        [Header("UI — Screen")]
+        public float uiBackdropFade = 0.22f;
+        public float uiPanelIn = 0.34f;
+        public float uiPanelOut = 0.18f;
+        public Vector3 uiPanelFromScale = new Vector3(0.92f, 0.92f, 1f);
+        public Ease uiPanelInEase = Ease.OutBack;
+        public Ease uiPanelOutEase = Ease.InQuad;
+
+        [Header("UI — Cards")]
+        public float uiCardIn = 0.3f;
+        public float uiCardStagger = 0.05f;
+        public float uiCardFromOffsetY = -40f;
+        public Ease uiCardInEase = Ease.OutBack;
+
+        [Header("UI — Interaction")]
+        public float uiHoverScale = 1.05f;
+        public float uiHoverLift = 10f;
+        public float uiHoverDuration = 0.14f;
+        public float uiPressScale = 0.95f;
+        public float uiPressDuration = 0.07f;
+
+        [Header("UI — Feedback")]
+        public Vector3 uiPunchStrength = new Vector3(0.14f, 0.14f, 0f);
+        public float uiPunchDuration = 0.35f;
+        public float uiPunchFrequency = 10f;
+        public Vector3 uiDenyShake = new Vector3(14f, 0f, 0f);
+        public float uiDenyDuration = 0.3f;
+        public float uiDenyFrequency = 18f;
+        public float uiCountDuration = 0.4f;
+
         [Header("Global")]
         public float hitStopDuration = 0.08f;
     }

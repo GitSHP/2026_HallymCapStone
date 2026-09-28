@@ -391,6 +391,103 @@ PlayerSettings:
       m_Height: 36
       m_Kind: 0
       m_SubKind: 
+  - m_BuildTarget: iPhone
+    m_Icons:
+    - m_Textures: []
+      m_Width: 180
+      m_Height: 180
+      m_Kind: 0
+      m_SubKind: iPhone
+    - m_Textures: []
+      m_Width: 120
+      m_Height: 120
+      m_Kind: 0
+      m_SubKind: iPhone
+    - m_Textures: []
+      m_Width: 167
+      m_Height: 167
+      m_Kind: 0
+      m_SubKind: iPad
+    - m_Textures: []
+      m_Width: 152
+      m_Height: 152
+      m_Kind: 0
+      m_SubKind: iPad
+    - m_Textures: []
+      m_Width: 76
+      m_Height: 76
+      m_Kind: 0
+      m_SubKind: iPad
+    - m_Textures: []
+      m_Width: 120
+      m_Height: 120
+      m_Kind: 3
+      m_SubKind: iPhone
+    - m_Textures: []
+      m_Width: 80
+      m_Height: 80
+      m_Kind: 3
+      m_SubKind: iPhone
+    - m_Textures: []
+      m_Width: 80
+      m_Height: 80
+      m_Kind: 3
+      m_SubKind: iPad
+    - m_Textures: []
+      m_Width: 40
+      m_Height: 40
+      m_Kind: 3
+      m_SubKind: iPad
+    - m_Textures: []
+      m_Width: 87
+      m_Height: 87
+      m_Kind: 1
+      m_SubKind: iPhone
+    - m_Textures: []
+      m_Width: 58
+      m_Height: 58
+      m_Kind: 1
+      m_SubKind: iPhone
+    - m_Textures: []
+      m_Width: 29
+      m_Height: 29
+      m_Kind: 1
+      m_SubKind: iPhone
+    - m_Textures: []
+      m_Width: 58
+      m_Height: 58
+      m_Kind: 1
+      m_SubKind: iPad
+    - m_Textures: []
+      m_Width: 29
+      m_Height: 29
+      m_Kind: 1
+      m_SubKind: iPad
+    - m_Textures: []
+      m_Width: 60
+      m_Height: 60
+      m_Kind: 2
+      m_SubKind: iPhone
+    - m_Textures: []
+      m_Width: 40
+      m_Height: 40
+      m_Kind: 2
+      m_SubKind: iPhone
+    - m_Textures: []
+      m_Width: 40
+      m_Height: 40
+      m_Kind: 2
+      m_SubKind: iPad
+    - m_Textures: []
+      m_Width: 20
+      m_Height: 20
+      m_Kind: 2
+      m_SubKind: iPad
+    - m_Textures: []
+      m_Width: 1024
+      m_Height: 1024
+      m_Kind: 4
+      m_SubKind: App Store
   m_BuildTargetBatching: []
   m_BuildTargetShaderSettings: []
   m_BuildTargetGraphicsJobs: []
@@ -679,7 +776,26 @@ PlayerSettings:
   webGLCloseOnQuit: 0
   webWasm2023: 0
   webEnableSubmoduleStrippingCompatibility: 0
-  scriptingDefineSymbols: {}
+  scriptingDefineSymbols:
+    Android: UNITY_MCP_READY;UNITY_MCP_DEPS_6
+    EmbeddedLinux: UNITY_MCP_READY;UNITY_MCP_DEPS_6
+    GameCoreScarlett: UNITY_MCP_READY;UNITY_MCP_DEPS_6
+    GameCoreXboxOne: UNITY_MCP_READY;UNITY_MCP_DEPS_6
+    Kepler: UNITY_MCP_READY;UNITY_MCP_DEPS_6
+    LinuxHeadlessSimulation: UNITY_MCP_READY;UNITY_MCP_DEPS_6
+    Nintendo Switch: UNITY_MCP_READY;UNITY_MCP_DEPS_6
+    Nintendo Switch 2: UNITY_MCP_READY;UNITY_MCP_DEPS_6
+    PS4: UNITY_MCP_READY;UNITY_MCP_DEPS_6
+    PS5: UNITY_MCP_READY;UNITY_MCP_DEPS_6
+    QNX: UNITY_MCP_READY;UNITY_MCP_DEPS_6
+    Server: UNITY_MCP_READY;UNITY_MCP_DEPS_6
+    Standalone: UNITY_MCP_READY;UNITY_MCP_DEPS_6
+    VisionOS: UNITY_MCP_READY;UNITY_MCP_DEPS_6
+    WebGL: UNITY_MCP_READY;UNITY_MCP_DEPS_6
+    Windows Store Apps: UNITY_MCP_READY;UNITY_MCP_DEPS_6
+    XboxOne: UNITY_MCP_READY;UNITY_MCP_DEPS_6
+    iPhone: UNITY_MCP_READY;UNITY_MCP_DEPS_6
+    tvOS: UNITY_MCP_READY;UNITY_MCP_DEPS_6
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:

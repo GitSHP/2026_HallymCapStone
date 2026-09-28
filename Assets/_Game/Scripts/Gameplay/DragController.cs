@@ -20,6 +20,8 @@ namespace Gambonanza.Gameplay
         BoardState _state;
         BoardInput _input;
         PieceRegistry _registry;
+        TurnManager _turn;
+        CombatResolver _combat;
 
         readonly List<MoveOption> _options = new();
 
@@ -29,16 +31,31 @@ namespace Gambonanza.Gameplay
 
         public bool IsDragging => _dragged != null;
 
-        void Awake()
+        void Awake() => Resolve();
+
+        void Resolve()
         {
-            _grid = GetComponent<BoardGrid>();
-            _state = GetComponent<BoardState>();
-            _input = GetComponent<BoardInput>();
-            _registry = GetComponent<PieceRegistry>();
+            if (_grid == null) _grid = GetComponent<BoardGrid>();
+            if (_state == null) _state = GetComponent<BoardState>();
+            if (_input == null) _input = GetComponent<BoardInput>();
+            if (_registry == null) _registry = GetComponent<PieceRegistry>();
+            if (_turn == null) _turn = GetComponent<TurnManager>();
+            if (_combat == null) _combat = GetComponent<CombatResolver>();
         }
 
         void Update()
         {
+            Resolve();
+
+            if (!InputGate.WorldInputEnabled)
+            {
+                // A screen opened mid-drag: put the piece back rather than leaving
+                // it stranded under the overlay.
+                if (_dragged != null)
+                    CancelDrag();
+                return;
+            }
+
             if (_input.PressedThisFrame)
                 TryBeginDrag();
 
@@ -59,6 +76,10 @@ namespace Gambonanza.Gameplay
 
             var piece = _state.GetPiece(coord);
             if (piece == null || piece.Team != controlledTeam)
+                return;
+
+            // Moving is a turn action: only on the player's turn, only if affordable.
+            if (_turn != null && !_turn.CanAfford(piece.Def.moveApCost))
                 return;
 
             var view = _registry.GetView(piece);
@@ -86,6 +107,15 @@ namespace Gambonanza.Gameplay
                 _dragged.transform.position, _ghostTarget, Time.deltaTime);
         }
 
+        void CancelDrag()
+        {
+            var view = _dragged;
+            _dragged = null;
+            _grid.ClearHighlights();
+            view.SetSortingBoost(false);
+            Fx.Drop(view.transform, _grid.CoordToWorld(_dragOrigin), transform, view.BaseScale);
+        }
+
         void EndDrag()
         {
             var view = _dragged;
@@ -109,22 +139,40 @@ namespace Gambonanza.Gameplay
 
             MoveResolver.IsLegalTarget(_options, target, out var option);
 
-            if (option.isCapture)
+            // The action is paid for whether or not the blow finishes the target.
+            if (_turn != null && !_turn.TrySpend(piece.Def.moveApCost))
             {
-                var victim = _state.GetPiece(target);
-                if (victim != null)
-                {
-                    var victimView = _registry.GetView(victim);
-                    if (victimView != null)
-                        victimView.Flash();
-
-                    _registry.Kill(victim);
-                    Fx.HitStop();
-                }
+                Fx.Drop(view.transform, _grid.CoordToWorld(_dragOrigin), transform, view.BaseScale);
+                return;
             }
+
+            if (option.isCapture && _combat != null)
+            {
+                // The resolver moves the piece and animates the whole capture,
+                // so the drag must not start a competing move of its own.
+                _combat.CaptureInto(piece, _state.GetPiece(target), target);
+                return;
+            }
+
+            if (option.isCapture)
+                KillOutright(_state.GetPiece(target));
 
             _state.Move(piece, target);
             Fx.Drop(view.transform, _grid.CoordToWorld(target), transform, view.BaseScale);
+        }
+
+        bool KillOutright(Piece victim)
+        {
+            if (victim == null)
+                return false;
+
+            var victimView = _registry.GetView(victim);
+            if (victimView != null)
+                victimView.Flash();
+
+            _registry.Kill(victim);
+            Fx.HitStop();
+            return true;
         }
 
         void ShowOptions()
