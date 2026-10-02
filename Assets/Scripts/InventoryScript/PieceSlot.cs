@@ -2,8 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-
-public class PieceSlot : MonoBehaviour
+public class PieceSlot : Slot
 {
     public ItemData piece; // 인벤토리에 저장할 아이템
     public int pieceCount; // 저장된 아이템의 갯수

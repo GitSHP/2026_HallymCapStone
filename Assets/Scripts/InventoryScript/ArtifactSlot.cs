@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ArtifactSlot : MonoBehaviour
+public class ArtifactSlot : Slot
 {
     public ItemData artifact;
     public Image artifactImage;
