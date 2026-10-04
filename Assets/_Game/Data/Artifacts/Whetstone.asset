@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e16d97468c9bbe4ea09bff5645599a2, type: 3}
   m_Name: Whetstone
   m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Data.ArtifactDefinition
-  displayName: Whetstone
+  displayName: "\uC22B\uB3CC"
   icon: 8
   art: {fileID: 0}
-  description: Every unit deals +1 damage.
+  description: "\uBAA8\uB4E0 \uAE30\uBB3C\uC758 \uD53C\uD574\uB7C9 +1."
   accentColor: {r: 0.435, g: 0.659, b: 1, a: 1}
   effects:
   - icon: 8

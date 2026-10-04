@@ -21,7 +21,7 @@ namespace Gambonanza.UI
             return FromGlyph(piece.glyph);
         }
 
-        const string Fallback = "A new unit for your deck.";
+        const string Fallback = "덱에 추가할 새 기물.";
 
         static string FromGlyph(string glyph)
         {
@@ -30,12 +30,12 @@ namespace Gambonanza.UI
 
             switch (char.ToUpperInvariant(glyph[0]))
             {
-                case 'P': return "Steps forward one square.\nCaptures diagonally.";
-                case 'N': return "Leaps in an L shape.\nJumps over anything.";
-                case 'B': return "Slides any distance\nalong the diagonals.";
-                case 'R': return "Slides any distance\nin straight lines.";
-                case 'Q': return "Slides any distance\nin every direction.";
-                case 'K': return "Your objective.\nProtect it at all costs.";
+                case 'P': return "앞으로 한 칸 전진.\n대각선으로 잡는다.";
+                case 'N': return "L자 모양으로 도약.\n무엇이든 뛰어넘는다.";
+                case 'B': return "대각선으로\n원하는 만큼 이동.";
+                case 'R': return "직선으로\n원하는 만큼 이동.";
+                case 'Q': return "모든 방향으로\n원하는 만큼 이동.";
+                case 'K': return "반드시 지켜야 할 목표.\n적이 닿으면 패배한다.";
                 default: return Fallback;
             }
         }

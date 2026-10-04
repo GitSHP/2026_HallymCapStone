@@ -16,9 +16,14 @@ namespace Gambonanza.Gameplay
         [Tooltip("Ranks from the player's edge that pieces may be placed on.")]
         public int deployRows = 3;
 
+        [Tooltip("Cards that are always in hand once the stage starts and are never used up. " +
+                 "Summoning one still costs its action points.")]
+        public PieceDefinition[] alwaysAvailable = Array.Empty<PieceDefinition>();
+
         public event Action DeckChanged;
 
         readonly List<PieceDefinition> _deck = new();
+        readonly List<bool> _unlimited = new();
 
         public IReadOnlyList<PieceDefinition> Deck => _deck;
         public int SelectedIndex { get; private set; } = -1;
@@ -45,15 +50,38 @@ namespace Gambonanza.Gameplay
             if (_turn == null) _turn = GetComponent<TurnManager>();
         }
 
+        /// <summary>A card that stays in hand after it is summoned.</summary>
+        public bool IsUnlimited(int index) => index >= 0 && index < _unlimited.Count && _unlimited[index];
+
+        /// <summary>
+        /// The king leads the hand, the always-available cards follow, then the rest.
+        /// </summary>
         public void LoadDeck(IEnumerable<PieceDefinition> definitions)
         {
             _deck.Clear();
+            _unlimited.Clear();
+
+            var rest = new List<PieceDefinition>();
             if (definitions != null)
             {
                 foreach (var def in definitions)
-                    if (def != null)
-                        _deck.Add(def);
+                {
+                    if (def == null)
+                        continue;
+
+                    if (def.isObjective)
+                        Add(def, false);
+                    else
+                        rest.Add(def);
+                }
             }
+
+            foreach (var def in alwaysAvailable)
+                if (def != null)
+                    Add(def, true);
+
+            foreach (var def in rest)
+                Add(def, false);
 
             SelectedIndex = -1;
             DeckChanged?.Invoke();
@@ -139,11 +167,22 @@ namespace Gambonanza.Gameplay
 
             Fx.Drop(view.transform, _grid.CoordToWorld(coord), transform, view.BaseScale);
 
-            _deck.RemoveAt(SelectedIndex);
+            if (!IsUnlimited(SelectedIndex))
+            {
+                _deck.RemoveAt(SelectedIndex);
+                _unlimited.RemoveAt(SelectedIndex);
+            }
+
             SelectedIndex = -1;
             _grid.ClearHighlights();
             DeckChanged?.Invoke();
             return true;
+        }
+
+        void Add(PieceDefinition def, bool unlimited)
+        {
+            _deck.Add(def);
+            _unlimited.Add(unlimited);
         }
 
         void ShowDeployableTiles()

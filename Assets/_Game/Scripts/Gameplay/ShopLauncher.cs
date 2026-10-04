@@ -56,7 +56,7 @@ namespace Gambonanza.Gameplay
                 return;
 
             var run = RunState.Instance;
-            string headline = $"Stage {run.StageIndex + 1} cleared   ·   +{clearReward} gold earned";
+            string headline = $"스테이지 {run.StageIndex + 1} 클리어   ·   골드 +{clearReward} 획득";
             ShopScreen.Open(shopPool, headline, GoToNextStage);
         }
 

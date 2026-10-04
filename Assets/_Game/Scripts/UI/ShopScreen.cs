@@ -113,8 +113,8 @@ namespace Gambonanza.UI
 
             BuildHeader(headline);
             BuildWallet();
-            BuildRowLabel("ArtifactLabel", IconId.Crown, "ARTIFACTS", UiTheme.ArtifactAccent, ArtifactLabelY);
-            BuildRowLabel("PieceLabel", IconId.Chevrons, "UNITS", UiTheme.PieceAccent, PieceLabelY);
+            BuildRowLabel("ArtifactLabel", IconId.Crown, "유물", UiTheme.ArtifactAccent, ArtifactLabelY);
+            BuildRowLabel("PieceLabel", IconId.Chevrons, "기물", UiTheme.PieceAccent, PieceLabelY);
             BuildConfirmButton();
         }
 
@@ -130,7 +130,7 @@ namespace Gambonanza.UI
             UiBuilder.Place(bag.rectTransform, UiBuilder.Centre, UiBuilder.Centre,
                 Vector2.zero, new Vector2(40f, 40f));
 
-            var title = UiBuilder.Label("Title", _panel, "SHOP", 30f, UiTheme.Ink,
+            var title = UiBuilder.Label("Title", _panel, "상점", 30f, UiTheme.Ink,
                 TextAlignmentOptions.Left, FontStyles.Bold);
             UiBuilder.Place(title.rectTransform, UiBuilder.TopLeft, UiBuilder.TopLeft,
                 new Vector2(UiTheme.PanelPadding + 88f, -38f), new Vector2(500f, 34f));
@@ -176,7 +176,7 @@ namespace Gambonanza.UI
 
         void BuildConfirmButton()
         {
-            _confirmButton = UiButton.CreateAction(_panel, "Confirm", IconId.Arrow, "NEXT",
+            _confirmButton = UiButton.CreateAction(_panel, "Confirm", IconId.Arrow, "다음",
                 UiBuilder.BottomRight, UiBuilder.BottomRight,
                 new Vector2(-UiTheme.PanelPadding, 34f), new Vector2(230f, 76f),
                 UiTheme.Confirm, UiTheme.InkOnAccent);
@@ -253,12 +253,12 @@ namespace Gambonanza.UI
             if (_artifactOf.TryGetValue(card, out var artifact))
             {
                 _run.AddArtifact(artifact);
-                card.MarkSold("OWNED");
+                card.MarkSold("보유 중");
             }
             else if (_pieceOf.TryGetValue(card, out var piece))
             {
                 _run.AddPiece(piece);
-                card.MarkSold("ADDED");
+                card.MarkSold("추가됨");
             }
 
             RefreshAffordability();

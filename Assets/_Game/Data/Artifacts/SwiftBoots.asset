@@ -12,10 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e16d97468c9bbe4ea09bff5645599a2, type: 3}
   m_Name: SwiftBoots
   m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Data.ArtifactDefinition
-  displayName: Swift Boots
+  displayName: "\uB0A0\uB79C \uC7A5\uD654"
   icon: 9
   art: {fileID: 0}
-  description: One unit may move twice per turn.
+  description: "\uAE30\uBB3C \uD558\uB098\uAC00 \uD55C \uD134\uC5D0 \uB450 \uBC88
+    \uC6C0\uC9C1\uC77C \uC218 \uC788\uB2E4."
   accentColor: {r: 0.271, g: 0.784, b: 1, a: 1}
   effects:
   - icon: 9

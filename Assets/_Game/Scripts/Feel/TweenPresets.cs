@@ -87,6 +87,17 @@ namespace Gambonanza.Feel
         public float uiDenyFrequency = 18f;
         public float uiCountDuration = 0.4f;
 
+        [Header("Map")]
+        public float mapPulseScale = 1.18f;
+        public float mapPulseDuration = 0.6f;
+        public Ease mapPulseEase = Ease.InOutSine;
+
+        [Header("Story")]
+        public float storyFadeDuration = 0.5f;
+        public Ease storyFadeEase = Ease.OutQuad;
+        public float curtainFadeDuration = 0.8f;
+        public Ease curtainFadeEase = Ease.InOutQuad;
+
         [Header("Global")]
         public float hitStopDuration = 0.08f;
     }

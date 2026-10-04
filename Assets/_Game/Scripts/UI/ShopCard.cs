@@ -186,7 +186,7 @@ namespace Gambonanza.UI
             UiBuilder.Place(tick.rectTransform, UiBuilder.Centre, UiBuilder.Centre,
                 new Vector2(0f, 20f), new Vector2(68f, 68f));
 
-            _soldLabel = UiBuilder.Label("SoldText", overlay.transform, "OWNED", 20f, UiTheme.InkFaint,
+            _soldLabel = UiBuilder.Label("SoldText", overlay.transform, "보유 중", 20f, UiTheme.InkFaint,
                 TextAlignmentOptions.Center, FontStyles.Bold);
             UiBuilder.Place(_soldLabel.rectTransform, UiBuilder.Centre, UiBuilder.Centre,
                 new Vector2(0f, -44f), new Vector2(UiTheme.CardWidth - 32f, 28f));
@@ -226,7 +226,7 @@ namespace Gambonanza.UI
             }
         }
 
-        public void MarkSold(string label = "OWNED")
+        public void MarkSold(string label = "보유 중")
         {
             if (Sold)
                 return;

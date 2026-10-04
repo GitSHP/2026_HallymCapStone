@@ -160,6 +160,36 @@ namespace Gambonanza.Feel
                 .ChainCallback(() => onComplete?.Invoke());
         }
 
+        /// <summary>
+        /// Slow breathing on something the player can pick next, such as a map node.
+        /// Loops until stopped or until the object is destroyed.
+        /// </summary>
+        public static Tween Breathe(Transform t, float baseScale = 1f)
+        {
+            t.localScale = Vector3.one * baseScale;
+            return Tween.Scale(t, baseScale * P.mapPulseScale, P.mapPulseDuration, P.mapPulseEase,
+                -1, CycleMode.Yoyo);
+        }
+
+        /// <summary>
+        /// Fades a picture in over whatever is behind it. Starts faint rather than at
+        /// zero so a cancelled tween still leaves the picture on screen.
+        /// </summary>
+        public static Tween FadeIn(UnityEngine.UI.Graphic graphic)
+            => Tween.Alpha(graphic, StoryFadeStartAlpha, 1f, P.storyFadeDuration, P.storyFadeEase,
+                useUnscaledTime: true);
+
+        const float StoryFadeStartAlpha = 0.15f;
+
+        /// <summary>Eases a graphic's opacity to a level, such as a shade deepening behind a scene.</summary>
+        public static Tween FadeTo(UnityEngine.UI.Graphic graphic, float alpha)
+            => Tween.Alpha(graphic, alpha, P.storyFadeDuration, P.storyFadeEase, useUnscaledTime: true);
+
+        /// <summary>Lifts a full-screen cover, then switches it off.</summary>
+        public static Tween FadeOutCurtain(CanvasGroup curtain)
+            => Tween.Alpha(curtain, 0f, P.curtainFadeDuration, P.curtainFadeEase, useUnscaledTime: true)
+                .OnComplete(curtain, c => c.gameObject.SetActive(false));
+
         /// <summary>A plain slide to another square, staggered so a wave reads as a wave.</summary>
         public static void StepTo(Transform t, Vector3 worldTarget, int index = 0)
             => Tween.Position(t, worldTarget, P.dropDuration * 1.6f, Ease.InOutQuad,

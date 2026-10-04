@@ -1,0 +1,134 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8dad39bead1085f4abe2454a2105430b, type: 3}
+  m_Name: TutorialScript
+  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Tutorial.TutorialScript
+  speakerName: "\uC548\uB0B4\uC778"
+  portrait: {fileID: 21300000, guid: f3ac0ab8b2e6fac4da9e5d63d6d8eda5, type: 3}
+  storyBackground: {fileID: 21300000, guid: 16c51a37d6df0b2419b13f26eaa7d12d, type: 3}
+  storyBackgroundShade: 0.8
+  stage: {fileID: 11400000, guid: 7c8277538303a3a4ca24dc23742a5060, type: 2}
+  charactersPerSecond: 40
+  steps:
+  - text: "\uC548\uB155\uD558\uC138\uC694! \uC800\uB294 \uC774\uACF3\uC758 \uC548\uB0B4\uB97C
+      \uB9E1\uC740 \uC548\uB0B4\uC778\uC774\uC5D0\uC694.\n\uCC98\uC74C \uC624\uC168\uAD70\uC694?
+      \uC81C\uAC00 \uCC28\uADFC\uCC28\uADFC \uC54C\uB824 \uB4DC\uB9B4\uAC8C\uC694."
+    wait: 0
+    action: 0
+    portrait: {fileID: -367406339, guid: b5bc08d628e02d44e8bc2fd1fa99b589, type: 3}
+    storyFrame: {fileID: 0}
+    coverBoard: 1
+  - text: "(\uC138\uACC4\uAD00 \uC124\uBA85 1 \u2014 \uCCAB \uBC88\uC9F8 \uCEF7\uC5D0
+      \uB9DE\uB294 \uB300\uC0AC\uB97C \uC9C1\uC811 \uC785\uB825\uD558\uC138\uC694)"
+    wait: 0
+    action: 0
+    portrait: {fileID: 0}
+    storyFrame: {fileID: 21300000, guid: 17eb8149017e17d4a8dddd8bd91af73f, type: 3}
+    coverBoard: 1
+  - text: "(\uC138\uACC4\uAD00 \uC124\uBA85 2 \u2014 \uB450 \uBC88\uC9F8 \uCEF7\uC5D0
+      \uB9DE\uB294 \uB300\uC0AC\uB97C \uC9C1\uC811 \uC785\uB825\uD558\uC138\uC694)"
+    wait: 0
+    action: 0
+    portrait: {fileID: 0}
+    storyFrame: {fileID: 21300000, guid: c2b393d693b5a8649bd248b06ddfbd13, type: 3}
+    coverBoard: 1
+  - text: "(\uC138\uACC4\uAD00 \uC124\uBA85 3 \u2014 \uC138 \uBC88\uC9F8 \uCEF7\uC5D0
+      \uB9DE\uB294 \uB300\uC0AC\uB97C \uC9C1\uC811 \uC785\uB825\uD558\uC138\uC694)"
+    wait: 0
+    action: 0
+    portrait: {fileID: 0}
+    storyFrame: {fileID: 21300000, guid: 42a703151f6bbae4aa21644578ae24c8, type: 3}
+    coverBoard: 1
+  - text: "(\uC138\uACC4\uAD00 \uC124\uBA85 4 \u2014 \uB124 \uBC88\uC9F8 \uCEF7\uC5D0
+      \uB9DE\uB294 \uB300\uC0AC\uB97C \uC9C1\uC811 \uC785\uB825\uD558\uC138\uC694)"
+    wait: 0
+    action: 0
+    portrait: {fileID: 0}
+    storyFrame: {fileID: 21300000, guid: 103ee5f1caa62804caa5ebd553d1650d, type: 3}
+    coverBoard: 1
+  - text: "\uC557, \uC800\uAE30 \uBCF4\uC138\uC694! \uC801\uC774 \uBAB0\uB824\uC624\uACE0
+      \uC788\uC5B4\uC694!"
+    wait: 0
+    action: 1
+    portrait: {fileID: 1547360486, guid: 3541545db66a39a42b28ccc8f7f73dfb, type: 3}
+    storyFrame: {fileID: 0}
+    coverBoard: 0
+  - text: "\uC801\uC740 \uB9E4 \uD134 \uD0B9\uC744 \uD5A5\uD574 \uD55C \uCE78\uC529
+      \uB2E4\uAC00\uC640\uC694.\n\uC801\uC774 \uD0B9\uC774 \uC788\uB294 \uCE78\uC5D0
+      \uB4E4\uC5B4\uC624\uBA74 \uC6B0\uB9AC\uAC00 \uC9C0\uB294 \uAC70\uC608\uC694."
+    wait: 0
+    action: 0
+    portrait: {fileID: -640357852, guid: 1d348172d9be4b44689ee7eb4831ee7c, type: 3}
+    storyFrame: {fileID: 0}
+    coverBoard: 0
+  - text: "\uBA3C\uC800 \uC6B0\uB9AC\uC758 \uD0B9\uC744 \uB193\uC544\uC57C \uD574\uC694.
+      \uC624\uB978\uCABD \uB371\uC5D0\uC11C \uD0B9\uC744 \uACE0\uB978 \uB4A4, \uC544\uB798\uCABD
+      \uBE5B\uB098\uB294 \uCE78\uC5D0 \uB193\uC544 \uC8FC\uC138\uC694."
+    wait: 1
+    action: 0
+    portrait: {fileID: 0}
+    storyFrame: {fileID: 0}
+    coverBoard: 0
+  - text: "\uC88B\uC544\uC694! \uC774\uC81C \uC624\uB978\uCABD \uC544\uB798 '\uC2A4\uD14C\uC774\uC9C0
+      \uC2DC\uC791' \uBC84\uD2BC\uC744 \uB20C\uB7EC \uC8FC\uC138\uC694."
+    wait: 2
+    action: 0
+    portrait: {fileID: 0}
+    storyFrame: {fileID: 0}
+    coverBoard: 0
+  - text: "\uC804\uD22C\uAC00 \uC2DC\uC791\uB418\uBA74 \uB9E4 \uD134 AP\uB97C \uBC1B\uC544\uC694.\n\uAE30\uBB3C\uC744
+      \uC18C\uD658\uD558\uAC70\uB098 \uC6C0\uC9C1\uC77C \uB54C\uB9C8\uB2E4 AP\uB97C
+      \uC368\uC694."
+    wait: 0
+    action: 0
+    portrait: {fileID: 0}
+    storyFrame: {fileID: 0}
+    coverBoard: 0
+  - text: "\uB371\uC5D0\uC11C \uD3F0\uC744 \uACE0\uB974\uACE0, \uD0B9 \uADFC\uCC98
+      \uBE5B\uB098\uB294 \uCE78\uC5D0 \uC18C\uD658\uD574 \uBCF4\uC138\uC694. (AP
+      1)"
+    wait: 3
+    action: 0
+    portrait: {fileID: 0}
+    storyFrame: {fileID: 0}
+    coverBoard: 0
+  - text: "\uC798\uD588\uC5B4\uC694! \uD3F0\uC740 \uC55E\uC73C\uB85C \uD55C \uCE78\uC529
+      \uC6C0\uC9C1\uC774\uACE0,\n\uB300\uAC01\uC120 \uC55E\uC5D0 \uC788\uB294 \uC801\uC744
+      \uC7A1\uC744 \uC218 \uC788\uC5B4\uC694."
+    wait: 0
+    action: 0
+    portrait: {fileID: -367406339, guid: b5bc08d628e02d44e8bc2fd1fa99b589, type: 3}
+    storyFrame: {fileID: 0}
+    coverBoard: 0
+  - text: "\uD3F0\uC744 \uB354 \uC18C\uD658\uD558\uAC70\uB098 \uC6C0\uC9C1\uC778
+      \uB4A4 '\uD134 \uC885\uB8CC'\uB97C \uB204\uB974\uBA74 \uC801\uC774 \uC6C0\uC9C1\uC5EC\uC694.\n\uC801\uC744
+      \uBAA8\uB450 \uB9C9\uC544 \uB0B4 \uBCF4\uC138\uC694!"
+    wait: 0
+    action: 0
+    portrait: {fileID: 0}
+    storyFrame: {fileID: 0}
+    coverBoard: 0
+  - text: "\uC801\uC744 \uBAA8\uB450 \uC7A1\uACE0 \uD134\uC744 \uC885\uB8CC\uD558\uBA74
+      \uC2B9\uB9AC! (\uD3F0\uC740 \uB300\uAC01\uC120 \uC55E\uC758 \uC801\uC744 \uC7A1\uC544\uC694)"
+    wait: 4
+    action: 0
+    portrait: {fileID: 0}
+    storyFrame: {fileID: 0}
+    coverBoard: 0
+  - text: "\uD6CC\uB96D\uD574\uC694! \uC774\uC81C \uC9C4\uC9DC \uC5EC\uC815\uC744
+      \uB5A0\uB0A0 \uC2DC\uAC04\uC774\uC5D0\uC694.\n\uC9C0\uB3C4\uC5D0\uC11C \uAC08
+      \uAE38\uC744 \uACE8\uB77C \uBCF4\uC138\uC694."
+    wait: 0
+    action: 0
+    portrait: {fileID: -367406339, guid: b5bc08d628e02d44e8bc2fd1fa99b589, type: 3}
+    storyFrame: {fileID: 0}
+    coverBoard: 0

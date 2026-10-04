@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2611255835da264a9b264828cadbb69, type: 3}
+  m_Name: MapConfig
+  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Data.MapConfig
+  floors: 7
+  columns: 5
+  paths: 4
+  shopChance: 0.2
+  firstShopFloor: 2
+  battleStages:
+  - {fileID: 11400000, guid: 67bbabed91c91ce4dab09054de5c1185, type: 2}
+  battleScene: Game

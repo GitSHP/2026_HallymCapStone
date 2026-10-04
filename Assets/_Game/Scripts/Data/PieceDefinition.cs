@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Gambonanza.Data
 {
     /// <summary>
-    /// Everything that makes a piece what it is: art, cost, stats, and how it moves.
+    /// Everything that makes a piece what it is: art, cost, and how it moves.
     /// Swapping in real art later means assigning <see cref="sprite"/> here — no code changes.
     /// </summary>
     [CreateAssetMenu(menuName = "Gambonanza/Piece Definition", fileName = "Piece")]
@@ -29,10 +29,6 @@ namespace Gambonanza.Data
         [Min(0)] public int shopCost = 3;
         [Tooltip("Higher weight appears in the shop more often. Zero keeps it out of the shop entirely.")]
         [Min(0f)] public float shopWeight = 1f;
-
-        [Header("Combat")]
-        public int maxHp = 3;
-        public int attack = 1;
 
         [Header("Role")]
         [Tooltip("The king: it has no HP and is never attacked. Enemies win by stepping onto its tile.")]

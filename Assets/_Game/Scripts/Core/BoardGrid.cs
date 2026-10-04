@@ -20,14 +20,22 @@ namespace Gambonanza.Core
         public Color lightColor = new Color(0.93f, 0.87f, 0.74f);
         public Color darkColor = new Color(0.55f, 0.28f, 0.30f);
 
+        [Header("Board art")]
+        [Tooltip("Optional board picture drawn under the tiles. With it the tiles turn transparent " +
+                 "and only carry highlights. Its pivot must sit at the centre of the 8x8 squares, " +
+                 "and one square must be one unit (Pixels Per Unit = square size in pixels).")]
+        public Sprite boardArt;
+
         [Header("Intro")]
         public bool animateOnStart = true;
 
         public const int TileSortingOrder = 0;
         const string TileRootName = "Tiles";
+        const string ArtName = "BoardArt";
 
         TileView[,] _tiles;
         Transform _tileRoot;
+        SpriteRenderer _art;
         Coord _hoveredCoord = Coord.Invalid;
 
         public bool IsBuilt => _tiles != null;
@@ -48,6 +56,7 @@ namespace Gambonanza.Core
         {
             EnsureTileRoot();
             ClearTiles();
+            EnsureArt();
             _tiles = new TileView[width, height];
 
             for (int y = 0; y < height; y++)
@@ -61,7 +70,8 @@ namespace Gambonanza.Core
                 var tile = go.AddComponent<TileView>();
                 // Standard chessboard parity: a1 (0,0) is a dark square.
                 bool isLight = (x + y) % 2 == 1;
-                tile.Init(coord, isLight ? lightColor : darkColor, TileSortingOrder);
+                var colour = boardArt != null ? Color.clear : (isLight ? lightColor : darkColor);
+                tile.Init(coord, colour, TileSortingOrder);
 
                 _tiles[x, y] = tile;
             }
@@ -88,6 +98,37 @@ namespace Gambonanza.Core
             _tileRoot = go.transform;
         }
 
+        void EnsureArt()
+        {
+            if (_art == null)
+            {
+                var existing = transform.Find(ArtName);
+                if (existing != null)
+                    _art = existing.GetComponent<SpriteRenderer>();
+            }
+
+            if (boardArt == null)
+            {
+                if (_art != null)
+                    _art.enabled = false;
+                return;
+            }
+
+            if (_art == null)
+            {
+                var go = new GameObject(ArtName);
+                go.transform.SetParent(transform, false);
+                _art = go.AddComponent<SpriteRenderer>();
+                _art.sharedMaterial = PlaceholderArt.UnlitMaterial;
+            }
+
+            _art.enabled = true;
+            _art.sprite = boardArt;
+            _art.sortingOrder = TileSortingOrder - 1;
+            _art.transform.localPosition = Vector3.zero;
+            _art.transform.localScale = Vector3.one * tileSize;
+        }
+
         void ClearTiles()
         {
             if (_tileRoot == null)
@@ -107,6 +148,9 @@ namespace Gambonanza.Core
         /// <summary>Tiles pop in from the far corner so the board assembles itself on entry.</summary>
         public void PlayIntro()
         {
+            if (_art != null && _art.enabled)
+                Fx.PopIn(_art.transform, 0, tileSize);
+
             for (int y = 0; y < height; y++)
             for (int x = 0; x < width; x++)
                 Fx.PopIn(_tiles[x, y].transform, x + y);

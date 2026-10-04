@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e16d97468c9bbe4ea09bff5645599a2, type: 3}
   m_Name: IvoryCrown
   m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Data.ArtifactDefinition
-  displayName: Ivory Crown
+  displayName: "\uC0C1\uC544 \uC655\uAD00"
   icon: 13
   art: {fileID: 0}
-  description: 'Your king inspires: +1 action point each turn.'
+  description: "\uD0B9\uC758 \uACA9\uB824: \uB9E4 \uD134 \uD589\uB3D9\uB825 +1."
   accentColor: {r: 0.545, g: 0.494, b: 1, a: 1}
   effects:
   - icon: 9

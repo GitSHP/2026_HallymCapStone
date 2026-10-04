@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Gambonanza.Data;
+using Gambonanza.Map;
 using UnityEngine;
 
 namespace Gambonanza.Core
@@ -48,6 +49,17 @@ namespace Gambonanza.Core
 
         public IReadOnlyList<PieceDefinition> Deck => _deck;
         public IReadOnlyList<ArtifactDefinition> Artifacts => _artifacts;
+
+        /// <summary>This run's map, generated the first time the map scene opens.</summary>
+        public MapData Map { get; set; }
+
+        /// <summary>Every node entered so far, in order. The last one is where the player stands.</summary>
+        public List<int> MapPath { get; } = new();
+
+        public int CurrentMapNode => MapPath.Count > 0 ? MapPath[MapPath.Count - 1] : -1;
+
+        /// <summary>The battle the map sent the player into. Null when the battle scene is opened directly.</summary>
+        public StageDefinition CurrentStage { get; set; }
 
         /// <summary>Raised with (previous, current) so counters can tween between them.</summary>
         public event Action<int, int> GoldChanged;
@@ -124,6 +136,9 @@ namespace Gambonanza.Core
             _initialised = false;
             StageIndex = 0;
             _artifacts.Clear();
+            Map = null;
+            MapPath.Clear();
+            CurrentStage = null;
             Initialise();
             GoldChanged?.Invoke(Gold, Gold);
         }

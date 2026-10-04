@@ -12,10 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e16d97468c9bbe4ea09bff5645599a2, type: 3}
   m_Name: MerchantSeal
   m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Data.ArtifactDefinition
-  displayName: Merchant Seal
+  displayName: "\uC0C1\uC778\uC758 \uC778\uC7A5"
   icon: 10
   art: {fileID: 0}
-  description: Earn +2 gold for every stage cleared.
+  description: "\uC2A4\uD14C\uC774\uC9C0\uB97C \uD074\uB9AC\uC5B4\uD560 \uB54C\uB9C8\uB2E4
+    \uACE8\uB4DC +2."
   accentColor: {r: 0.949, g: 0.737, b: 0.318, a: 1}
   effects:
   - icon: 10

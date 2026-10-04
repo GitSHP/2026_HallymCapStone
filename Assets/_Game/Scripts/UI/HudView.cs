@@ -12,8 +12,8 @@ namespace Gambonanza.UI
 {
     /// <summary>
     /// The stage HUD, built in code so the scene needs no wiring.
-    /// Labels are English on purpose: the default TMP font carries no Korean
-    /// glyphs until a Korean font asset is added to the project.
+    /// Korean renders through the Pretendard fallback registered in TMP Settings,
+    /// so labels can be translated without touching the font setup.
     /// </summary>
     public class HudView : MonoBehaviour
     {
@@ -41,7 +41,7 @@ namespace Gambonanza.UI
 
         void Start()
         {
-            _director = FindFirstObjectByType<StageDirector>();
+            _director = FindAnyObjectByType<StageDirector>();
             if (_director == null)
             {
                 Debug.LogWarning("[HudView] No StageDirector in the scene - HUD disabled.");
@@ -89,7 +89,7 @@ namespace Gambonanza.UI
 
         static void EnsureEventSystem()
         {
-            var existing = FindFirstObjectByType<EventSystem>();
+            var existing = FindAnyObjectByType<EventSystem>();
             if (existing == null)
             {
                 new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
@@ -143,14 +143,14 @@ namespace Gambonanza.UI
             _deckBar = deckPanel;
 
             var deckTitle = MakePanel(root, "DeckTitle", new Vector2(1f, 0.5f), new Vector2(-150f, 360f), new Vector2(220f, 52f));
-            MakeText(deckTitle, "DeckTitleText", 26f).text = "Summon";
+            MakeText(deckTitle, "DeckTitleText", 26f).text = "소환";
 
             var bannerPanel = MakePanel(root, "Banner", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760f, 200f));
             _banner = MakeText(bannerPanel, "BannerText", 64f);
 
             _restart = MakeButton(root, "RestartButton", new Vector2(0.5f, 0.5f), new Vector2(0f, -150f),
                 new Vector2(260f, 76f), out var restartLabel, ReloadStage);
-            restartLabel.text = "Restart";
+            restartLabel.text = "다시 시작";
 
             bannerPanel.gameObject.SetActive(false);
             _restart.gameObject.SetActive(false);
@@ -222,14 +222,14 @@ namespace Gambonanza.UI
 
             _status.text = _turn.Phase == TurnPhase.Deploy
                 ? (_director.KingPlaced
-                    ? "Deploy Phase - place your pieces, then start"
-                    : "Place your KING to begin - pick it from the deck on the right")
-                : "Turn " + _turn.Turn
-                  + "   |   Waves " + _director.WavesSent + "/" + _director.TotalWaves
-                  + "   |   Enemies " + _director.EnemiesOnBoard;
+                    ? "배치 완료 - 스테이지 시작을 누르세요"
+                    : "킹을 배치해야 시작합니다 - 오른쪽 덱에서 선택하세요")
+                : "턴 " + _turn.Turn
+                  + "   |   웨이브 " + _director.WavesSent + "/" + _director.TotalWaves
+                  + "   |   적 " + _director.EnemiesOnBoard;
 
             _ap.text = _turn.Phase == TurnPhase.Deploy
-                ? "Deploy: free"
+                ? "배치: 무료"
                 : "AP  " + _turn.Ap + " / " + _turn.MaxAp;
 
             bool over = _turn.IsOver;
@@ -243,21 +243,22 @@ namespace Gambonanza.UI
                 _action.image.color = interactable ? ButtonIdle : ButtonOff;
 
                 if (_turn.Phase == TurnPhase.Deploy)
-                    _actionLabel.text = _director.KingPlaced ? "Start Stage" : "Place King First";
+                    _actionLabel.text = _director.KingPlaced ? "스테이지 시작" : "킹을 먼저 배치";
                 else if (_turn.Phase == TurnPhase.PlayerTurn)
-                    _actionLabel.text = "End Turn";
+                    _actionLabel.text = "턴 종료";
                 else
-                    _actionLabel.text = "Enemy Turn...";
+                    _actionLabel.text = "적 턴...";
             }
 
             var bannerPanel = _banner.transform.parent.gameObject;
             bannerPanel.SetActive(over);
-            _restart.gameObject.SetActive(over);
+            // A win moves on (shop, or the tutorial's closing lines); only a loss offers a retry.
+            _restart.gameObject.SetActive(_turn.Phase == TurnPhase.Defeat);
 
             if (over)
             {
                 bool won = _turn.Phase == TurnPhase.Victory;
-                _banner.text = won ? "VICTORY" : "DEFEAT";
+                _banner.text = won ? "승리" : "패배";
                 _banner.color = won ? new Color(0.55f, 0.95f, 0.55f) : new Color(1f, 0.45f, 0.45f);
             }
 
@@ -286,7 +287,8 @@ namespace Gambonanza.UI
                 element.preferredHeight = 62f;
 
                 label.fontSize = 22f;
-                label.text = def.displayName + "\n" + def.deployApCost + " AP";
+                label.text = def.displayName + "\n" + def.deployApCost + " AP"
+                             + (_deploy.IsUnlimited(i) ? "  · 상시" : "");
                 _deckButtons.Add(button);
             }
 

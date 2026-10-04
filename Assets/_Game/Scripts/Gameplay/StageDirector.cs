@@ -59,6 +59,12 @@ namespace Gambonanza.Gameplay
             // One frame so the opening board is placed before the stage reads it.
             yield return null;
 
+            // A battle entered from the map brings its own stage; opening this
+            // scene directly keeps the one assigned in the inspector.
+            var chosen = RunState.Instance.CurrentStage;
+            if (chosen != null)
+                stage = chosen;
+
             if (stage == null)
                 stage = BuildStageFromOpeningBoard();
 

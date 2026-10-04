@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e16d97468c9bbe4ea09bff5645599a2, type: 3}
   m_Name: IronBulwark
   m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Data.ArtifactDefinition
-  displayName: Iron Bulwark
+  displayName: "\uAC15\uCCA0 \uBC29\uBCBD"
   icon: 11
   art: {fileID: 0}
-  description: Deployed units start with +1 HP.
+  description: "\uBC30\uCE58\uD55C \uAE30\uBB3C\uC774 \uCCB4\uB825 +1\uB85C \uC2DC\uC791\uD55C\uB2E4."
   accentColor: {r: 0.31, g: 0.765, b: 0.91, a: 1}
   effects:
   - icon: 7

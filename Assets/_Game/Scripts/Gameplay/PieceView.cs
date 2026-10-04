@@ -52,11 +52,13 @@ namespace Gambonanza.Gameplay
                 _label.GetComponent<MeshRenderer>().sortingOrder = PieceSortingOrder + 1;
             }
 
-            transform.localScale = Vector3.one * 0.82f;
+            // Pixel art is drawn one square to one tile; the placeholder disc needs a margin.
+            BaseScale = hasArt ? 1f : 0.82f;
+            transform.localScale = Vector3.one * BaseScale;
             SnapToCoord();
         }
 
-        public float BaseScale => 0.82f;
+        public float BaseScale { get; private set; } = 0.82f;
 
         public void SnapToCoord()
             => transform.position = _grid.CoordToWorld(Piece.Coord);
