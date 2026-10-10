@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Gambonanza.Core
+namespace Promotion.Core
 {
     /// <summary>
     /// Generates the temporary sprites used before real art arrives.

@@ -1,13 +1,13 @@
 using System.Collections;
-using Gambonanza.Core;
-using Gambonanza.Feel;
-using Gambonanza.UI;
+using Promotion.Core;
+using Promotion.Feel;
+using Promotion.UI;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-namespace Gambonanza.Tutorial
+namespace Promotion.Tutorial
 {
     /// <summary>
     /// The tutorial's voice. Two modes:

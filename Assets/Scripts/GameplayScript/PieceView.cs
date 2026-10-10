@@ -1,9 +1,9 @@
-using Gambonanza.Core;
-using Gambonanza.Feel;
+using Promotion.Core;
+using Promotion.Feel;
 using TMPro;
 using UnityEngine;
 
-namespace Gambonanza.Gameplay
+namespace Promotion.Gameplay
 {
     /// <summary>
     /// Visual body of a piece. Reads everything it draws from the PieceDefinition,

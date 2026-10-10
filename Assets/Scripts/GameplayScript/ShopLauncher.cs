@@ -1,11 +1,11 @@
-using Gambonanza.Core;
-using Gambonanza.Data;
-using Gambonanza.UI;
+using Promotion.Core;
+using Promotion.Data;
+using Promotion.UI;
 using PrimeTween;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Gambonanza.Gameplay
+namespace Promotion.Gameplay
 {
     /// <summary>
     /// Opens the shop when the stage is won. It listens for the victory the
@@ -13,6 +13,8 @@ namespace Gambonanza.Gameplay
     /// there is exactly one definition of "the stage is over" in the project.
     /// </summary>
     [RequireComponent(typeof(TurnManager))]
+    // [아이템 담당] 스테이지 승리 시 상점을 여는 진입점. 어떤 ShopPool 을 쓸지는
+    // 씬의 Board 오브젝트 인스펙터에서 지정한다.
     public class ShopLauncher : MonoBehaviour
     {
         [Header("Shop")]

@@ -1,13 +1,13 @@
-using Gambonanza.Core;
-using Gambonanza.Data;
-using Gambonanza.Tutorial;
-using Gambonanza.UI;
+using Promotion.Core;
+using Promotion.Data;
+using Promotion.Tutorial;
+using Promotion.UI;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
-namespace Gambonanza.Title
+namespace Promotion.Title
 {
     /// <summary>
     /// The first screen: logo, title and the three menu buttons. Starting a game

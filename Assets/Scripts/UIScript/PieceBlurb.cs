@@ -1,6 +1,6 @@
-using Gambonanza.Data;
+using Promotion.Data;
 
-namespace Gambonanza.UI
+namespace Promotion.UI
 {
     /// <summary>
     /// One short line per piece, describing how it moves rather than what its
@@ -11,6 +11,7 @@ namespace Gambonanza.UI
     /// Kept here rather than on PieceDefinition because the piece assets belong
     /// to the gameplay side; the shop only needs to describe what it is selling.
     /// </summary>
+    // [아이템 담당] 기물 카드에 뜨는 행마법 설명문. 기물을 추가하면 여기에 한 줄 더한다.
     public static class PieceBlurb
     {
         public static string For(PieceDefinition piece)

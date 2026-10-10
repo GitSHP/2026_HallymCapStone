@@ -1,13 +1,13 @@
-using Gambonanza.Core;
+using Promotion.Core;
 using UnityEngine;
 
-namespace Gambonanza.Data
+namespace Promotion.Data
 {
     /// <summary>
     /// Everything that makes a piece what it is: art, cost, and how it moves.
     /// Swapping in real art later means assigning <see cref="sprite"/> here — no code changes.
     /// </summary>
-    [CreateAssetMenu(menuName = "Gambonanza/Piece Definition", fileName = "Piece")]
+    [CreateAssetMenu(menuName = "Promotion/Piece Definition", fileName = "Piece")]
     public class PieceDefinition : ScriptableObject
     {
         [Header("Identity")]

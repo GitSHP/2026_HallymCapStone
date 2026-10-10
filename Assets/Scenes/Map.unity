@@ -147,7 +147,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 83caebd908a96af48ab8199c896475b4, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Map.MapScreen
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Map.MapScreen
   config: {fileID: 11400000, guid: 0a46d0c261f224f4c9d63ae99b6fbae2, type: 2}
   floorSpacing: 140
   columnSpacing: 210

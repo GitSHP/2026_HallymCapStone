@@ -1,6 +1,6 @@
-using Gambonanza.Data;
+using Promotion.Data;
 
-namespace Gambonanza.Core
+namespace Promotion.Core
 {
     /// <summary>Runtime state of one piece on the board. Pure data — no Unity types.</summary>
     public class Piece

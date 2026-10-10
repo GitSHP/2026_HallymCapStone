@@ -1,11 +1,11 @@
 using System;
-using Gambonanza.Data;
+using Promotion.Data;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace Gambonanza.UI
+namespace Promotion.UI
 {
     /// <summary>
     /// An icon-led button: the symbol carries the meaning and the caption is a

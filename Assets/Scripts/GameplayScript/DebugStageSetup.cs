@@ -1,9 +1,9 @@
 using System;
-using Gambonanza.Core;
-using Gambonanza.Data;
+using Promotion.Core;
+using Promotion.Data;
 using UnityEngine;
 
-namespace Gambonanza.Gameplay
+namespace Promotion.Gameplay
 {
     /// <summary>
     /// Temporary board filler for P2 so movement can be exercised by hand.

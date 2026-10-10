@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using PrimeTween;
 using UnityEngine;
 
-namespace Gambonanza.Feel
+namespace Promotion.Feel
 {
     /// <summary>
     /// The single seam between gameplay and the tween library.

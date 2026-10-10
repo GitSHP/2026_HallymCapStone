@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using Gambonanza.Data;
+using Promotion.Data;
 using UnityEngine;
 
-namespace Gambonanza.Map
+namespace Promotion.Map
 {
     /// <summary>
     /// Builds a branching map the way Slay the Spire does: walk several paths up a

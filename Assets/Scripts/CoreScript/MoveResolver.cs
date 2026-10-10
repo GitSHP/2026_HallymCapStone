@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using Gambonanza.Data;
+using Promotion.Data;
 using UnityEngine;
 
-namespace Gambonanza.Core
+namespace Promotion.Core
 {
     public struct MoveOption
     {

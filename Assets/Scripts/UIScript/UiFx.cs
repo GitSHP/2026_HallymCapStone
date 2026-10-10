@@ -3,13 +3,13 @@ using PrimeTween;
 using TMPro;
 using UnityEngine;
 
-namespace Gambonanza.UI
+namespace Promotion.UI
 {
     /// <summary>
     /// The UI half of the tween seam. Screens describe intent — "this card was
     /// denied", "this panel is entering" — and never name a duration or an ease,
     /// so the whole interface can be retuned from the TweenPresets asset alone.
-    /// Mirrors <see cref="Gambonanza.Feel.Fx"/>, which owns the same job on the board.
+    /// Mirrors <see cref="Promotion.Feel.Fx"/>, which owns the same job on the board.
     /// </summary>
     public static class UiFx
     {

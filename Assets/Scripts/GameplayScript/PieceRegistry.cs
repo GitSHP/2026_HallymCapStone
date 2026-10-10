@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using Gambonanza.Core;
-using Gambonanza.Data;
-using Gambonanza.Feel;
+using Promotion.Core;
+using Promotion.Data;
+using Promotion.Feel;
 using UnityEngine;
 
-namespace Gambonanza.Gameplay
+namespace Promotion.Gameplay
 {
     /// <summary>
     /// Spawns pieces and keeps the link between logical Piece and its PieceView.

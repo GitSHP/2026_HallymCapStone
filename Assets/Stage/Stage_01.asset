@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e41d9406b4d991b4f8bb6cbf37388e1f, type: 3}
   m_Name: Stage_01
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Data.StageDefinition
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Data.StageDefinition
   apPerTurn: 5
   deployRows: 3
   kingDefinition: {fileID: 11400000, guid: 4673ccbc3890e1143b1bce35a79076e4, type: 2}

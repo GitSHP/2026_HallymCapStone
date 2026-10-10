@@ -1,11 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
-using Gambonanza.Core;
-using Gambonanza.Gameplay;
+using Promotion.Core;
+using Promotion.Gameplay;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Gambonanza.Tutorial
+namespace Promotion.Tutorial
 {
     /// <summary>
     /// Runs the tutorial inside the ordinary battle scene. It only talks and waits:

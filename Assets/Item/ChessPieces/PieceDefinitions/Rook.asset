@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e8f5ffa668bab104ebcf0900180ce568, type: 3}
   m_Name: Rook
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Data.PieceDefinition
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Data.PieceDefinition
   displayName: "\uB8E9"
   glyph: R
   sprite: {fileID: 534566094, guid: fc1a88760a585a946aa63ed7cefc2f25, type: 3}

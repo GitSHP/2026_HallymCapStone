@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Gambonanza.Core;
-using Gambonanza.Gameplay;
+using Promotion.Core;
+using Promotion.Gameplay;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -8,7 +8,7 @@ using UnityEngine.InputSystem.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-namespace Gambonanza.UI
+namespace Promotion.UI
 {
     /// <summary>
     /// The stage HUD, built in code so the scene needs no wiring.

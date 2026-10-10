@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d2611255835da264a9b264828cadbb69, type: 3}
   m_Name: MapConfig
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Data.MapConfig
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Data.MapConfig
   floors: 7
   columns: 5
   paths: 4

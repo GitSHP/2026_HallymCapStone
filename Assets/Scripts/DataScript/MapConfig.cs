@@ -1,13 +1,13 @@
 using System;
 using UnityEngine;
 
-namespace Gambonanza.Data
+namespace Promotion.Data
 {
     /// <summary>
     /// How a run's map is generated. The shape and the battle pool are data, so
     /// a longer or denser map is a new asset, not new code.
     /// </summary>
-    [CreateAssetMenu(menuName = "Gambonanza/Map Config", fileName = "MapConfig")]
+    [CreateAssetMenu(menuName = "Promotion/Map Config", fileName = "MapConfig")]
     public class MapConfig : ScriptableObject
     {
         [Header("Shape")]

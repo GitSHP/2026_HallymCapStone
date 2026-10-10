@@ -1,8 +1,8 @@
-using Gambonanza.Core;
+using Promotion.Core;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace Gambonanza.Gameplay
+namespace Promotion.Gameplay
 {
     /// <summary>
     /// Turns pointer position into board coordinates.

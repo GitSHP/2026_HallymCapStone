@@ -1,7 +1,7 @@
-using Gambonanza.Core;
+using Promotion.Core;
 using UnityEngine;
 
-namespace Gambonanza.Gameplay
+namespace Promotion.Gameplay
 {
     /// <summary>
     /// Frames the board for the HUD layout rather than for the raw screen.

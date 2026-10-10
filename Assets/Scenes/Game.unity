@@ -232,7 +232,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0ff2b52be3326ed4e8bd3ae0087fd59f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.Light2DBootstrap
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Gameplay.Light2DBootstrap
 --- !u!1 &515043305
 GameObject:
   m_ObjectHideFlags: 0
@@ -263,7 +263,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a77d97d0798b3d34aab83968c0885239, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.BoardCameraFit
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Gameplay.BoardCameraFit
   board: {fileID: 1641209536}
   topReserve: 0.085
   bottomReserve: 0.14
@@ -371,7 +371,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2cd3417c6c75df14990d4b252ce18556, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Tutorial.TutorialDirector
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Tutorial.TutorialDirector
   nextScene: Map
 --- !u!4 &520416499
 Transform:
@@ -495,7 +495,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b5c07b7905f3d1548a168f280cacd2c5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.UI.HudView
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.UI.HudView
 --- !u!4 &857455062
 Transform:
   m_ObjectHideFlags: 0
@@ -552,7 +552,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0ee23a127fd7f5c49a9ffc4ff933d5ae, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.BoardInput
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Gameplay.BoardInput
   worldCamera: {fileID: 0}
 --- !u!114 &1641209536
 MonoBehaviour:
@@ -565,7 +565,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4549d70886836e048b8a5070d1df5c68, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Core.BoardGrid
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Core.BoardGrid
   width: 8
   height: 8
   tileSize: 1
@@ -599,7 +599,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cfcdfcbc260ace540a2933b3c9c080ae, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.DebugStageSetup
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Gameplay.DebugStageSetup
   placements:
   - definition: {fileID: 11400000, guid: 9a27053adb279ae4ca9ef6b909d2b154, type: 2}
     team: 1
@@ -621,7 +621,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ec6b929266dc51c4995892261b4529e1, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.DragController
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Gameplay.DragController
   controlledTeam: 0
 --- !u!114 &1641209540
 MonoBehaviour:
@@ -634,7 +634,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cbbe9cd28c9792644b20c4e8c5e55389, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.PieceRegistry
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Gameplay.PieceRegistry
 --- !u!114 &1641209541
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -646,7 +646,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f1a10a54ca1076e43b59047e632164c7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Core.BoardState
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Core.BoardState
 --- !u!114 &1641209542
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -658,7 +658,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6a17819ff0d418f4c85c8c31506f2394, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.StageDirector
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Gameplay.StageDirector
   stage: {fileID: 11400000, guid: 67bbabed91c91ce4dab09054de5c1185, type: 2}
   phaseDelay: 0.35
   enemyResolveDelay: 0.5
@@ -673,7 +673,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0e0db9dd6ad81ee47b1cfcceea2af28b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.DeployController
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Gameplay.DeployController
   deployRows: 3
   alwaysAvailable:
   - {fileID: 11400000, guid: f67a518ee14ae324484f9ab773792fbc, type: 2}
@@ -688,7 +688,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 836795b9fe2f14b44bcbb4bd9cc3b7e8, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.EnemyMover
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Gameplay.EnemyMover
   moveDiagonally: 1
 --- !u!114 &1641209545
 MonoBehaviour:
@@ -701,7 +701,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bd8560f03209b9e4793bfddd0aa0dcb0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.WaveSpawner
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Gameplay.WaveSpawner
   spawnRows: 2
 --- !u!114 &1641209546
 MonoBehaviour:
@@ -714,7 +714,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 54b384eb4581c1d43beb9290073c0bb3, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.CombatResolver
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Gameplay.CombatResolver
 --- !u!114 &1641209547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -726,7 +726,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 65bf33664d901294c89af8ebeb613428, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.TurnManager
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Gameplay.TurnManager
 --- !u!114 &1641209548
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -738,7 +738,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6a63cb066b4fa1040b309220aeeb5f88, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.ShopLauncher
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Gameplay.ShopLauncher
   shopPool: {fileID: 11400000, guid: e69e65240b3e41a418db6c7eb3c651a9, type: 2}
   clearReward: 6
   shopDelay: 1.1
@@ -754,7 +754,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c5368392b5bc5cc4ea7ff9caedc0cdd6, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Gameplay.DevTools
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Gameplay.DevTools
   visibleOnStart: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

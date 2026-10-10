@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Gambonanza.Data
+namespace Promotion.Data
 {
     /// <summary>
     /// One movement rule. Every classic chess piece — and every variant piece

@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using Gambonanza.Data;
+using Promotion.Data;
 using UnityEngine;
 
-namespace Gambonanza.UI
+namespace Promotion.UI
 {
     /// <summary>
     /// Placeholder icon art, drawn in code. The interface is meant to be read by
@@ -11,6 +11,8 @@ namespace Gambonanza.UI
     /// tinted by the Image that draws it. Dropping a real sprite into a definition
     /// overrides its icon with no change to this file.
     /// </summary>
+    // [아이템 담당] 아이템에 그림이 없을 때 대신 쓰는 임시 아이콘 생성기.
+    // ItemData.itemImage 에 실제 스프라이트를 넣으면 그쪽이 우선한다.
     public static class UiSprites
     {
         const int Size = 128;

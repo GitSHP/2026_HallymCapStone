@@ -1,8 +1,8 @@
 using System;
-using Gambonanza.Data;
+using Promotion.Data;
 using UnityEngine;
 
-namespace Gambonanza.Tutorial
+namespace Promotion.Tutorial
 {
     /// <summary>What a step waits for before the next one starts.</summary>
     public enum TutorialWait
@@ -53,7 +53,7 @@ namespace Gambonanza.Tutorial
     /// The whole tutorial as data: who speaks, what they say and what the player
     /// must do between lines. Rewriting the story means editing this asset only.
     /// </summary>
-    [CreateAssetMenu(menuName = "Gambonanza/Tutorial Script", fileName = "TutorialScript")]
+    [CreateAssetMenu(menuName = "Promotion/Tutorial Script", fileName = "TutorialScript")]
     public class TutorialScript : ScriptableObject
     {
         [Header("Speaker")]

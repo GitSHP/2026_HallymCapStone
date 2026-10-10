@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using Gambonanza.Core;
-using Gambonanza.Feel;
+using Promotion.Core;
+using Promotion.Feel;
 using UnityEngine;
 
-namespace Gambonanza.Gameplay
+namespace Promotion.Gameplay
 {
     /// <summary>
     /// Enemy turn logic. Enemies do not use chess movement — each one walks a

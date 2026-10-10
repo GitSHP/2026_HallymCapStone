@@ -1,11 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Gambonanza.Core;
-using Gambonanza.Data;
+using Promotion.Core;
+using Promotion.Data;
 using UnityEngine;
 
-namespace Gambonanza.Gameplay
+namespace Promotion.Gameplay
 {
     /// <summary>
     /// Runs the stage: deploy, then player and enemy turns until the last wave is

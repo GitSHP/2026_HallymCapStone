@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Gambonanza.Core;
-using Gambonanza.Data;
-using Gambonanza.Feel;
+using Promotion.Core;
+using Promotion.Data;
+using Promotion.Feel;
 using UnityEngine;
 
-namespace Gambonanza.Gameplay
+namespace Promotion.Gameplay
 {
     /// <summary>
     /// Placing pieces from the deck onto the board: free during the deploy phase,

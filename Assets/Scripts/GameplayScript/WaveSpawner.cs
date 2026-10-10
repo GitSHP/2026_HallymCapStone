@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using Gambonanza.Core;
-using Gambonanza.Data;
-using Gambonanza.Feel;
+using Promotion.Core;
+using Promotion.Data;
+using Promotion.Feel;
 using UnityEngine;
 
-namespace Gambonanza.Gameplay
+namespace Promotion.Gameplay
 {
     /// <summary>Drops a wave of enemies onto free squares along the top of the board.</summary>
     public class WaveSpawner : MonoBehaviour

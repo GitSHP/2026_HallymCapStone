@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using Gambonanza.Data;
+using Promotion.Data;
 using UnityEngine;
 
-namespace Gambonanza.Core
+namespace Promotion.Core
 {
     /// <summary>
     /// Occupancy of the board. Gameplay systems ask this what is where;

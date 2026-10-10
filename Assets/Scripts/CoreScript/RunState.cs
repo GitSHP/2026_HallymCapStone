@@ -1,16 +1,18 @@
 using System;
 using System.Collections.Generic;
-using Gambonanza.Data;
-using Gambonanza.Map;
+using Promotion.Data;
+using Promotion.Map;
 using UnityEngine;
 
-namespace Gambonanza.Core
+namespace Promotion.Core
 {
     /// <summary>
     /// Everything that survives a stage: gold, the pieces in the player's deck and
     /// the artifacts they hold. Lives across scene loads so the stage-select scene
     /// and the next battle read the same run.
     /// </summary>
+    // [아이템 담당] 런 전체에서 유지되는 보유 현황. 구매한 유물은 Artifacts,
+    // 기물은 Deck, 재화는 Gold 에 쌓인다. 씬이 바뀌어도 사라지지 않는다.
     public class RunState : MonoBehaviour
     {
         static RunState _instance;
@@ -40,7 +42,7 @@ namespace Gambonanza.Core
         [SerializeField] List<PieceDefinition> startingDeck = new();
 
         readonly List<PieceDefinition> _deck = new();
-        readonly List<ArtifactDefinition> _artifacts = new();
+        readonly List<ItemData> _artifacts = new();
 
         bool _initialised;
 
@@ -48,7 +50,8 @@ namespace Gambonanza.Core
         public int StageIndex { get; private set; }
 
         public IReadOnlyList<PieceDefinition> Deck => _deck;
-        public IReadOnlyList<ArtifactDefinition> Artifacts => _artifacts;
+        // [아이템 담당] 이번 런에서 보유 중인 유물 목록. 상점에서 구매하면 여기에 쌓인다.
+        public IReadOnlyList<ItemData> Artifacts => _artifacts;
 
         /// <summary>This run's map, generated the first time the map scene opens.</summary>
         public MapData Map { get; set; }
@@ -119,13 +122,14 @@ namespace Gambonanza.Core
                 _deck.Add(piece);
         }
 
-        public void AddArtifact(ArtifactDefinition artifact)
+        /// <summary>상점이 구매를 성사시켰을 때 호출한다. 효과 적용은 아직 붙어 있지 않다.</summary>
+        public void AddArtifact(ItemData artifact)
         {
             if (artifact != null)
                 _artifacts.Add(artifact);
         }
 
-        public bool Owns(ArtifactDefinition artifact)
+        public bool Owns(ItemData artifact)
             => artifact != null && _artifacts.Contains(artifact);
 
         public void AdvanceStage() => StageIndex++;

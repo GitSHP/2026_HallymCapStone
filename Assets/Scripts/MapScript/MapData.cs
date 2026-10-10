@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Gambonanza.Data;
+using Promotion.Data;
 using UnityEngine;
 
-namespace Gambonanza.Map
+namespace Promotion.Map
 {
     public enum MapNodeType
     {

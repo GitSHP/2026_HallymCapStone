@@ -1,4 +1,4 @@
-namespace Gambonanza.Core
+namespace Promotion.Core
 {
     public enum Team
     {

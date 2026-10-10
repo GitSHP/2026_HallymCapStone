@@ -11,16 +11,10 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 547e6032780b03448a000b690fbd58ff, type: 3}
   m_Name: ShopPool
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Data.ShopPool
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Data.ShopPool
   artifactSlots: 3
   pieceSlots: 3
-  artifacts:
-  - {fileID: 11400000, guid: 1be7592b22d62674e9eabfb61945bf16, type: 2}
-  - {fileID: 11400000, guid: 85297d29d8d169646a43ec221ca233b5, type: 2}
-  - {fileID: 11400000, guid: 181a0bd6d97316342b0bfd3a2cf8d2bb, type: 2}
-  - {fileID: 11400000, guid: 6c8888da646219c409c40a75ba75d355, type: 2}
-  - {fileID: 11400000, guid: 8d3baee944da7c740a3aa582650a3fc1, type: 2}
-  - {fileID: 11400000, guid: 4ef81764dcafcd64693917c0a2b472c2, type: 2}
+  artifactOffers: []
   pieces:
   - {fileID: 11400000, guid: f67a518ee14ae324484f9ab773792fbc, type: 2}
   - {fileID: 11400000, guid: 1c48c9228ef6cc14d96083af0e1804a1, type: 2}

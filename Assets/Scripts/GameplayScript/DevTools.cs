@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using Gambonanza.Core;
+using Promotion.Core;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
-namespace Gambonanza.Gameplay
+namespace Promotion.Gameplay
 {
     /// <summary>
     /// Playtest shortcuts: jump straight to the shop, force an outcome, refill

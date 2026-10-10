@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e8f5ffa668bab104ebcf0900180ce568, type: 3}
   m_Name: Bishop
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Data.PieceDefinition
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Data.PieceDefinition
   displayName: "\uBE44\uC20D"
   glyph: B
   sprite: {fileID: 1583093542, guid: fc1a88760a585a946aa63ed7cefc2f25, type: 3}

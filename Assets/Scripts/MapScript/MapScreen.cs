@@ -1,15 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
-using Gambonanza.Core;
-using Gambonanza.Data;
-using Gambonanza.Feel;
-using Gambonanza.UI;
+using Promotion.Core;
+using Promotion.Data;
+using Promotion.Feel;
+using Promotion.UI;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-namespace Gambonanza.Map
+namespace Promotion.Map
 {
     /// <summary>
     /// The map scene: draws the run's map, lets the player pick where to go next and

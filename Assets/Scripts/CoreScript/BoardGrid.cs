@@ -1,8 +1,8 @@
-using Gambonanza.Feel;
-using Gambonanza.Gameplay;
+using Promotion.Feel;
+using Promotion.Gameplay;
 using UnityEngine;
 
-namespace Gambonanza.Core
+namespace Promotion.Core
 {
     /// <summary>
     /// The only class that knows how grid coordinates map to world space.

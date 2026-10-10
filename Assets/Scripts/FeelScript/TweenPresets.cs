@@ -1,14 +1,14 @@
 using PrimeTween;
 using UnityEngine;
 
-namespace Gambonanza.Feel
+namespace Promotion.Feel
 {
     /// <summary>
     /// Every timing, strength and ease used by game feel lives here so the whole
     /// look can be retuned from one inspector without touching gameplay code.
     /// Expected at Assets/_Game/Resources/TweenPresets.asset
     /// </summary>
-    [CreateAssetMenu(menuName = "Gambonanza/Tween Presets", fileName = "TweenPresets")]
+    [CreateAssetMenu(menuName = "Promotion/Tween Presets", fileName = "TweenPresets")]
     public class TweenPresets : ScriptableObject
     {
         [Header("Hover")]

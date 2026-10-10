@@ -1,9 +1,9 @@
-using Gambonanza.Core;
-using Gambonanza.Feel;
+using Promotion.Core;
+using Promotion.Feel;
 using PrimeTween;
 using UnityEngine;
 
-namespace Gambonanza.Gameplay
+namespace Promotion.Gameplay
 {
     public enum TileHighlight
     {

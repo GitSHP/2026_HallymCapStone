@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Gambonanza.Data
+namespace Promotion.Data
 {
     [Serializable]
     public class WaveDefinition
@@ -16,7 +16,7 @@ namespace Gambonanza.Data
     /// One stage: how much the player can do per turn, what they may deploy,
     /// and what comes at them. Authoring a new stage means a new asset, not new code.
     /// </summary>
-    [CreateAssetMenu(menuName = "Gambonanza/Stage Definition", fileName = "Stage")]
+    [CreateAssetMenu(menuName = "Promotion/Stage Definition", fileName = "Stage")]
     public class StageDefinition : ScriptableObject
     {
         [Header("Action points")]

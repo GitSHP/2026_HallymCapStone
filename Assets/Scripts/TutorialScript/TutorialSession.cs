@@ -1,4 +1,4 @@
-namespace Gambonanza.Tutorial
+namespace Promotion.Tutorial
 {
     /// <summary>
     /// Carries "this battle is the tutorial" from the title screen into the battle

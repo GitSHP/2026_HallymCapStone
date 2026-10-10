@@ -1,8 +1,8 @@
-using Gambonanza.Core;
-using Gambonanza.Feel;
+using Promotion.Core;
+using Promotion.Feel;
 using UnityEngine;
 
-namespace Gambonanza.Gameplay
+namespace Promotion.Gameplay
 {
     /// <summary>
     /// The single place captures happen, so player and enemy captures obey the

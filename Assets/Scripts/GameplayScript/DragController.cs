@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using Gambonanza.Core;
-using Gambonanza.Feel;
+using Promotion.Core;
+using Promotion.Feel;
 using UnityEngine;
 
-namespace Gambonanza.Gameplay
+namespace Promotion.Gameplay
 {
     /// <summary>
     /// Pick up a piece, see where it may go, drop it there.

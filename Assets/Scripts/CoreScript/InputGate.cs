@@ -1,4 +1,4 @@
-namespace Gambonanza.Core
+namespace Promotion.Core
 {
     /// <summary>
     /// World-space input (board hover, piece dragging) reads the pointer directly

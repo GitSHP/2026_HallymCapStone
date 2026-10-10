@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Gambonanza.Core
+namespace Promotion.Core
 {
     /// <summary>
     /// Board grid coordinate. File(x) increases to the right, rank(y) increases upward.

@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
-using Gambonanza.Core;
-using Gambonanza.Data;
+using Promotion.Core;
+using Promotion.Data;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
-namespace Gambonanza.UI
+namespace Promotion.UI
 {
     /// <summary>
     /// The between-stages shop. Drawn as an overlay on top of the live board
@@ -17,6 +17,8 @@ namespace Gambonanza.UI
     /// The whole screen is built in code and destroyed on confirm; nothing of it
     /// persists but the purchases, which live on the RunState.
     /// </summary>
+    // [아이템 담당] 상점 화면 전체. 유물 줄은 ShopPool.artifactOffers 를, 기물 줄은
+    // ShopPool.pieces 를 읽어 카드로 만든다. 구매 처리는 아래 OnCardClicked 에 있다.
     public class ShopScreen : MonoBehaviour
     {
         /// <summary>Only one shop can be up at a time; a second clear must not stack a second screen.</summary>
@@ -33,10 +35,10 @@ namespace Gambonanza.UI
         UiButton _confirmButton;
 
         readonly List<ShopCard> _cards = new();
-        readonly Dictionary<ShopCard, ArtifactDefinition> _artifactOf = new();
+        readonly Dictionary<ShopCard, ItemData> _artifactOf = new();
         readonly Dictionary<ShopCard, PieceDefinition> _pieceOf = new();
 
-        readonly List<ArtifactDefinition> _artifactOffer = new();
+        readonly List<ShopOffer> _artifactOffer = new();
         readonly List<PieceDefinition> _pieceOffer = new();
 
         bool _closing;
@@ -195,17 +197,25 @@ namespace Gambonanza.UI
 
             for (int i = 0; i < _artifactOffer.Count; i++)
             {
-                var artifact = _artifactOffer[i];
-                var icon = artifact.art != null ? artifact.art : UiSprites.Get(artifact.icon);
+                var offer = _artifactOffer[i];
+                var item = offer.item;
+
+                // 아이템에 그림이 아직 없으면 임시 아이콘으로 대신 세워 둔다.
+                var icon = item.itemImage != null ? item.itemImage : UiSprites.Get(IconId.Star);
+                var title = string.IsNullOrEmpty(item.itemName) ? item.name : item.itemName;
 
                 var card = ShopCard.Create(_panel, "ArtifactCard_" + i,
                     SlotPosition(i, _artifactOffer.Count, ArtifactRowY),
-                    icon, artifact.displayName, artifact.effects, artifact.description,
-                    artifact.cost, artifact.accentColor);
+                    icon, title, offer.blurb, offer.cost, UiTheme.ArtifactAccent);
 
-                _artifactOf[card] = artifact;
+                _artifactOf[card] = item;
                 Register(card);
             }
+
+            // 유물 매물이 하나도 없을 때. 빈 줄만 남기면 화면이 고장난 것처럼 보이므로,
+            // 아직 등록되지 않았다는 사실을 자리에 그대로 적어 둔다.
+            if (_artifactOffer.Count == 0)
+                BuildEmptyRowHint(ArtifactRowY, "등록된 유물이 없습니다");
 
             for (int i = 0; i < _pieceOffer.Count; i++)
             {
@@ -214,12 +224,20 @@ namespace Gambonanza.UI
 
                 var card = ShopCard.Create(_panel, "PieceCard_" + i,
                     SlotPosition(i, _pieceOffer.Count, PieceRowY),
-                    icon, piece.displayName, null, PieceBlurb.For(piece),
+                    icon, piece.displayName, PieceBlurb.For(piece),
                     piece.shopCost, UiTheme.PieceAccent);
 
                 _pieceOf[card] = piece;
                 Register(card);
             }
+        }
+
+        void BuildEmptyRowHint(float y, string message)
+        {
+            var hint = UiBuilder.Label("EmptyHint", _panel, message, 20f, UiTheme.InkFaint,
+                TextAlignmentOptions.Center);
+            UiBuilder.Place(hint.rectTransform, UiBuilder.Centre, UiBuilder.Centre,
+                new Vector2(0f, y), new Vector2(UiTheme.PanelWidth - UiTheme.PanelPadding * 2f, 40f));
         }
 
         void Register(ShopCard card)

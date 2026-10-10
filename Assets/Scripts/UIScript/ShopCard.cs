@@ -1,22 +1,22 @@
 using System;
 using System.Collections.Generic;
-using Gambonanza.Data;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace Gambonanza.UI
+namespace Promotion.UI
 {
     /// <summary>
     /// One buyable offer, read as a picture: a large silhouette says what it is,
-    /// a row of symbol-and-number chips says what it does, and a coin says what
-    /// it costs. The only prose on the card is its name.
+    /// a short line says what it does, and a coin says what it costs.
     ///
     /// It knows how it looks and how it reacts to a pointer, but not what it is
     /// selling or whether the player can afford it — the screen owns those
     /// decisions and tells the card which state to wear.
     /// </summary>
+    // [아이템 담당] 상점에 놓이는 카드 한 장의 생김새와 반응. 그림·이름·설명·가격을
+    // 받아서 그린다. 카드에 새 정보를 더 보여주고 싶다면 Build 안에 추가한다.
     public class ShopCard : MonoBehaviour,
         IPointerEnterHandler, IPointerExitHandler,
         IPointerDownHandler, IPointerUpHandler, IPointerClickHandler
@@ -27,9 +27,6 @@ namespace Gambonanza.UI
         public bool Sold { get; private set; }
         public bool Affordable { get; private set; } = true;
         public RectTransform Rect { get; private set; }
-
-        /// <summary>At most three chips fit across a card before they stop being glanceable.</summary>
-        public const int MaxChips = 3;
 
         CanvasGroup _group;
         Image _face;
@@ -46,10 +43,9 @@ namespace Gambonanza.UI
         Vector2 _home;
         bool _hovered;
 
-        /// <param name="chips">Symbol-and-number effects. Null or empty falls back to <paramref name="blurb"/>.</param>
-        /// <param name="blurb">A short sentence, used where an effect has no number to show.</param>
+        /// <param name="blurb">카드에 들어갈 한두 줄 설명. 비어 있으면 그림과 이름만 보인다.</param>
         public static ShopCard Create(Transform parent, string objectName, Vector2 anchoredPosition,
-            Sprite icon, string title, IReadOnlyList<EffectChip> chips, string blurb, int cost, Color accent)
+            Sprite icon, string title, string blurb, int cost, Color accent)
         {
             var face = UiBuilder.Panel(objectName, parent, UiTheme.Card);
             var rect = face.rectTransform;
@@ -63,12 +59,11 @@ namespace Gambonanza.UI
             card._home = anchoredPosition;
             card.Cost = cost;
             card._group = UiBuilder.Group(face.gameObject);
-            card.Build(icon, title, chips, blurb, cost, accent);
+            card.Build(icon, title, blurb, cost, accent);
             return card;
         }
 
-        void Build(Sprite icon, string title, IReadOnlyList<EffectChip> chips, string blurb,
-            int cost, Color accent)
+        void Build(Sprite icon, string title, string blurb, int cost, Color accent)
         {
             // Accent strip: the only place a card family announces itself, so the two
             // rows stay distinguishable without needing two different card shapes.
@@ -95,49 +90,9 @@ namespace Gambonanza.UI
             titleLabel.textWrappingMode = TextWrappingModes.NoWrap;
             _contents.Add(titleLabel);
 
-            if (chips != null && chips.Count > 0)
-                BuildChips(chips, accent);
-            else
-                BuildBlurb(blurb);
-
+            BuildBlurb(blurb);
             BuildPrice(cost);
             BuildSoldOverlay();
-        }
-
-        void BuildChips(IReadOnlyList<EffectChip> chips, Color accent)
-        {
-            if (chips == null || chips.Count == 0)
-                return;
-
-            int count = Mathf.Min(chips.Count, MaxChips);
-            const float width = 80f;
-            const float gap = 8f;
-            float step = width + gap;
-            float offset = (count - 1) * 0.5f * step;
-
-            for (int i = 0; i < count; i++)
-            {
-                var chip = chips[i];
-
-                var backing = UiBuilder.Panel("Chip_" + i, transform, UiTheme.CardWell);
-                UiBuilder.Place(backing.rectTransform, UiBuilder.TopCentre, UiBuilder.TopCentre,
-                    new Vector2(i * step - offset, -186f), new Vector2(width, 34f));
-                backing.raycastTarget = false;
-                _contents.Add(backing);
-
-                var symbol = UiBuilder.Icon("Chip_" + i + "_Icon", backing.transform, chip.icon,
-                    UiTheme.Glyph(accent));
-                UiBuilder.Place(symbol.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
-                    new Vector2(10f, 0f), new Vector2(20f, 20f));
-                _contents.Add(symbol);
-
-                var value = UiBuilder.Label("Chip_" + i + "_Value", backing.transform, chip.value, 19f,
-                    UiTheme.Ink, TextAlignmentOptions.Center, FontStyles.Bold);
-                UiBuilder.Place(value.rectTransform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
-                    new Vector2(-8f, 0f), new Vector2(width - 34f, 26f));
-                value.textWrappingMode = TextWrappingModes.NoWrap;
-                _contents.Add(value);
-            }
         }
 
         /// <summary>

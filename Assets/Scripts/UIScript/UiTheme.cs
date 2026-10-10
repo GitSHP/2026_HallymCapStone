@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Gambonanza.UI
+namespace Promotion.UI
 {
     /// <summary>
     /// The palette and metrics of the interface in one place.

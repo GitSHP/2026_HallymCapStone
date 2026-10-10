@@ -147,7 +147,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db890753f6695b14daa59849fe69b2ca, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Title.TitleScreen
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Title.TitleScreen
   gameTitle: Promotion
   credits: 'Chess art: Pixel Chess by DANI MACCARI'
   tutorial: {fileID: 11400000, guid: 544246e0e35949342a4c0fd86327ed3f, type: 2}

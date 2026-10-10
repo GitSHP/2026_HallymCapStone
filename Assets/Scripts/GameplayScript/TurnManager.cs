@@ -1,8 +1,8 @@
 using System;
-using Gambonanza.Core;
+using Promotion.Core;
 using UnityEngine;
 
-namespace Gambonanza.Gameplay
+namespace Promotion.Gameplay
 {
     /// <summary>
     /// Holds whose turn it is and how much the player may still do.

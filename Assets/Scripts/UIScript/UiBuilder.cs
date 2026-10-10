@@ -1,10 +1,10 @@
-using Gambonanza.Core;
-using Gambonanza.Data;
+using Promotion.Core;
+using Promotion.Data;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Gambonanza.UI
+namespace Promotion.UI
 {
     /// <summary>
     /// Small constructors for the uGUI objects every screen needs. The project
