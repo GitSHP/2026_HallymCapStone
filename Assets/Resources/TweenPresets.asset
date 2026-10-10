@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c1be53f8f57b51429609b873ab34ecd, type: 3}
+  m_Name: TweenPresets
+  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Feel.TweenPresets
+  hoverScale: 1.08
+  hoverDuration: 0.12
+  hoverEase: 6
+  dragScale: 1.18
+  dragTiltDegrees: 6
+  dragFollowSharpness: 18
+  dragLiftDuration: 0.1
+  dropDuration: 0.14
+  dropEase: 5
+  dropPunchStrength: {x: 0.35, y: 0.35, z: 0}
+  dropPunchDuration: 0.3
+  dropPunchFrequency: 12
+  boardShakeStrength: {x: 0.08, y: 0.08, z: 0}
+  boardShakeDuration: 0.25
+  boardShakeFrequency: 14
+  highlightPopDuration: 0.18
+  highlightStagger: 0.02
+  highlightEase: 27
+  lungeDistance: 0.35
+  lungeDuration: 0.12
+  hitFlashColor: {r: 1, g: 0.3, b: 0.3, a: 1}
+  hitFlashDuration: 0.1
+  hitShakeStrength: {x: 0.12, y: 0.05, z: 0}
+  hitShakeDuration: 0.22
+  deathDuration: 0.28
+  deathSpinDegrees: 200
+  spawnDropHeight: 3
+  spawnDuration: 0.3
+  spawnEase: 5
+  spawnStagger: 0.06
+  hitStopDuration: 0.08
