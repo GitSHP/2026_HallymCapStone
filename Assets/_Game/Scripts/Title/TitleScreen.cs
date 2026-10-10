@@ -11,7 +11,7 @@ namespace Gambonanza.Title
 {
     /// <summary>
     /// The first screen: logo, title and the three menu buttons. Starting a game
-    /// plays the tutorial the first time, and goes straight to the map after that.
+    /// asks whether to play the tutorial or go straight to the map.
     /// </summary>
     public class TitleScreen : MonoBehaviour
     {
@@ -26,7 +26,9 @@ namespace Gambonanza.Title
         public string battleScene = "Game";
         public string mapScene = "Map";
 
-        TextMeshProUGUI _notice;
+        RectTransform _root;
+        GameObject _choice;
+        bool _starting;
 
         void Start()
         {
@@ -37,13 +39,9 @@ namespace Gambonanza.Title
 
         void Update()
         {
-            // Playtest shortcut: make the next start play the tutorial again.
             var keyboard = Keyboard.current;
-            if (keyboard != null && keyboard.f12Key.wasPressedThisFrame)
-            {
-                TutorialSession.ResetProgress();
-                _notice.text = "튜토리얼 기록을 지웠습니다. 다음 시작 때 튜토리얼이 진행됩니다.";
-            }
+            if (_choice != null && keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
+                CloseChoice();
         }
 
         void Build()
@@ -51,6 +49,7 @@ namespace Gambonanza.Title
             var canvas = UiBuilder.OverlayCanvas("TitleCanvas", 0);
             canvas.transform.SetParent(transform, false);
             var root = (RectTransform)canvas.transform;
+            _root = root;
 
             var background = UiBuilder.Panel("Background", root, UiTheme.Panel, false);
             UiBuilder.Stretch(background.rectTransform);
@@ -67,7 +66,7 @@ namespace Gambonanza.Title
             title.characterSpacing = 8f;
 
             var start = MenuButton(root, "Start", "게임 시작", IconId.Arrow, -90f, UiTheme.Confirm);
-            start.Clicked += StartGame;
+            start.Clicked += OpenChoice;
 
             var options = MenuButton(root, "Options", "옵션", IconId.Star, -180f, UiTheme.CardWell);
             options.SetInteractable(false);
@@ -78,10 +77,6 @@ namespace Gambonanza.Title
             start.PlayIn(0);
             options.PlayIn(1);
             quit.PlayIn(2);
-
-            _notice = UiBuilder.Label("Notice", root, "", 22f, UiTheme.InkMuted);
-            UiBuilder.Place(_notice.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
-                new Vector2(0f, 40f), new Vector2(1400f, 34f));
 
             var credit = UiBuilder.Label("Credits", root, credits, 18f, UiTheme.InkFaint,
                 TextAlignmentOptions.BottomRight);
@@ -98,17 +93,85 @@ namespace Gambonanza.Title
                 face, content, 26f);
         }
 
-        void StartGame()
+        // ---------- Tutorial choice ----------
+
+        /// <summary>Asks whether to play the tutorial. Clicking outside or Esc backs out.</summary>
+        void OpenChoice()
         {
+            if (_choice != null || _starting)
+                return;
+
+            if (tutorial == null)
+            {
+                Begin(false);
+                return;
+            }
+
+            var backdrop = UiBuilder.Panel("TutorialChoice", _root, UiTheme.Backdrop, false);
+            UiBuilder.Stretch(backdrop.rectTransform);
+            backdrop.gameObject.AddComponent<UnityEngine.UI.Button>().onClick.AddListener(CloseChoice);
+            _choice = backdrop.gameObject;
+
+            var edge = UiBuilder.Panel("PanelEdge", backdrop.transform, UiTheme.PanelEdge);
+            UiBuilder.Place(edge.rectTransform, UiBuilder.Centre, UiBuilder.Centre, Vector2.zero,
+                new Vector2(766f, 336f));
+
+            var panel = UiBuilder.Panel("Panel", backdrop.transform, UiTheme.Panel);
+            UiBuilder.Place(panel.rectTransform, UiBuilder.Centre, UiBuilder.Centre, Vector2.zero,
+                new Vector2(760f, 330f));
+
+            var question = UiBuilder.Label("Question", panel.transform, "튜토리얼을 진행할까요?", 38f,
+                UiTheme.Ink, TextAlignmentOptions.Center, FontStyles.Bold);
+            UiBuilder.Place(question.rectTransform, UiBuilder.Centre, UiBuilder.Centre,
+                new Vector2(0f, 90f), new Vector2(700f, 54f));
+
+            var note = UiBuilder.Label("Note", panel.transform,
+                "처음 플레이한다면 튜토리얼을 추천해요.", 22f, UiTheme.InkMuted);
+            UiBuilder.Place(note.rectTransform, UiBuilder.Centre, UiBuilder.Centre,
+                new Vector2(0f, 38f), new Vector2(700f, 34f));
+
+            var play = UiButton.CreateAction(panel.transform, "PlayTutorial", IconId.Arrow, "튜토리얼 보기",
+                UiBuilder.Centre, UiBuilder.Centre, new Vector2(-170f, -70f), new Vector2(310f, 72f),
+                UiTheme.Confirm, UiTheme.InkOnAccent, 24f);
+            play.Clicked += () => Begin(true);
+
+            var skip = UiButton.CreateAction(panel.transform, "SkipTutorial", IconId.Chevrons, "건너뛰기",
+                UiBuilder.Centre, UiBuilder.Centre, new Vector2(170f, -70f), new Vector2(310f, 72f),
+                UiTheme.CardWell, UiTheme.Ink, 24f);
+            skip.Clicked += () => Begin(false);
+
+            UiFx.BackdropIn(UiBuilder.Group(backdrop.gameObject));
+            UiFx.PanelIn(panel.rectTransform, UiBuilder.Group(panel.gameObject));
+            play.PlayIn(0);
+            skip.PlayIn(1);
+        }
+
+        void CloseChoice()
+        {
+            if (_choice == null || _starting)
+                return;
+
+            Destroy(_choice);
+            _choice = null;
+        }
+
+        /// <summary>A fresh run, either through the tutorial battle or straight onto the map.</summary>
+        void Begin(bool withTutorial)
+        {
+            if (_starting)
+                return;
+
+            _starting = true;
             RunState.Instance.ResetRun();
 
-            if (!TutorialSession.IsDone && tutorial != null)
+            if (withTutorial)
             {
                 TutorialSession.Begin(tutorial);
                 SceneManager.LoadScene(battleScene);
                 return;
             }
 
+            TutorialSession.Complete();
             SceneManager.LoadScene(mapScene);
         }
 
