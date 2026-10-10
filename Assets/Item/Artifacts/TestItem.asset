@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   itemName: TestItem
   itemType: 0
-  itemImage: {fileID: -5335005561451684863, guid: 9feb46b2df5daef49aa35bdf73395026, type: 3}
+  itemImage: {fileID: 0}
   itemPrefab: {fileID: 0}
