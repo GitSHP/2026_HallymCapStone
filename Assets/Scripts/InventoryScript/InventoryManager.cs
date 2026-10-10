@@ -12,10 +12,11 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
     [SerializeField]
     private GameObject artifactInventoryBase; // 아티팩트 인벤토리를 관리할 때 사용할 변수
 
-    private ItemSlot[] itemSlots;   // 아이템에 대한 정보가 들어있는 itemSlots 배열
-    private PieceSlot[] pieceSlots; //  체스 말에 대한 정보가 들어있는 pieceSlots 배열
-    private ArtifactSlot[] artifactSlots; // 아티팩트에 대한 정보가 들어있는 artifactSlots 배열
+    private ItemSlot[] itemSlots;   // 아이템에 대한 정보가 들어있는 배열
+    private ItemSlot[] pieceSlots; //  체스 말에 대한 정보가 들어있는 배열
+    private ItemSlot[] artifactSlots; // 아티팩트에 대한 정보가 들어있는 배열
     private ItemData pendingItem;   // 저장하지 못해 대기 중인 아이템
+    private int pendingItemCount; // 저장하지 못해 대기 중인 아이템의 갯수
     
     // -----UI 변수-----
     [SerializeField]
@@ -27,8 +28,8 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
     void Start()
     {
         itemSlots = itemInventoryBase.GetComponentsInChildren<ItemSlot>();
-        pieceSlots = pieceInventoryBase.GetComponentsInChildren<PieceSlot>();
-        artifactSlots = artifactInventoryBase.GetComponentsInChildren<ArtifactSlot>();
+        pieceSlots = pieceInventoryBase.GetComponentsInChildren<ItemSlot>();
+        artifactSlots = artifactInventoryBase.GetComponentsInChildren<ItemSlot>();
     }
 
     public void OnToggleInventory(InputAction.CallbackContext context)  // 인벤토리 창 토글
@@ -72,9 +73,9 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
             {
                 for (int i = 0; i < artifactSlots.Length; i++)  // 빈 슬롯을 찾아서 저장
                 { 
-                    if (artifactSlots[i].artifact == null)
+                    if (artifactSlots[i].item == null)
                     {
-                        artifactSlots[i].AddArtifact(_item, 1);  // 아티팩트는 항상 1개만 저장
+                        artifactSlots[i].AddItem(_item, 1);  // 아티팩트는 항상 1개만 저장
                         return;
                     }
                 }
@@ -84,7 +85,7 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
         {
             for (int i = 0; i < pieceSlots.Length; i++)
             {
-                if (pieceSlots[i].piece != null && pieceSlots[i].piece.itemName == _item.itemName) 
+                if (pieceSlots[i].item != null && pieceSlots[i].item.itemName == _item.itemName) 
                 // null 일 때 런타임 에러를 방지 + 만약 인벤토리 내에 같은 체스 말이 존재한다면
                 {
                     pieceSlots[i].SetSlotCount(_count); // 인벤토리 내에 있는 체스 말의 갯수를 +1
@@ -94,9 +95,9 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
 
             for (int i = 0; i < pieceSlots.Length; i++)  // 모든 슬롯 내부를 검사해서 
             {  
-                if (pieceSlots[i].piece == null)  // 인벤토리 내에 빈 슬롯이 존재한다면 그 슬롯에 체스 말을 추가함
+                if (pieceSlots[i].item == null)  // 인벤토리 내에 빈 슬롯이 존재한다면 그 슬롯에 체스 말을 추가함
                 {
-                    pieceSlots[i].AddPiece(_item, _count);
+                    pieceSlots[i].AddItem(_item, _count);
                     return;
                 }
             }
@@ -104,6 +105,7 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
 
         // 3) 빈 슬롯이 없다면 대기 중인 아이템을 임시 보관하고 교체/버리기 알림창을 띄움
         pendingItem = _item;
+        pendingItemCount = 1;
         itemFullWarningUI.SetActive(true);
         return;
     }
@@ -114,7 +116,7 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
         itemFullWarningUI.SetActive(false);
     }
 
-    public void ReplacePendingItem(ItemData _item ,int _itemIndex, int _slotIndex)    
+    public void ReplacePendingItem(int _slotIndex)    
     // _item 값으로 현재 유저가 선택한 아이템의 종류를 확인, _slotIndex 값으로 유저가 선택한 슬롯의 위치 값을 넘겨줌
     // _itemIndex 값으로 현재 선택한 아이템의 갯수를 확인
     // 인벤토리에 저장하지 못한 대기 중인 아티팩트와 인벤토리 내 아이템과 교환하는 함수 -> _slotIndex 값 위치에 있는 아이템과 교환
@@ -130,23 +132,23 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
             return; // 슬롯 인덱스 값이 잘못됐다면 함수 실행 종료
         }
 
-        if (_item.itemType == ItemData.ItemType.Usable)
+        if (pendingItem.itemType == ItemData.ItemType.Usable)
         {
-            itemSlots[_slotIndex].AddItem(pendingItem, _itemIndex);
+            itemSlots[_slotIndex].AddItem(pendingItem, pendingItemCount);
 
             pendingItem = null;
             itemFullWarningUI.SetActive(false);
         } 
-        else if (_item.itemType == ItemData.ItemType.Artifact)
+        else if (pendingItem.itemType == ItemData.ItemType.Artifact)
         {
-            artifactSlots[_slotIndex].AddArtifact(pendingItem, _itemIndex);
+            artifactSlots[_slotIndex].AddItem(pendingItem, pendingItemCount);
 
             pendingItem = null;
             itemFullWarningUI.SetActive(false);
         }
-        else if (_item.itemType == ItemData.ItemType.Piece)
+        else if (pendingItem.itemType == ItemData.ItemType.Piece)
         {
-            pieceSlots[_slotIndex].AddPiece(pendingItem, _itemIndex);
+            pieceSlots[_slotIndex].AddItem(pendingItem, pendingItemCount);
 
             pendingItem = null;
             itemFullWarningUI.SetActive(false);
@@ -158,7 +160,7 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
     {
         for (int i = 0; i < artifactSlots.Length; i++)
         {
-            if (artifactSlots[i].artifact != null && artifactSlots[i].artifact.itemName == _artifact.itemName)
+            if (artifactSlots[i].item != null && artifactSlots[i].item.itemName == _artifact.itemName)
             // null 일 때 런타임 에러를 방지 + 같은 아티팩트가 이미 존재한다면
             {
                 return true;

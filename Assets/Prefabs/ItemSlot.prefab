@@ -307,6 +307,7 @@ MonoBehaviour:
   itemImage: {fileID: 1876024557418362979}
   itemTextCount: {fileID: 2306662429424854152}
   itemCountImage: {fileID: 4951244730926516689}
+  allowedType: 1
 --- !u!1 &7173223676280151683
 GameObject:
   m_ObjectHideFlags: 0
