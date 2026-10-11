@@ -16,6 +16,12 @@ public class ItemSlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     [SerializeField]
     private ItemData.ItemType allowedType;  // 이 슬롯에 저장할 수 있는 아이템 유형 (인스펙터에서 설정)
 
+    void Start()
+    {
+        Debug.Log("인벤토리 초기화");
+        SetImageAlpha(0);   // 최초 인벤토리를 불러올 때 슬롯의 정보를 초기화
+        ClearSlot();
+    }
     private void SetImageAlpha(float _alpha) // 아이템 이미지의 투명도 조절 
     // -> 아이템이 저장된 경우 아이템 이미지의 투명도를 높여 이미지가 보이도록 조절하고 저장되지 않은 상태면 투명도를 낮춰 보이지 않게함
     {

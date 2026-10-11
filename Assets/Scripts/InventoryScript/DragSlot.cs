@@ -16,6 +16,7 @@ public class DragSlot : MonoBehaviour
     void Start()
     {
         instance = this;
+        SetColor(0);
     }
 
     public void DragSetImage(Image _itemImage)
