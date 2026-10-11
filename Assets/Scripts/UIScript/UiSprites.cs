@@ -5,11 +5,10 @@ using UnityEngine;
 namespace Promotion.UI
 {
     /// <summary>
-    /// Placeholder icon art, drawn in code. The interface is meant to be read by
-    /// shape rather than by sentence, which needs icons before any artist is on
-    /// the project — so every icon here is a silhouette rasterised at load and
-    /// tinted by the Image that draws it. Dropping a real sprite into a definition
-    /// overrides its icon with no change to this file.
+    /// 코드로 그리는 임시 아이콘 그림이다. 인터페이스는 문장이 아니라 모양으로 읽히도록
+    /// 설계되어 있어서, 아트 담당이 없어도 아이콘이 먼저 필요하다. 그래서 여기의 모든 아이콘은
+    /// 로드 시 래스터화한 실루엣이며, 색은 그것을 그리는 Image가 입힌다. 데이터 정의에 실제
+    /// 스프라이트를 넣으면 이 파일을 고치지 않고도 해당 아이콘이 대체된다.
     /// </summary>
     // [아이템 담당] 아이템에 그림이 없을 때 대신 쓰는 임시 아이콘 생성기.
     // ItemData.itemImage 에 실제 스프라이트를 넣으면 그쪽이 우선한다.
@@ -28,7 +27,7 @@ namespace Promotion.UI
             if (Cache.TryGetValue(id, out var cached) && cached != null)
                 return cached;
 
-            // The saved icon asset wins, so prefabs and code-made views share one image.
+            // 저장된 아이콘 에셋이 우선한다. 그래야 프리팹과 코드로 만든 뷰가 같은 이미지를 쓴다.
             var saved = UiArt.Icon(id);
             if (saved != null)
             {
@@ -41,7 +40,7 @@ namespace Promotion.UI
             return sprite;
         }
 
-        /// <summary>Pieces are matched by the glyph their definition already carries.</summary>
+        /// <summary>기물은 정의에 이미 들어 있는 글리프로 아이콘을 찾는다.</summary>
         public static IconId ForGlyph(string glyph)
         {
             if (string.IsNullOrEmpty(glyph))
@@ -59,7 +58,7 @@ namespace Promotion.UI
             }
         }
 
-        // ---------- Shape definitions ----------
+        // ---------- 도형 정의 ----------
 
         static Sprite Build(IconId id)
         {
@@ -87,7 +86,7 @@ namespace Promotion.UI
                     Poly(buffer, V(0.37f, 0.22f), V(0.63f, 0.22f), V(0.58f, 0.50f), V(0.42f, 0.50f));
                     Circle(buffer, 0.50f, 0.62f, 0.14f);
                     Circle(buffer, 0.50f, 0.79f, 0.055f);
-                    // The mitre's slit is what separates a bishop from a pawn at a glance.
+                    // 주교관의 홈이 있어야 비숍과 폰이 한눈에 구별된다.
                     Poly(buffer, true, V(0.52f, 0.60f), V(0.62f, 0.74f), V(0.57f, 0.77f), V(0.47f, 0.63f));
                     break;
 
@@ -191,7 +190,7 @@ namespace Promotion.UI
             return ToSprite(buffer, id.ToString());
         }
 
-        /// <summary>The plinth every chess piece stands on.</summary>
+        /// <summary>모든 체스 기물이 올라서는 받침대다.</summary>
         static void Base(float[] buffer)
         {
             Poly(buffer, V(0.24f, 0.08f), V(0.76f, 0.08f), V(0.70f, 0.23f), V(0.30f, 0.23f));
@@ -201,7 +200,7 @@ namespace Promotion.UI
         {
             var dir = new Vector2(x1 - x0, y1 - y0).normalized;
             var normal = new Vector2(-dir.y, dir.x) * halfWidth;
-            // Extended past both ends so joined strokes meet without a notch.
+            // 양 끝을 조금 늘려서, 이어지는 획이 홈 없이 맞물리게 한다.
             var pad = dir * halfWidth * 0.6f;
 
             Poly(buffer,
@@ -230,12 +229,11 @@ namespace Promotion.UI
             Poly(buffer, false, points);
         }
 
-        // ---------- Rasterising ----------
+        // ---------- 래스터화 ----------
         //
-        // Everything is drawn into a coverage buffer in 0..1 space with 2x2
-        // supersampling, then written out as a white sprite whose alpha is that
-        // coverage. Colour is left to whatever Image draws it, so one icon serves
-        // every accent in the palette.
+        // 모든 도형은 0..1 좌표계의 커버리지 버퍼에 2x2 슈퍼샘플링으로 그린 뒤,
+        // 그 커버리지를 알파로 갖는 흰색 스프라이트로 출력한다. 색은 그것을 그리는
+        // Image에 맡기므로, 아이콘 하나로 색상표의 모든 강조색에 대응한다.
 
         const int Samples = 2;
 

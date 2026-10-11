@@ -10,22 +10,20 @@ using UnityEngine.InputSystem.UI;
 namespace Promotion.UI
 {
     /// <summary>
-    /// The between-stages shop. Drawn as an overlay on top of the live board
-    /// rather than in its own scene, so the player never loses sight of the
-    /// position they just won — the purchase is read against that board.
-    /// The screen is a prefab placed (switched off) in the battle scene; opening
-    /// it fills the shelves with cards made from the card prefab. Nothing of it
-    /// persists but the purchases, which live on the RunState.
+    /// 스테이지 사이의 상점이다. 별도 씬이 아니라 진행 중인 보드 위에 오버레이로 그린다.
+    /// 그래서 플레이어는 방금 이긴 판을 계속 볼 수 있고, 구매를 그 보드와 비교하며 판단한다.
+    /// 화면은 전투 씬에 꺼진 상태로 놓인 프리팹이며, 열 때 카드 프리팹으로 만든 카드로 진열대를
+    /// 채운다. 구매 내역만 RunState에 남고 나머지는 남지 않는다.
     /// </summary>
     // [아이템 담당] 상점 화면 전체. 화면 배치는 프리팹(Assets/UI/Prefabs/ShopScreen)에서
     // 고친다. 유물 줄은 ShopPool.artifactOffers 를, 기물 줄은 ShopPool.pieces 를 읽어
     // 카드 프리팹으로 만든다. 구매 처리는 아래 OnCardClicked 에 있다.
     public class ShopScreen : MonoBehaviour
     {
-        /// <summary>Only one shop can be up at a time; a second clear must not stack a second screen.</summary>
+        /// <summary>상점은 한 번에 하나만 열린다. 클리어가 두 번 들어와도 화면이 겹쳐 쌓이면 안 된다.</summary>
         public static ShopScreen Current { get; private set; }
 
-        [Header("Parts (set in the prefab)")]
+        [Header("구성 요소 (프리팹에서 지정)")]
         [SerializeField] RectTransform _panel;
         [SerializeField] CanvasGroup _panelGroup;
         [SerializeField] CanvasGroup _backdropGroup;
@@ -36,7 +34,7 @@ namespace Promotion.UI
         [SerializeField] GameObject _artifactEmptyHint;
         [SerializeField] ShopCard _cardPrefab;
 
-        [Header("Rows (panel-local Y)")]
+        [Header("줄 위치 (패널 기준 Y)")]
         [SerializeField] float _artifactRowY = 144f;
         [SerializeField] float _pieceRowY = -192f;
 
@@ -66,8 +64,8 @@ namespace Promotion.UI
             _run = RunState.Instance;
             gameObject.SetActive(true);
 
-            // The board reads the pointer directly, so the overlay has to say
-            // explicitly that the world below it is not being played right now.
+            // 보드는 포인터를 직접 읽으므로, 오버레이가 지금은 아래 세계를 조작하는 중이
+            // 아니라는 것을 명시적으로 알려야 한다.
             InputGate.Push();
 
             _subtitle.text = headline;
@@ -79,7 +77,7 @@ namespace Promotion.UI
             PlayIntro();
         }
 
-        // ---------- Offers ----------
+        // ---------- 매물 ----------
 
         void BuildOffers(ShopPool pool)
         {
@@ -115,10 +113,10 @@ namespace Promotion.UI
             for (int i = 0; i < _pieceOffer.Count; i++)
             {
                 var piece = _pieceOffer[i];
-                var icon = piece.sprite != null ? piece.sprite : UiSprites.Get(UiSprites.ForGlyph(piece.glyph));
+                var icon = piece.itemImage != null ? piece.itemImage : UiSprites.Get(UiSprites.ForGlyph(piece.glyph));
 
                 var card = MakeCard("PieceCard_" + i, SlotPosition(i, _pieceOffer.Count, _pieceRowY),
-                    icon, piece.displayName, PieceBlurb.For(piece), piece.shopCost, UiTheme.PieceAccent);
+                    icon, piece.itemName, PieceBlurb.For(piece), piece.shopCost, UiTheme.PieceAccent);
                 _pieceOf[card] = piece;
             }
         }
@@ -145,7 +143,7 @@ namespace Promotion.UI
             _pieceOf.Clear();
         }
 
-        /// <summary>Centres a row of <paramref name="count"/> cards on the panel.</summary>
+        /// <summary><paramref name="count"/>장의 카드로 이루어진 한 줄을 패널 가운데에 정렬한다.</summary>
         static Vector2 SlotPosition(int index, int count, float y)
         {
             float step = UiTheme.CardWidth + UiTheme.CardGap;
@@ -153,7 +151,7 @@ namespace Promotion.UI
             return new Vector2(index * step - offset, y);
         }
 
-        // ---------- Behaviour ----------
+        // ---------- 동작 ----------
 
         void OnCardClicked(ShopCard card)
         {
@@ -223,7 +221,7 @@ namespace Promotion.UI
             });
         }
 
-        /// <summary>Lets go of everything the open shop holds: gold listener, input block, cards.</summary>
+        /// <summary>열린 상점이 붙잡고 있던 것을 모두 놓는다. 골드 구독, 입력 차단, 카드가 대상이다.</summary>
         void Release()
         {
             if (_run != null)
@@ -240,11 +238,11 @@ namespace Promotion.UI
 
         void OnDestroy() => Release();
 
-        // ---------- Scene plumbing ----------
+        // ---------- 씬 기반 설정 ----------
 
         /// <summary>
-        /// A scene without an EventSystem has silently dead UI. Creating one here
-        /// means the shop works from any scene, including ones added later.
+        /// EventSystem이 없는 씬에서는 UI가 아무 경고 없이 반응하지 않는다. 여기서 직접 만들어 두면
+        /// 나중에 추가될 씬을 포함해 어느 씬에서든 상점이 동작한다.
         /// </summary>
         static void EnsureEventSystem()
         {

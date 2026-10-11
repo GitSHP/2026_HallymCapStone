@@ -8,15 +8,15 @@ using UnityEngine.SceneManagement;
 namespace Promotion.Tutorial
 {
     /// <summary>
-    /// Runs the tutorial inside the ordinary battle scene. It only talks and waits:
-    /// placing the king, summoning and fighting all go through the same systems
-    /// as a real stage, so what the player learns here is the real game.
+    /// 일반 전투 씬 안에서 튜토리얼을 진행한다. 이 클래스는 말하고 기다리기만 한다.
+    /// 킹 배치, 소환, 전투는 모두 실제 스테이지와 같은 시스템을 거치므로,
+    /// 플레이어가 여기서 배우는 것이 곧 실제 게임이다.
     ///
-    /// Idle unless the title screen started a tutorial (see <see cref="TutorialSession"/>).
+    /// 타이틀 화면에서 튜토리얼을 시작하지 않았다면 동작하지 않는다(<see cref="TutorialSession"/> 참고).
     /// </summary>
     public class TutorialDirector : MonoBehaviour
     {
-        [Tooltip("Scene the run continues in once the tutorial is won.")]
+        [Tooltip("튜토리얼에서 승리한 뒤 런을 이어 갈 씬이다.")]
         public string nextScene = "Map";
 
         TutorialScript _script;
@@ -36,14 +36,14 @@ namespace Promotion.Tutorial
                 return;
             }
 
-            // Everything here runs before any Start, so the battle comes up as the tutorial's.
+            // 여기 있는 모든 처리는 어떤 Start보다도 먼저 실행되므로, 전투가 튜토리얼 전투로 시작된다.
             RunState.Instance.CurrentStage = _script.stage;
 
             var debugSetup = FindAnyObjectByType<DebugStageSetup>();
             if (debugSetup != null)
                 debugSetup.enabled = false;
 
-            // The tutorial's victory leads back into the story, not into the shop.
+            // 튜토리얼에서 승리하면 상점이 아니라 스토리로 돌아간다.
             var shop = FindAnyObjectByType<ShopLauncher>();
             if (shop != null)
                 shop.enabled = false;
@@ -62,11 +62,11 @@ namespace Promotion.Tutorial
             }
             _view.Init(_script);
 
-            // Cover straight away if the story opens the tutorial, so the board never flashes.
+            // 튜토리얼이 스토리로 시작하면 보드가 잠깐이라도 비치지 않도록 즉시 가린다.
             if (_script.steps.Length > 0 && _script.steps[0] != null && _script.steps[0].coverBoard)
                 _view.SetBoardCovered(true);
 
-            // StageDirector applies the stage a frame after its own Start.
+            // StageDirector는 자신의 Start 한 프레임 뒤에 스테이지를 적용한다.
             yield return null;
             yield return null;
 
@@ -87,7 +87,7 @@ namespace Promotion.Tutorial
                 _view.ShowHint(step.text);
                 yield return new WaitUntil(() => IsMet(step.wait) || Lost);
 
-                // A loss hands over to the HUD's restart; the tutorial starts again from the top.
+                // 패배하면 HUD의 재시작에 맡기고, 튜토리얼은 처음부터 다시 시작한다.
                 if (Lost)
                 {
                     _view.HideAll();

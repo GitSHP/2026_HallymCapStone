@@ -5,9 +5,9 @@ using UnityEngine;
 namespace Promotion.Gameplay
 {
     /// <summary>
-    /// The single place captures happen, so player and enemy captures obey the
-    /// same rule and play the same animation. Capture is positional, as in
-    /// chess: reaching a piece takes it. There are no hit points.
+    /// 잡기가 일어나는 유일한 곳이다. 그래서 아군과 적의 잡기가 같은 규칙을 따르고
+    /// 같은 연출을 재생한다. 잡기는 체스처럼 위치 기반이다. 기물에 도달하면 잡는다.
+    /// 체력은 없다.
     /// </summary>
     public class CombatResolver : MonoBehaviour
     {
@@ -24,7 +24,7 @@ namespace Promotion.Gameplay
             if (_registry == null) _registry = GetComponent<PieceRegistry>();
         }
 
-        /// <summary>Captures without moving — used when the attacker cannot advance.</summary>
+        /// <summary>이동 없이 잡는다. 공격자가 전진할 수 없을 때 쓴다.</summary>
         public bool Capture(Piece attacker, Piece target)
         {
             Resolve();
@@ -45,9 +45,9 @@ namespace Promotion.Gameplay
         }
 
         /// <summary>
-        /// Captures the target and moves the attacker onto its square — the
-        /// normal chess capture. Board state changes at once; the animation is a
-        /// single sequence so nothing else drives the attacker's position.
+        /// 대상을 잡고 공격자를 그 칸으로 옮긴다. 일반적인 체스의 잡기다.
+        /// 보드 상태는 즉시 바뀐다. 연출은 단일 시퀀스여서 다른 어떤 것도
+        /// 공격자의 위치를 움직이지 않는다.
         /// </summary>
         public bool CaptureInto(Piece attacker, Piece target, Coord destination)
         {
@@ -74,7 +74,7 @@ namespace Promotion.Gameplay
             return true;
         }
 
-        // The king is never captured — enemies win by reaching its tile instead.
+        // 킹은 절대 잡히지 않는다. 대신 적이 킹의 칸에 도달하면 적이 이긴다.
         static bool CanCapture(Piece target) => target != null && !target.IsObjective;
 
         void Finish(Piece target, PieceView targetView)

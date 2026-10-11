@@ -7,8 +7,8 @@ using UnityEngine;
 namespace Promotion.Gameplay
 {
     /// <summary>
-    /// Spawns pieces and keeps the link between logical Piece and its PieceView.
-    /// Anything that needs to animate a piece looks up its view here.
+    /// 기물을 생성하고, 논리 객체인 Piece와 그 PieceView의 연결을 관리한다.
+    /// 기물을 애니메이션해야 하는 곳은 모두 여기서 뷰를 찾는다.
     /// </summary>
     [RequireComponent(typeof(BoardState))]
     public class PieceRegistry : MonoBehaviour
@@ -37,7 +37,7 @@ namespace Promotion.Gameplay
             var piece = _state.Place(def, team, coord);
             if (piece == null)
             {
-                Debug.LogWarning($"[PieceRegistry] Could not place {def.displayName} at {coord}");
+                Debug.LogWarning($"[PieceRegistry] Could not place {def.itemName} at {coord}");
                 return null;
             }
 
@@ -50,7 +50,7 @@ namespace Promotion.Gameplay
             return view;
         }
 
-        /// <summary>Removes a piece from the board and plays its death animation.</summary>
+        /// <summary>기물을 보드에서 제거하고 사망 연출을 재생한다.</summary>
         public void Kill(Piece piece)
         {
             var view = GetView(piece);
@@ -61,7 +61,7 @@ namespace Promotion.Gameplay
                 view.PlayDeath();
         }
 
-        /// <summary>Takes every piece off the board at once, with no death animation.</summary>
+        /// <summary>사망 연출 없이 모든 기물을 한 번에 보드에서 치운다.</summary>
         public void RemoveAll()
         {
             var pieces = new List<Piece>(_state.AllPieces);
@@ -76,8 +76,8 @@ namespace Promotion.Gameplay
         }
 
         /// <summary>
-        /// Swaps a piece for another kind on the same square — promotion. The old
-        /// body disappears and the new one pops in.
+        /// 같은 칸에서 기물을 다른 종류로 바꾼다. 즉 승급이다. 기존 본체는
+        /// 사라지고 새 본체가 튀어나오듯 나타난다.
         /// </summary>
         public PieceView Replace(Piece piece, PieceDefinition into)
         {

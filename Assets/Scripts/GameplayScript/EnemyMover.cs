@@ -6,13 +6,12 @@ using UnityEngine;
 namespace Promotion.Gameplay
 {
     /// <summary>
-    /// Enemy turn logic. Enemies do not use chess movement — each one walks a
-    /// single step along the shortest route to the king, clears player pieces
-    /// blocking that route, and wins by stepping onto the king's tile.
+    /// 적 턴 로직이다. 적은 체스 행마법을 쓰지 않는다. 각 적은 킹까지의 최단 경로를 따라
+    /// 한 칸 이동하고, 그 경로를 막는 아군 기물을 제거하며, 킹의 칸에 들어서면 승리한다.
     /// </summary>
     public class EnemyMover : MonoBehaviour
     {
-        [Tooltip("Enemies may step diagonally toward the king.")]
+        [Tooltip("적이 킹을 향해 대각선으로 이동할 수 있다.")]
         public bool moveDiagonally = true;
 
         static readonly Vector2Int[] Orthogonal =
@@ -52,7 +51,7 @@ namespace Promotion.Gameplay
 
         Vector2Int[] Directions => moveDiagonally ? AllEight : Orthogonal;
 
-        /// <summary>Moves every enemy once. Returns true if the king's tile was reached.</summary>
+        /// <summary>모든 적을 한 번씩 이동시킨다. 킹의 칸에 도달했으면 true를 반환한다.</summary>
         public bool ResolveEnemyTurn()
         {
             Resolve();
@@ -64,8 +63,8 @@ namespace Promotion.Gameplay
             BuildDistanceField(king.Coord);
 
             _state.GetPiecesOf(Team.Enemy, _enemies);
-            // Closest first: the front rank vacates its square before the rank
-            // behind tries to advance, so a column does not freeze itself.
+            // 가까운 적부터 처리한다. 앞줄이 먼저 칸을 비워야 뒷줄이 전진할 수 있어서
+            // 대열이 스스로 정체되지 않는다.
             _enemies.Sort((a, b) => DistanceAt(a.Coord).CompareTo(DistanceAt(b.Coord)));
 
             for (int i = 0; i < _enemies.Count; i++)
@@ -78,9 +77,9 @@ namespace Promotion.Gameplay
         }
 
         /// <summary>
-        /// Breadth-first distance to the king. Enemy-held squares are dead ends —
-        /// they get a distance so their occupant knows where it stands, but the
-        /// search never routes through them.
+        /// 킹까지의 너비 우선 탐색 거리다. 적이 차지한 칸은 막다른 곳이다.
+        /// 그 칸에 있는 적이 자기 위치를 알 수 있도록 거리는 기록하지만,
+        /// 탐색 경로는 그 칸을 통과하지 않는다.
         /// </summary>
         void BuildDistanceField(Coord target)
         {
@@ -110,7 +109,7 @@ namespace Promotion.Gameplay
 
                     var occupant = _state.GetPiece(neighbour);
                     if (occupant != null && occupant.Team == Team.Enemy)
-                        continue;   // recorded, but not expanded through
+                        continue;   // 기록은 하지만 이 칸을 거쳐 확장하지 않는다
 
                     _frontier.Enqueue(neighbour);
                 }
@@ -136,7 +135,7 @@ namespace Promotion.Gameplay
 
                 var occupant = _state.GetPiece(candidate);
                 if (occupant != null && occupant.Team == Team.Enemy)
-                    continue;   // fellow enemies are never attacked, only waited on
+                    continue;   // 같은 적은 절대 공격하지 않고 기다리기만 한다
 
                 best = candidate;
                 bestDistance = distance;
@@ -144,7 +143,7 @@ namespace Promotion.Gameplay
 
             if (!best.IsValid)
             {
-                // Boxed in: hit something adjacent if possible, otherwise hold.
+                // 갇힌 상태다. 가능하면 인접한 기물을 공격하고, 아니면 대기한다.
                 AttackAdjacentPlayerPiece(enemy);
                 return false;
             }
@@ -155,11 +154,11 @@ namespace Promotion.Gameplay
                 if (target.IsObjective)
                 {
                     StepInto(enemy, best, order);
-                    return true;        // reached the king — the run is lost
+                    return true;        // 킹에 도달했다. 런은 패배한다
                 }
 
-                // Capture is positional: take the piece and occupy its square,
-                // as one motion rather than two competing ones.
+                // 잡기는 위치 기반이다. 기물을 잡고 그 칸을 차지하는 동작을
+                // 서로 경합하는 두 동작이 아니라 하나의 동작으로 처리한다.
                 _combat.CaptureInto(enemy, target, best);
                 return false;
             }

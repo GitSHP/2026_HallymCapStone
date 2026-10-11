@@ -6,20 +6,20 @@ using UnityEngine;
 namespace Promotion.Gameplay
 {
     /// <summary>
-    /// Pick up a piece, see where it may go, drop it there.
-    /// Owns no rules of its own — it asks MoveResolver what is legal and
-    /// asks Fx how things should look.
+    /// 기물을 집어 들고, 갈 수 있는 곳을 확인하고, 그곳에 내려놓는다.
+    /// 자체 규칙은 갖지 않는다. 무엇이 합법인지는 MoveResolver에 묻고,
+    /// 어떻게 보여야 하는지는 Fx에 묻는다.
     /// </summary>
     [RequireComponent(typeof(BoardGrid))]
     public class DragController : MonoBehaviour
     {
-        [Tooltip("Which side the local player controls.")]
+        [Tooltip("로컬 플레이어가 조종하는 진영.")]
         public Team controlledTeam = Team.Player;
 
-        [Tooltip("Full chess legality: moves that leave the own king in check are not offered (the chess duel).")]
+        [Tooltip("완전한 체스 합법성 판정. 자기 킹을 체크 상태로 두는 수는 제시하지 않는다(체스 대결).")]
         public bool chessLegality;
 
-        /// <summary>Raised once a drag has committed a move: the piece and the square it went to.</summary>
+        /// <summary>드래그로 수가 확정되면 한 번 발생한다. 기물과 그 기물이 이동한 칸을 전달한다.</summary>
         public event System.Action<Piece, Coord> MoveCommitted;
 
         BoardGrid _grid;
@@ -55,8 +55,8 @@ namespace Promotion.Gameplay
 
             if (!InputGate.WorldInputEnabled)
             {
-                // A screen opened mid-drag: put the piece back rather than leaving
-                // it stranded under the overlay.
+                // 드래그 도중 화면이 열렸다. 기물이 오버레이 아래에 방치되지 않도록
+                // 제자리로 돌려놓는다.
                 if (_dragged != null)
                     CancelDrag();
                 return;
@@ -84,7 +84,7 @@ namespace Promotion.Gameplay
             if (piece == null || piece.Team != controlledTeam)
                 return;
 
-            // Moving is a turn action: only on the player's turn, only if affordable.
+            // 이동은 턴 행동이다. 플레이어 턴이고 비용을 낼 수 있을 때만 가능하다.
             if (_turn != null && !_turn.CanAfford(piece.Def.moveApCost))
                 return;
 
@@ -113,7 +113,7 @@ namespace Promotion.Gameplay
 
         void UpdateDragVisual()
         {
-            // Trailing the cursor instead of sticking to it is what gives the drag weight.
+            // 커서에 딱 붙지 않고 뒤따라가게 해서 드래그에 무게감을 준다.
             _ghostTarget = _input.PointerWorldPosition;
             _ghostTarget.z = 0f;
 
@@ -146,14 +146,14 @@ namespace Promotion.Gameplay
 
             if (!legal)
             {
-                // Snap home — dropping outside the board is the natural "cancel".
+                // 원래 자리로 되돌린다. 보드 밖에 놓는 것이 자연스러운 "취소"다.
                 Fx.Drop(view.transform, _grid.CoordToWorld(_dragOrigin), transform, view.BaseScale);
                 return;
             }
 
             MoveResolver.IsLegalTarget(_options, target, out var option);
 
-            // The action is paid for whether or not the blow finishes the target.
+            // 공격이 대상을 끝내는지와 관계없이 행동 비용은 지불한다.
             if (_turn != null && !_turn.TrySpend(piece.Def.moveApCost))
             {
                 Fx.Drop(view.transform, _grid.CoordToWorld(_dragOrigin), transform, view.BaseScale);
@@ -162,8 +162,8 @@ namespace Promotion.Gameplay
 
             if (option.isCapture && _combat != null)
             {
-                // The resolver moves the piece and animates the whole capture,
-                // so the drag must not start a competing move of its own.
+                // 리졸버가 기물을 옮기고 잡기 전체를 연출하므로,
+                // 드래그 쪽에서 경합하는 이동을 따로 시작하면 안 된다.
                 _combat.CaptureInto(piece, _state.GetPiece(target), target);
                 MoveCommitted?.Invoke(piece, target);
                 return;
@@ -199,7 +199,7 @@ namespace Promotion.Gameplay
             if (originTile != null)
                 originTile.SetHighlight(TileHighlight.Selected);
 
-            // Nearer squares pop first so the set ripples outward from the piece.
+            // 가까운 칸부터 나타나게 해서 표시가 기물에서 바깥쪽으로 물결처럼 퍼진다.
             _options.Sort((a, b) =>
                 Coord.KingDistance(_dragOrigin, a.target)
                     .CompareTo(Coord.KingDistance(_dragOrigin, b.target)));

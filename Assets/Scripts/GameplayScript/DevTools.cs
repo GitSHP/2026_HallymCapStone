@@ -8,18 +8,18 @@ using UnityEngine.SceneManagement;
 namespace Promotion.Gameplay
 {
     /// <summary>
-    /// Playtest shortcuts: jump straight to the shop, force an outcome, refill
-    /// action points, pull the next wave in early. Drawn with IMGUI so it needs
-    /// no canvas and cannot interfere with the game's own UI.
+    /// 플레이테스트용 단축 기능이다. 상점으로 바로 이동하고, 결과를 강제하고,
+    /// AP를 채우고, 다음 웨이브를 앞당긴다. IMGUI로 그리므로 캔버스가 필요 없고
+    /// 게임 자체의 UI를 방해하지 않는다.
     ///
-    /// Strip this component (or the whole object) before shipping.
+    /// 출시 전에 이 컴포넌트(또는 오브젝트 전체)를 제거한다.
     /// </summary>
     public class DevTools : MonoBehaviour
     {
-        [Tooltip("Show the shortcut panel when the stage starts.")]
+        [Tooltip("스테이지가 시작될 때 단축 기능 패널을 표시한다.")]
         public bool visibleOnStart = true;
 
-        [Tooltip("The stage F11 jumps to (the final chess duel).")]
+        [Tooltip("F11로 이동할 스테이지(최종 체스 대결).")]
         public StageDefinition finalStage;
 
         StageDirector _director;
@@ -63,11 +63,11 @@ namespace Promotion.Gameplay
             if (keyboard.f11Key.wasPressedThisFrame) JumpToFinal();
         }
 
-        // ---------- actions ----------
+        // ---------- 동작 ----------
 
         /// <summary>
-        /// Declares victory rather than opening the shop directly, so the shop is
-        /// reached through the same path the real game uses.
+        /// 상점을 직접 열지 않고 승리를 선언한다. 그래서 실제 게임과 같은 경로로
+        /// 상점에 도달한다.
         /// </summary>
         void OpenShop()
         {
@@ -114,7 +114,7 @@ namespace Promotion.Gameplay
             _lastAction = count + " enemies removed";
         }
 
-        /// <summary>Drops the king on the middle of the back rank and starts the stage.</summary>
+        /// <summary>킹을 맨 뒷줄 가운데에 놓고 스테이지를 시작한다.</summary>
         void AutoDeployKing()
         {
             if (_turn.Phase != TurnPhase.Deploy)
@@ -149,7 +149,7 @@ namespace Promotion.Gameplay
                 }
             }
 
-            // The duel deploys everything up front: fill the second rank, then the first.
+            // 체스 대결은 모든 기물을 미리 배치한다. 둘째 줄을 먼저 채우고 그다음 첫째 줄을 채운다.
             if (_director.IsChessDuel)
                 PlaceRestOfDeck();
 
@@ -174,7 +174,7 @@ namespace Promotion.Gameplay
             }
         }
 
-        /// <summary>Reloads the battle scene with the final duel as the stage.</summary>
+        /// <summary>최종 체스 대결을 스테이지로 삼아 전투 씬을 다시 불러온다.</summary>
         void JumpToFinal()
         {
             if (finalStage == null)
@@ -189,7 +189,7 @@ namespace Promotion.Gameplay
 
         static void Restart() => SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
 
-        // ---------- overlay ----------
+        // ---------- 오버레이 ----------
 
         void OnGUI()
         {

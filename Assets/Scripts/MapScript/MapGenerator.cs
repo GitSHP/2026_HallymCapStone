@@ -5,10 +5,10 @@ using UnityEngine;
 namespace Promotion.Map
 {
     /// <summary>
-    /// Builds a branching map the way Slay the Spire does: walk several paths up a
-    /// grid, each step moving at most one column sideways and never crossing an
-    /// edge already drawn. Where paths share a square they merge, where they part
-    /// the player gets a choice. A single boss node caps the top.
+    /// Slay the Spire 방식으로 갈래 지도를 만든다. 격자 위로 여러 경로를 올려 보내되,
+    /// 한 걸음에 옆으로 최대 한 칸만 움직이고 이미 그려진 연결선과는 교차하지 않는다.
+    /// 경로가 같은 칸을 지나면 합쳐지고, 갈라지면 플레이어에게 선택지가 생긴다.
+    /// 맨 위는 보스 노드 하나로 마무리한다.
     /// </summary>
     public static class MapGenerator
     {
@@ -40,7 +40,7 @@ namespace Promotion.Map
             {
                 int column = rng.Next(columns);
 
-                // The first two paths start apart so the opening always offers a choice.
+                // 처음 두 경로는 서로 다른 칸에서 출발시켜 시작부터 항상 선택지가 있게 한다.
                 if (p == 0)
                     firstStart = column;
                 else if (p == 1)
@@ -83,7 +83,7 @@ namespace Promotion.Map
             return map;
         }
 
-        /// <summary>One column left, straight or right — whichever does not cross an existing edge.</summary>
+        /// <summary>왼쪽 한 칸, 직진, 오른쪽 한 칸 중 기존 연결선과 교차하지 않는 쪽을 고른다.</summary>
         static int PickNextColumn(int floor, int column, int columns,
             List<(int floor, int from, int to)> edges, System.Random rng)
         {
@@ -105,7 +105,7 @@ namespace Promotion.Map
                 if (!Crosses(floor, column, candidate, edges))
                     return candidate;
 
-            // Going straight up can never cross a neighbour, so this always exists.
+            // 곧장 위로 가면 이웃 연결선과 절대 교차하지 않으므로 이 선택지는 항상 존재한다.
             return column;
         }
 
@@ -123,8 +123,8 @@ namespace Promotion.Map
         }
 
         /// <summary>
-        /// The first floor is always a fight. Above that a node may become a shop,
-        /// but never right after another shop on the same path.
+        /// 첫 층은 항상 전투다. 그 위층의 노드는 상점이 될 수 있지만,
+        /// 같은 경로에서 상점 바로 다음에 또 상점이 오지는 않는다.
         /// </summary>
         static void AssignTypes(MapData map, MapConfig config, System.Random rng)
         {

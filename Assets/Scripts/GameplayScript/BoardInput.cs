@@ -5,14 +5,14 @@ using UnityEngine.InputSystem;
 namespace Promotion.Gameplay
 {
     /// <summary>
-    /// Turns pointer position into board coordinates.
-    /// Bound to &lt;Pointer&gt; rather than &lt;Mouse&gt; so touch works without extra code.
-    /// The grid is regular, so hover needs arithmetic — no colliders, no raycasts.
+    /// 포인터 위치를 보드 좌표로 바꾼다.
+    /// &lt;Mouse&gt;가 아니라 &lt;Pointer&gt;에 바인딩해서 추가 코드 없이 터치도 동작한다.
+    /// 격자가 규칙적이라 호버 판정은 계산만으로 충분하다. 콜라이더도 레이캐스트도 쓰지 않는다.
     /// </summary>
     [RequireComponent(typeof(BoardGrid))]
     public class BoardInput : MonoBehaviour
     {
-        [Tooltip("Leave empty to use Camera.main.")]
+        [Tooltip("비워 두면 Camera.main을 사용한다.")]
         public Camera worldCamera;
 
         public Coord HoveredCoord { get; private set; } = Coord.Invalid;
@@ -59,8 +59,8 @@ namespace Promotion.Gameplay
             if (worldCamera == null)
                 return;
 
-            // An overlay screen is up: drop the hover so the board does not sit
-            // lit under a menu the player is actually looking at.
+            // 오버레이 화면이 떠 있다. 플레이어가 실제로 보고 있는 메뉴 아래에서
+            // 보드가 강조된 채로 남지 않도록 호버를 해제한다.
             if (!InputGate.WorldInputEnabled)
             {
                 HoveredCoord = Coord.Invalid;
@@ -69,7 +69,7 @@ namespace Promotion.Gameplay
             }
 
             var screen = _pointAction.ReadValue<Vector2>();
-            // Distance from the camera to the board plane (z = 0 in a 2D scene).
+            // 카메라에서 보드 평면까지의 거리(2D 씬에서는 z = 0).
             float depth = -worldCamera.transform.position.z;
             PointerWorldPosition = worldCamera.ScreenToWorldPoint(new Vector3(screen.x, screen.y, depth));
 

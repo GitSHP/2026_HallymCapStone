@@ -9,23 +9,23 @@ using UnityEngine.UI;
 namespace Promotion.Tutorial
 {
     /// <summary>
-    /// The tutorial's voice. Two modes:
+    /// 튜토리얼의 대사를 담당한다. 두 가지 모드가 있다.
     /// <list type="bullet">
-    /// <item>Talk — a visual-novel box with the speaker's portrait. The screen dims
-    /// and the board is locked until the player clicks through.</item>
-    /// <item>Hint — one compact line under the board while the player acts. Nothing is
-    /// blocked, because doing the thing is the lesson.</item>
+    /// <item>Talk — 화자 초상화가 있는 비주얼 노벨식 대화창이다. 플레이어가 클릭해
+    /// 넘길 때까지 화면이 어두워지고 보드가 잠긴다.</item>
+    /// <item>Hint — 플레이어가 행동하는 동안 보드 아래에 뜨는 짧은 한 줄이다. 직접 해 보는 것
+    /// 자체가 학습이므로 아무것도 막지 않는다.</item>
     /// </list>
-    /// The layout is a prefab placed (switched off) in the battle scene; the
-    /// tutorial switches it on and fills in the speaker from its script.
+    /// 레이아웃은 전투 씬에 꺼진 상태로 배치된 프리팹이며, 튜토리얼이 이를 켜고
+    /// 스크립트의 화자 정보를 채운다.
     /// </summary>
     public class DialogueView : MonoBehaviour
     {
         static readonly Color TalkDim = new Color(0f, 0f, 0f, 0.7f);
-        // Darker while the comic is up, so the page and not the board holds the eye.
+        // 만화가 떠 있는 동안은 보드가 아니라 페이지에 시선이 가도록 더 어둡게 한다.
         static readonly Color StoryDim = new Color(0f, 0f, 0f, 0.88f);
 
-        [Header("Talk")]
+        [Header("대화")]
         [SerializeField] GameObject _talk;
         [SerializeField] Image _backdrop;
         [SerializeField] Button _backdropButton;
@@ -33,21 +33,21 @@ namespace Promotion.Tutorial
         [SerializeField] TextMeshProUGUI _talkText;
         [SerializeField] GameObject _continueMark;
         [SerializeField] Image _portrait;
-        [Tooltip("Shown instead of the portrait while the script has no illustration.")]
+        [Tooltip("스크립트에 일러스트가 없을 때 초상화 대신 보여 준다.")]
         [SerializeField] GameObject _portraitPlaceholder;
 
-        [Header("Board cover")]
+        [Header("보드 가림막")]
         [SerializeField] CanvasGroup _curtain;
         [SerializeField] Image _background;
         [SerializeField] AspectRatioFitter _backgroundFitter;
         [SerializeField] Image _shade;
 
-        [Header("Story")]
+        [Header("스토리")]
         [SerializeField] GameObject _story;
         [SerializeField] Image _storyBack;
         [SerializeField] Image _storyFront;
 
-        [Header("Hint")]
+        [Header("힌트")]
         [SerializeField] GameObject _hint;
         [SerializeField] TextMeshProUGUI _hintText;
 
@@ -57,7 +57,7 @@ namespace Promotion.Tutorial
         bool _advance;
         bool _blocking;
 
-        /// <summary>Switches the view on for a tutorial and fills in its speaker and art.</summary>
+        /// <summary>튜토리얼용으로 뷰를 켜고 화자와 그림을 채운다.</summary>
         public void Init(TutorialScript script)
         {
             _script = script;
@@ -75,20 +75,20 @@ namespace Promotion.Tutorial
             if (hasBackground)
             {
                 _background.sprite = script.storyBackground;
-                // Fill the screen at any aspect ratio, cropping rather than stretching.
+                // 어떤 화면비에서도 늘리지 않고 잘라 내는 방식으로 화면을 채운다.
                 _backgroundFitter.aspectRatio = script.storyBackground.rect.width / script.storyBackground.rect.height;
-                // Clear until the comic starts; see SetShade.
+                // 만화가 시작될 때까지는 투명하다. SetShade를 참고한다.
                 _shade.color = Color.clear;
             }
 
             HideAll();
         }
 
-        // ---------- Public API ----------
+        // ---------- 공개 API ----------
 
         /// <summary>
-        /// Shows one line in the talk box and finishes when the player clicks past it.
-        /// <paramref name="expression"/> swaps the portrait for this line; null shows the default.
+        /// 대화창에 대사 한 줄을 보여 주고, 플레이어가 클릭해 넘기면 끝난다.
+        /// <paramref name="expression"/>는 이 대사의 초상화를 바꾸며, null이면 기본 초상화를 보여 준다.
         /// </summary>
         public IEnumerator Say(string text, Sprite expression = null, Sprite storyFrame = null)
         {
@@ -108,7 +108,7 @@ namespace Promotion.Tutorial
             _advance = false;
             _typing = true;
 
-            // Unscaled: a hit-stop elsewhere must not freeze the dialogue.
+            // 다른 곳의 히트스톱 때문에 대사가 멈추면 안 되므로 unscaled 시간을 쓴다.
             float shown = 0f;
             while (_typing && shown < total)
             {
@@ -126,10 +126,10 @@ namespace Promotion.Tutorial
                 yield return null;
         }
 
-        /// <summary>A compact instruction while the player plays. Does not block anything.</summary>
+        /// <summary>플레이어가 플레이하는 동안 보여 주는 짧은 안내다. 아무것도 막지 않는다.</summary>
         public void ShowHint(string text)
         {
-            // The player is about to act on the board, so it must be visible no matter what.
+            // 플레이어가 곧 보드에서 행동해야 하므로 어떤 경우에도 보드가 보여야 한다.
             ForceUncover();
             _talk.SetActive(false);
             SetBlocking(false);
@@ -149,8 +149,8 @@ namespace Promotion.Tutorial
         }
 
         /// <summary>
-        /// Hides the board and HUD behind a solid backdrop for story scenes. Covering is
-        /// instant; uncovering fades, so the battlefield is revealed rather than cut to.
+        /// 스토리 장면을 위해 보드와 HUD를 불투명한 배경 뒤에 숨긴다. 가릴 때는 즉시 가리고,
+        /// 걷을 때는 서서히 사라지게 해서 전장이 뚝 끊겨 나타나지 않고 드러나도록 한다.
         /// </summary>
         public void SetBoardCovered(bool covered)
         {
@@ -176,7 +176,7 @@ namespace Promotion.Tutorial
             UpdateDim();
         }
 
-        /// <summary>The script's illustration, or the placeholder frame while it has none.</summary>
+        /// <summary>스크립트의 일러스트를 보여 주고, 없으면 임시 틀을 보여 준다.</summary>
         void ShowPortrait(Sprite sprite)
         {
             bool hasArt = sprite != null;
@@ -188,8 +188,8 @@ namespace Promotion.Tutorial
         }
 
         /// <summary>
-        /// The talk dim darkens the board. Over the story background it would only bury
-        /// the art, so there the background's own shade is the only darkening.
+        /// 대화용 어둡게 처리는 보드를 어둡게 한다. 스토리 배경 위에서는 그림을 묻어 버릴 뿐이므로,
+        /// 그때는 배경 자체의 음영만으로 어둡게 한다.
         /// </summary>
         void UpdateDim()
         {
@@ -200,8 +200,8 @@ namespace Promotion.Tutorial
         }
 
         /// <summary>
-        /// Shows one page of the comic. Each frame holds every panel so far, so laying
-        /// the new frame over the old and fading it in reads as the next panel appearing.
+        /// 만화 한 페이지를 보여 준다. 각 프레임에는 지금까지의 모든 컷이 담겨 있으므로,
+        /// 새 프레임을 이전 프레임 위에 겹쳐 서서히 나타나게 하면 다음 컷이 등장하는 것처럼 보인다.
         /// </summary>
         void ShowStory(Sprite frame)
         {
@@ -233,14 +233,14 @@ namespace Promotion.Tutorial
             Fx.FadeIn(_storyFront);
         }
 
-        /// <summary>The background darkens while the comic is up and clears once it is gone.</summary>
+        /// <summary>만화가 떠 있는 동안 배경을 어둡게 하고, 사라지면 다시 밝힌다.</summary>
         void SetShade(bool on)
         {
             if (_shade != null && _shade.gameObject.activeSelf)
                 Fx.FadeTo(_shade, on ? _script.storyBackgroundShade : 0f);
         }
 
-        // ---------- Input ----------
+        // ---------- 입력 ----------
 
         void Update()
         {
@@ -252,7 +252,7 @@ namespace Promotion.Tutorial
                 Continue();
         }
 
-        /// <summary>First press finishes the typing, the next one moves on.</summary>
+        /// <summary>첫 입력은 타이핑을 끝내고, 다음 입력은 다음 대사로 넘어간다.</summary>
         void Continue()
         {
             if (_typing)

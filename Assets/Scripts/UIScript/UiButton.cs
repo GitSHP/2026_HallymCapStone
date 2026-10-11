@@ -8,10 +8,9 @@ using UnityEngine.UI;
 namespace Promotion.UI
 {
     /// <summary>
-    /// An icon-led button: the symbol carries the meaning and the caption is a
-    /// small confirmation underneath it, not the button itself. Built here rather
-    /// than on Unity's Button so every interactive surface in the game reacts
-    /// through UiFx and retunes from the one presets asset.
+    /// 아이콘 중심의 버튼이다. 의미는 기호가 전달하고, 캡션은 버튼 자체가 아니라 그 아래에
+    /// 붙는 작은 확인 문구다. Unity의 Button 대신 직접 만든 이유는 게임의 모든 상호작용
+    /// 요소가 UiFx를 거쳐 반응하고, 프리셋 에셋 하나로 다시 조정되게 하기 위해서다.
     /// </summary>
     public class UiButton : MonoBehaviour,
         IPointerEnterHandler, IPointerExitHandler,
@@ -33,7 +32,7 @@ namespace Promotion.UI
 
         void Awake() => RememberHome();
 
-        /// <summary>Where the button rests; hover lifts it from here and returns it here.</summary>
+        /// <summary>버튼이 쉬는 위치를 기억한다. 호버 시 여기서 들어 올렸다가 여기로 되돌린다.</summary>
         void RememberHome()
         {
             if (_homeKnown)

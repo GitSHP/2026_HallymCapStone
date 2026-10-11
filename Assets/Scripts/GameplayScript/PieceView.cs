@@ -6,8 +6,8 @@ using UnityEngine;
 namespace Promotion.Gameplay
 {
     /// <summary>
-    /// Visual body of a piece. Reads everything it draws from the PieceDefinition,
-    /// so assigning real sprites later needs no change here.
+    /// 기물의 시각적 본체다. 그리는 모든 것을 PieceDefinition에서 읽으므로
+    /// 나중에 실제 스프라이트를 지정해도 여기를 고칠 필요가 없다.
     /// </summary>
     public class PieceView : MonoBehaviour
     {
@@ -24,14 +24,14 @@ namespace Promotion.Gameplay
         {
             Piece = piece;
             _grid = grid;
-            name = $"{piece.Team}_{piece.Def.displayName}";
+            name = $"{piece.Team}_{piece.Def.itemName}";
 
             _body = gameObject.AddComponent<SpriteRenderer>();
 
-            // Black pieces in the chess duel have art of their own; anything else
-            // falls back to the player art tinted with the team colour.
+            // 체스 대결의 흑 기물은 전용 이미지를 쓴다. 그 밖의 경우는
+            // 아군 이미지에 진영 색을 입혀 대신 쓴다.
             bool enemyArt = piece.Team == Team.Enemy && piece.Def.enemySprite != null;
-            var art = enemyArt ? piece.Def.enemySprite : piece.Def.sprite;
+            var art = enemyArt ? piece.Def.enemySprite : piece.Def.itemImage;
             bool hasArt = art != null;
             _body.sprite = hasArt ? art : PlaceholderArt.Circle;
             _bodyColor = enemyArt ? Color.white
@@ -40,7 +40,7 @@ namespace Promotion.Gameplay
             _body.sortingOrder = PieceSortingOrder;
             _body.sharedMaterial = PlaceholderArt.UnlitMaterial;
 
-            // The glyph is placeholder signage; real art makes it redundant.
+            // 글리프는 임시 표식이다. 실제 이미지가 있으면 필요 없다.
             if (!hasArt)
             {
                 var labelGo = new GameObject("Glyph");
@@ -58,7 +58,7 @@ namespace Promotion.Gameplay
                 _label.GetComponent<MeshRenderer>().sortingOrder = PieceSortingOrder + 1;
             }
 
-            // Pixel art is drawn one square to one tile; the placeholder disc needs a margin.
+            // 픽셀 아트는 한 칸을 꽉 채우게 그려져 있다. 임시 원판은 여백이 필요하다.
             BaseScale = hasArt ? 1f : 0.82f;
             transform.localScale = Vector3.one * BaseScale;
             SnapToCoord();

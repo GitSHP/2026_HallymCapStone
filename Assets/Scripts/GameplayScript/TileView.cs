@@ -16,13 +16,13 @@ namespace Promotion.Gameplay
     }
 
     /// <summary>
-    /// One board square. Owns a base sprite (the checker colour) and an overlay
-    /// sprite used for every highlight, so highlight animation never disturbs
-    /// the board's own layout.
+    /// 보드의 한 칸이다. 바탕 스프라이트(체크무늬 색)와 모든 강조 표시에 쓰는
+    /// 오버레이 스프라이트를 따로 가진다. 그래서 강조 연출이 보드 자체의 배치를
+    /// 흐트러뜨리지 않는다.
     /// </summary>
     public class TileView : MonoBehaviour
     {
-        [Header("Optional art overrides (leave empty to use placeholders)")]
+        [Header("선택적 이미지 교체 (비워 두면 임시 이미지 사용)")]
         public Sprite baseSprite;
         public Sprite overlaySprite;
 
@@ -61,7 +61,7 @@ namespace Promotion.Gameplay
             _overlay.enabled = false;
         }
 
-        /// <summary>Recolours the square itself; clear when a board picture shows underneath.</summary>
+        /// <summary>칸 자체의 색을 바꾼다. 아래에 보드 그림이 보일 때는 투명하게 둔다.</summary>
         public void SetBaseColor(Color color)
         {
             _baseColor = color;
@@ -69,7 +69,7 @@ namespace Promotion.Gameplay
                 _base.color = color;
         }
 
-        /// <param name="popIndex">Stagger index so a set of highlights ripples in rather than snapping.</param>
+        /// <param name="popIndex">여러 강조 표시가 한꺼번에 튀어나오지 않고 물결처럼 차례로 나타나게 하는 순번이다.</param>
         public void SetHighlight(TileHighlight highlight, int popIndex = 0)
         {
             if (_highlight == highlight)
@@ -86,7 +86,7 @@ namespace Promotion.Gameplay
             _overlay.color = TintFor(highlight);
             _overlay.enabled = true;
 
-            // Hover reads as instant feedback; deliberate highlights get the staggered pop.
+            // 호버는 즉각적인 피드백으로 보여야 한다. 의도된 강조 표시에만 시차를 둔 팝 연출을 준다.
             if (highlight == TileHighlight.Hover)
                 _overlay.transform.localScale = Vector3.one;
             else
@@ -105,7 +105,7 @@ namespace Promotion.Gameplay
             else
                 Fx.HoverOut(transform);
 
-            // Hover tint only shows when nothing more important is on this tile.
+            // 호버 색은 이 칸에 더 중요한 표시가 없을 때만 보인다.
             if (_highlight == TileHighlight.None || _highlight == TileHighlight.Hover)
                 SetHighlight(hovered ? TileHighlight.Hover : TileHighlight.None);
         }

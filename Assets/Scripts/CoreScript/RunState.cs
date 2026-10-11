@@ -7,9 +7,8 @@ using UnityEngine;
 namespace Promotion.Core
 {
     /// <summary>
-    /// Everything that survives a stage: gold, the pieces in the player's deck and
-    /// the artifacts they hold. Lives across scene loads so the stage-select scene
-    /// and the next battle read the same run.
+    /// 스테이지가 끝나도 유지되는 모든 것: 골드, 플레이어 덱의 기물, 보유한 유물이다.
+    /// 씬 로드를 넘어 살아 있으므로 스테이지 선택 씬과 다음 전투가 같은 런을 읽는다.
     /// </summary>
     // [아이템 담당] 런 전체에서 유지되는 보유 현황. 구매한 유물은 Artifacts,
     // 기물은 Deck, 재화는 Gold 에 쌓인다. 씬이 바뀌어도 사라지지 않는다.
@@ -17,7 +16,7 @@ namespace Promotion.Core
     {
         static RunState _instance;
 
-        /// <summary>Creates the run on first access so no scene has to remember to host it.</summary>
+        /// <summary>처음 접근할 때 런을 생성하므로, 어느 씬도 이를 직접 배치해 둘 필요가 없다.</summary>
         public static RunState Instance
         {
             get
@@ -35,10 +34,10 @@ namespace Promotion.Core
             }
         }
 
-        [Header("Starting values")]
+        [Header("시작 값")]
         [SerializeField] int startingGold = 12;
 
-        [Header("Starting deck (the king is placed by the stage, not the deck)")]
+        [Header("시작 덱 (킹은 덱이 아니라 스테이지가 배치한다)")]
         [SerializeField] List<PieceDefinition> startingDeck = new();
 
         readonly List<PieceDefinition> _deck = new();
@@ -53,18 +52,18 @@ namespace Promotion.Core
         // [아이템 담당] 이번 런에서 보유 중인 유물 목록. 상점에서 구매하면 여기에 쌓인다.
         public IReadOnlyList<ItemData> Artifacts => _artifacts;
 
-        /// <summary>This run's map, generated the first time the map scene opens.</summary>
+        /// <summary>이번 런의 맵이다. 맵 씬이 처음 열릴 때 생성된다.</summary>
         public MapData Map { get; set; }
 
-        /// <summary>Every node entered so far, in order. The last one is where the player stands.</summary>
+        /// <summary>지금까지 진입한 모든 노드를 순서대로 담는다. 마지막 노드가 플레이어의 현재 위치이다.</summary>
         public List<int> MapPath { get; } = new();
 
         public int CurrentMapNode => MapPath.Count > 0 ? MapPath[MapPath.Count - 1] : -1;
 
-        /// <summary>The battle the map sent the player into. Null when the battle scene is opened directly.</summary>
+        /// <summary>맵에서 플레이어를 보낸 전투이다. 전투 씬을 직접 열었을 때는 null이다.</summary>
         public StageDefinition CurrentStage { get; set; }
 
-        /// <summary>Raised with (previous, current) so counters can tween between them.</summary>
+        /// <summary>(이전 값, 현재 값)과 함께 발생하므로 카운터가 두 값 사이를 트윈할 수 있다.</summary>
         public event Action<int, int> GoldChanged;
 
         void Awake()
@@ -106,7 +105,7 @@ namespace Promotion.Core
 
         public bool CanAfford(int cost) => Gold >= cost;
 
-        /// <summary>Spends only if the whole cost is covered — never leaves a partial purchase.</summary>
+        /// <summary>비용 전체를 감당할 수 있을 때만 지출한다 — 부분 구매가 남는 일은 없다.</summary>
         public bool TrySpend(int cost)
         {
             if (cost < 0 || !CanAfford(cost))
@@ -134,7 +133,7 @@ namespace Promotion.Core
 
         public void AdvanceStage() => StageIndex++;
 
-        /// <summary>Drops the run so a new one starts clean, without a scene reload.</summary>
+        /// <summary>현재 런을 버려, 씬을 다시 로드하지 않고도 새 런이 깨끗하게 시작되게 한다.</summary>
         public void ResetRun()
         {
             _initialised = false;

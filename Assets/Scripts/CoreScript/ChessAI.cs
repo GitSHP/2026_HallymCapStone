@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Promotion.Core
 {
-    /// <summary>Why the AI picked the move it did — logged while tuning difficulty.</summary>
+    /// <summary>AI가 그 수를 고른 이유다. 난이도를 조정할 때 로그로 남긴다.</summary>
     public enum AIDecisionKind
     {
         Mate,
@@ -18,24 +18,23 @@ namespace Promotion.Core
     {
         public ChessMove move;
         public AIDecisionKind kind;
-        /// <summary>0 = the move the AI rated best.</summary>
+        /// <summary>0 = AI가 최선으로 평가한 수이다.</summary>
         public int rank;
         public float score;
         public float bestScore;
     }
 
     /// <summary>
-    /// The chess opponent. It rates every legal move by looking a set number of
-    /// moves ahead, then chooses loosely among them the way a beginner would:
-    /// usually a reasonable move, sometimes a believable mistake, never a missed
-    /// checkmate. Everything that sets the difficulty lives in an AIProfile.
-    /// Pure logic on a SearchBoard — the live board is never touched.
+    /// 체스 상대다. 정해진 수만큼 앞을 내다보며 모든 합법 수를 평가한 뒤,
+    /// 초심자처럼 그중에서 느슨하게 고른다. 대체로 무난한 수를 두고, 가끔
+    /// 그럴듯한 실수를 하지만, 체크메이트는 절대 놓치지 않는다. 난이도를 정하는
+    /// 값은 전부 AIProfile에 있다. SearchBoard 위의 순수 로직이며 실제 보드는 건드리지 않는다.
     /// </summary>
     public static class ChessAI
     {
         const float MateScore = 1000f;
-        // Stalemate ends the duel in the AI's favour whoever is stuck, so the AI
-        // values it — but well below an actual checkmate.
+        // 스테일메이트는 어느 쪽이 막히든 AI에게 유리하게 대결을 끝내므로 AI는 이를
+        // 가치 있게 본다. 다만 실제 체크메이트보다는 훨씬 낮게 평가한다.
         const float StalemateScore = 500f;
 
         struct Scored
@@ -64,9 +63,9 @@ namespace Promotion.Core
                 float score = -Search(board, side.Opponent(), side, depth - 1, -Mathf.Infinity, Mathf.Infinity, 1, promotion);
                 bool mates = score >= MateScore - 10f;
 
-                // One move ahead cannot see the reply, so add a guard against
-                // simply handing over a big piece; small losses stay invisible,
-                // which is exactly the kind of mistake a beginner makes.
+                // 한 수 앞만 보면 상대의 응수를 볼 수 없으므로, 큰 기물을 그냥
+                // 내주는 것만은 막는 장치를 더한다. 작은 손실은 여전히 보이지 않는데,
+                // 이것이 바로 초심자가 하는 종류의 실수다.
                 if (depth == 1 && !mates)
                 {
                     var moved = undo.promoted ?? m.piece;
@@ -82,11 +81,11 @@ namespace Promotion.Core
             scored.Sort((a, b) => b.score.CompareTo(a.score));
             float best = scored[0].score;
 
-            // 1. Never miss the win (subject to the profile).
+            // 1. 승리 수는 놓치지 않는다(프로필 설정에 따름).
             if (scored[0].mates && rng.NextDouble() < profile.mateFindRate)
                 return Decide(scored, 0, AIDecisionKind.Mate);
 
-            // 2. A sensible start: centre pawns and developing pieces.
+            // 2. 무난한 시작: 중앙 폰 전진과 기물 전개.
             if (movesPlayed < profile.sensibleOpeningMoves)
             {
                 int pick = PickOpening(board, scored, rng);
@@ -94,7 +93,7 @@ namespace Promotion.Core
                     return Decide(scored, pick, AIDecisionKind.Opening);
             }
 
-            // 3. Now and then, a believable mistake — more often when well ahead.
+            // 3. 이따금 그럴듯한 실수를 한다 — 크게 앞서 있을수록 더 자주 한다.
             float lead = Material(board, side) - Material(board, side.Opponent());
             float blunderRate = lead >= profile.mercyLead ? profile.mercyBlunderRate : profile.blunderRate;
             if (rng.NextDouble() < blunderRate)
@@ -107,7 +106,7 @@ namespace Promotion.Core
                     return Decide(scored, pool[rng.Next(pool.Count)], AIDecisionKind.Blunder);
             }
 
-            // 4. Otherwise pick loosely: better moves are likelier, not certain.
+            // 4. 그 외에는 느슨하게 고른다. 좋은 수일수록 뽑힐 확률이 높을 뿐 확정은 아니다.
             return Decide(scored, SoftPick(scored, profile.temperature, rng), AIDecisionKind.Considered);
         }
 
@@ -120,9 +119,9 @@ namespace Promotion.Core
             bestScore = scored[0].score
         };
 
-        // ---------- Search ----------
+        // ---------- 탐색 ----------
 
-        /// <summary>Negamax with alpha-beta; scores are from <paramref name="toMove"/>'s point of view.</summary>
+        /// <summary>알파-베타 가지치기를 적용한 네가맥스다. 점수는 <paramref name="toMove"/>의 관점이다.</summary>
         static float Search(SearchBoard board, Team toMove, Team aiSide, int depth, float alpha, float beta,
             int ply, PieceDefinition promotion)
         {
@@ -132,15 +131,15 @@ namespace Promotion.Core
             if (moves.Count == 0)
             {
                 if (ChessRules.IsInCheck(board, toMove))
-                    return -(MateScore - ply);   // quicker mates score higher
-                // Stalemate is a loss for the player whichever side is stuck.
+                    return -(MateScore - ply);   // 더 빠른 메이트일수록 점수가 높다
+                // 스테일메이트는 어느 쪽이 막히든 플레이어의 패배다.
                 return toMove == aiSide ? StalemateScore : -StalemateScore;
             }
 
             if (depth <= 0)
                 return Evaluate(board, toMove);
 
-            // Captures first: they decide most lines and make the cut-offs bite sooner.
+            // 잡는 수를 먼저 본다. 대부분의 수순을 결정하고 가지치기가 더 일찍 일어나게 한다.
             moves.Sort((a, b) => b.isCapture.CompareTo(a.isCapture));
 
             float bestScore = -Mathf.Infinity;
@@ -158,12 +157,12 @@ namespace Promotion.Core
             return bestScore;
         }
 
-        // ---------- Evaluation ----------
+        // ---------- 평가 ----------
 
         /// <summary>
-        /// The position from <paramref name="side"/>'s point of view, in pawns:
-        /// material first, then small nudges for the centre, pawn progress and a
-        /// sheltered king. Works for any piece described by data, not just the six classics.
+        /// <paramref name="side"/> 관점의 국면을 폰 단위로 평가한다. 기물 가치가 우선이고,
+        /// 중앙 장악·폰 전진·킹 보호에 작은 가산점을 준다. 전통적인 6종뿐 아니라
+        /// 데이터로 정의된 어떤 기물에도 동작한다.
         /// </summary>
         public static float Evaluate(IBoardView board, Team side)
         {
@@ -176,7 +175,7 @@ namespace Promotion.Core
                 float v = p.Def.aiValue;
                 if (!p.IsObjective)
                 {
-                    // Up to +0.3 for standing in the middle of the board.
+                    // 보드 중앙에 서 있으면 최대 +0.3을 준다.
                     float dist = Mathf.Abs(p.Coord.x - centre) + Mathf.Abs(p.Coord.y - middle);
                     v += Mathf.Max(0f, 0.3f - dist * 0.05f);
 
@@ -218,8 +217,8 @@ namespace Promotion.Core
         }
 
         /// <summary>
-        /// What the piece stands to lose where it now stands: everything if it is
-        /// attacked and undefended, the difference if a cheaper piece can take it.
+        /// 기물이 현재 위치에서 잃을 수 있는 가치다. 공격받는데 보호받지 못하면 전부를,
+        /// 더 싼 기물이 잡을 수 있으면 그 차이만큼을 잃는다.
         /// </summary>
         static float HangingLoss(SearchBoard board, Piece piece)
         {
@@ -238,7 +237,7 @@ namespace Promotion.Core
             return defended ? Mathf.Max(0f, piece.Def.aiValue - cheapest) : piece.Def.aiValue;
         }
 
-        // ---------- Choosing ----------
+        // ---------- 선택 ----------
 
         static int SoftPick(List<Scored> scored, float temperature, System.Random rng)
         {
@@ -264,8 +263,8 @@ namespace Promotion.Core
         }
 
         /// <summary>
-        /// Among moves that lose nothing, prefer a central pawn push or bringing a
-        /// minor piece off the back rank. Returns -1 when there is no such move.
+        /// 손해 없는 수 중에서 중앙 폰 전진이나 마이너 기물을 뒷줄에서 꺼내는 수를
+        /// 우선한다. 그런 수가 없으면 -1을 반환한다.
         /// </summary>
         static int PickOpening(SearchBoard board, List<Scored> scored, System.Random rng)
         {

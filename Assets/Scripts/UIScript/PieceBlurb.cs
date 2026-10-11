@@ -3,13 +3,13 @@ using Promotion.Data;
 namespace Promotion.UI
 {
     /// <summary>
-    /// One short line per piece, describing how it moves rather than what its
-    /// numbers are. The game exists to teach chess movement, so the shop is the
-    /// first place a player meets a piece — a stat block tells them nothing they
-    /// can act on, while "leaps in an L" is the whole lesson.
+    /// 기물마다 수치가 아니라 움직이는 방식을 설명하는 짧은 문장 하나를 둔다.
+    /// 이 게임은 체스 행마법을 가르치려고 만든 것이고, 플레이어가 기물을 처음 만나는
+    /// 곳이 상점이다. 능력치 표는 행동으로 옮길 정보를 주지 못하지만,
+    /// "L자로 도약한다"는 한 줄은 그 자체로 배울 내용 전부다.
     ///
-    /// Kept here rather than on PieceDefinition because the piece assets belong
-    /// to the gameplay side; the shop only needs to describe what it is selling.
+    /// PieceDefinition이 아니라 여기에 두는 이유는 기물 에셋이 게임플레이 쪽 소유이기
+    /// 때문이다. 상점은 자기가 파는 물건을 설명하기만 하면 된다.
     /// </summary>
     // [아이템 담당] 기물 카드에 뜨는 행마법 설명문. 기물을 추가하면 여기에 한 줄 더한다.
     public static class PieceBlurb

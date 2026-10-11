@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Promotion.Core
 {
     /// <summary>
-    /// Occupancy of the board. Gameplay systems ask this what is where;
-    /// nothing here knows about sprites, tweens or input.
+    /// 보드의 점유 상태다. 게임플레이 시스템은 어느 칸에 무엇이 있는지 여기에 묻는다.
+    /// 이 클래스는 스프라이트, 트윈, 입력에 대해 전혀 알지 못한다.
     /// </summary>
     public class BoardState : MonoBehaviour, IBoardView
     {
@@ -49,8 +49,8 @@ namespace Promotion.Core
             if (piece == null || !_grid.IsInside(to))
                 return;
 
-            // A piece already on the destination is taken off the board now, even if
-            // its death animation plays on for a moment: rules read the board at once.
+            // 목적지에 이미 있던 기물은 사망 연출이 잠시 이어지더라도 지금 바로 보드에서
+            // 제거한다. 규칙은 보드를 즉시 읽기 때문이다.
             var occupant = _pieces[to.x, to.y];
             if (occupant != null && occupant != piece)
                 _all.Remove(occupant);

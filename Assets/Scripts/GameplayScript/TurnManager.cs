@@ -5,9 +5,9 @@ using UnityEngine;
 namespace Promotion.Gameplay
 {
     /// <summary>
-    /// Holds whose turn it is and how much the player may still do.
-    /// It owns no flow of its own — StageDirector drives the sequence and this
-    /// reports the state so UI and input can react.
+    /// 누구의 턴인지와 플레이어가 아직 얼마나 행동할 수 있는지를 보관한다.
+    /// 자체 흐름은 갖지 않는다. 진행 순서는 StageDirector가 이끌고, 이 클래스는
+    /// UI와 입력이 반응할 수 있도록 상태를 알린다.
     /// </summary>
     public class TurnManager : MonoBehaviour
     {
@@ -23,8 +23,8 @@ namespace Promotion.Gameplay
         public bool IsOver => Phase == TurnPhase.Victory || Phase == TurnPhase.Defeat;
 
         /// <summary>
-        /// The chess duel has no action points: one move a turn, whatever the piece.
-        /// The HUD reads this to show the bar as locked.
+        /// 체스 대결에는 AP가 없다. 기물에 상관없이 한 턴에 한 수다.
+        /// HUD는 이 값을 읽어 바를 잠긴 상태로 표시한다.
         /// </summary>
         public bool ApDisabled { get; private set; }
 
@@ -68,7 +68,7 @@ namespace Promotion.Gameplay
             SetPhase(TurnPhase.PlayerTurn);
         }
 
-        /// <summary>Tops the bar back up without advancing the turn.</summary>
+        /// <summary>턴을 넘기지 않고 AP 바를 다시 가득 채운다.</summary>
         public void RefillAp()
         {
             Ap = MaxAp;

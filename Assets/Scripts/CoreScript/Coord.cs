@@ -4,8 +4,8 @@ using UnityEngine;
 namespace Promotion.Core
 {
     /// <summary>
-    /// Board grid coordinate. File(x) increases to the right, rank(y) increases upward.
-    /// All board logic speaks in Coord; only BoardGrid knows about world space.
+    /// 보드 격자 좌표다. 파일(x)은 오른쪽으로, 랭크(y)는 위쪽으로 증가한다.
+    /// 모든 보드 로직은 Coord로 소통하며, 월드 공간을 아는 것은 BoardGrid뿐이다.
     /// </summary>
     [Serializable]
     public struct Coord : IEquatable<Coord>
@@ -28,11 +28,11 @@ namespace Promotion.Core
         public static bool operator ==(Coord a, Coord b) => a.x == b.x && a.y == b.y;
         public static bool operator !=(Coord a, Coord b) => !(a == b);
 
-        /// <summary>Chebyshev distance — the number of king moves between two squares.</summary>
+        /// <summary>체비쇼프 거리 — 두 칸 사이를 킹이 이동하는 횟수이다.</summary>
         public static int KingDistance(Coord a, Coord b)
             => Mathf.Max(Mathf.Abs(a.x - b.x), Mathf.Abs(a.y - b.y));
 
-        /// <summary>Manhattan distance, used as a tie-breaker when ordering enemies.</summary>
+        /// <summary>맨해튼 거리. 적의 처리 순서를 정할 때 동률을 가르는 데 쓴다.</summary>
         public static int ManhattanDistance(Coord a, Coord b)
             => Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y);
 

@@ -4,10 +4,9 @@ using UnityEngine;
 namespace Promotion.Gameplay
 {
     /// <summary>
-    /// Frames the board for the HUD layout rather than for the raw screen.
-    /// The reserves describe the strips the UI will occupy (wave bar on top,
-    /// AP + deck below, relic and inspector panels at the sides); the board is
-    /// sized and centred inside what is left, at any aspect ratio.
+    /// 보드를 화면 전체가 아니라 HUD 배치에 맞춰 화면에 담는다.
+    /// 예약 영역은 UI가 차지할 띠(위쪽 웨이브 바, 아래쪽 AP와 덱, 양옆 유물·정보 패널)를
+    /// 나타내며, 보드는 어떤 화면비에서든 남은 공간 안에 크기를 맞춰 가운데 놓인다.
     /// </summary>
     [RequireComponent(typeof(Camera))]
     [ExecuteAlways]
@@ -15,16 +14,16 @@ namespace Promotion.Gameplay
     {
         public BoardGrid board;
 
-        [Header("Screen fractions reserved for UI")]
-        [Tooltip("Wave progress bar.")]
+        [Header("UI용으로 예약할 화면 비율")]
+        [Tooltip("웨이브 진행 바.")]
         [Range(0f, 0.4f)] public float topReserve = 0.085f;
-        [Tooltip("AP bar and summon deck.")]
+        [Tooltip("AP 바와 소환 덱.")]
         [Range(0f, 0.4f)] public float bottomReserve = 0.14f;
-        [Tooltip("Relic inventory and piece inspector, each side.")]
+        [Tooltip("유물 인벤토리와 기물 정보 패널. 한쪽 기준.")]
         [Range(0f, 0.4f)] public float sideReserve = 0.16f;
 
-        [Header("Framing")]
-        [Tooltip("Breathing room around the board, in world units.")]
+        [Header("화면 구성")]
+        [Tooltip("보드 주위 여백. 월드 단위.")]
         public float padding = 0.45f;
 
         Camera _camera;
@@ -39,7 +38,7 @@ namespace Promotion.Gameplay
 
         void Update()
         {
-            // Keeps the framing correct while resizing the Game view or editing values.
+            // Game 뷰 크기를 바꾸거나 값을 편집하는 동안에도 화면 구성을 올바르게 유지한다.
             if (!Application.isPlaying || _lastAspect != _camera.aspect)
                 Fit();
         }
@@ -65,15 +64,15 @@ namespace Promotion.Gameplay
             float halfBoardHeight = board.height * board.tileSize * 0.5f + padding;
             float halfBoardWidth = board.width * board.tileSize * 0.5f + padding;
 
-            // Orthographic size is half the screen height in world units.
+            // 직교 크기는 월드 단위로 나타낸 화면 높이의 절반이다.
             float sizeForHeight = halfBoardHeight / usableVertical;
             float sizeForWidth = halfBoardWidth / (usableHorizontal * Mathf.Max(0.1f, _camera.aspect));
 
             float size = Mathf.Max(sizeForHeight, sizeForWidth);
             _camera.orthographicSize = size;
 
-            // Unequal top/bottom reserves push the free area off-centre; shift the
-            // camera so the board sits in the middle of that area, not the screen.
+            // 위아래 예약 영역이 다르면 빈 영역이 중앙에서 벗어난다. 보드가 화면이 아니라
+            // 그 영역의 가운데에 오도록 카메라를 옮긴다.
             float boardCentreFraction = bottomReserve + usableVertical * 0.5f;
             float offsetFraction = boardCentreFraction - 0.5f;
             float yOffset = offsetFraction * size * 2f;

@@ -8,29 +8,29 @@ using UnityEngine.SceneManagement;
 namespace Promotion.Gameplay
 {
     /// <summary>
-    /// Opens the shop when the stage is won. It listens for the victory the
-    /// StageDirector already declares rather than judging the board itself, so
-    /// there is exactly one definition of "the stage is over" in the project.
+    /// 스테이지에서 승리하면 상점을 연다. 보드를 직접 판정하지 않고 StageDirector가
+    /// 이미 선언한 승리를 구독한다. 그래서 프로젝트 안에서 "스테이지가 끝났다"의 정의는
+    /// 정확히 하나뿐이다.
     /// </summary>
     [RequireComponent(typeof(TurnManager))]
     // [아이템 담당] 스테이지 승리 시 상점을 여는 진입점. 어떤 ShopPool 을 쓸지는
     // 씬의 Board 오브젝트 인스펙터에서 지정한다.
     public class ShopLauncher : MonoBehaviour
     {
-        [Header("Shop")]
+        [Header("상점")]
         public ShopPool shopPool;
 
-        [Tooltip("The shop screen placed (switched off) in this scene. Found automatically when empty.")]
+        [Tooltip("이 씬에 (꺼진 상태로) 배치된 상점 화면. 비워 두면 자동으로 찾는다.")]
         public ShopScreen shopScreen;
 
-        [Tooltip("Gold awarded for clearing the stage, paid in just before the shop opens.")]
+        [Tooltip("스테이지 클리어 보상 골드. 상점이 열리기 직전에 지급한다.")]
         [Min(0)] public int clearReward = 6;
 
-        [Tooltip("Breathing room after the last death animation, so the win is seen before the menu.")]
+        [Tooltip("마지막 사망 연출 뒤의 여유 시간. 메뉴보다 승리 장면이 먼저 보이게 한다.")]
         [Min(0f)] public float shopDelay = 1.1f;
 
-        [Header("Next stage")]
-        [Tooltip("Scene loaded by the shop's confirm button. Empty logs the transition instead.")]
+        [Header("다음 스테이지")]
+        [Tooltip("상점의 확인 버튼이 불러올 씬. 비워 두면 전환 대신 로그만 남긴다.")]
         public string nextSceneName = "";
 
         TurnManager _turn;
@@ -47,7 +47,7 @@ namespace Promotion.Gameplay
             if (_opened || phase != TurnPhase.Victory)
                 return;
 
-            // Winning the chess duel ends the run; there is nothing left to shop for.
+            // 체스 대결에서 이기면 런이 끝난다. 더 이상 상점에서 살 이유가 없다.
             var director = GetComponent<StageDirector>();
             if (director != null && director.IsChessDuel)
                 return;
@@ -55,13 +55,13 @@ namespace Promotion.Gameplay
             _opened = true;
             RunState.Instance.AddGold(clearReward);
 
-            // Unscaled: the killing blow may still be inside its hit-stop.
+            // 스케일되지 않은 시간을 쓴다. 마지막 일격이 아직 히트스톱 중일 수 있기 때문이다.
             Tween.Delay(shopDelay, OpenShop, useUnscaledTime: true);
         }
 
         void OpenShop()
         {
-            // Destroyed during the delay (scene reloaded, stage restarted): nothing to open.
+            // 지연 중에 파괴되었다(씬 재로드, 스테이지 재시작). 열 것이 없다.
             if (this == null || !isActiveAndEnabled)
                 return;
 
@@ -92,7 +92,7 @@ namespace Promotion.Gameplay
                 return;
             }
 
-            // Screens die with the scene, so the block they pushed has to die with them.
+            // 화면은 씬과 함께 사라지므로, 화면이 걸어 둔 입력 차단도 함께 사라져야 한다.
             InputGate.Reset();
             SceneManager.LoadScene(nextSceneName);
         }

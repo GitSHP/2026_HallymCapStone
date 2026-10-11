@@ -3,39 +3,39 @@ using UnityEngine;
 namespace Promotion.Data
 {
     /// <summary>
-    /// How the chess AI plays. Difficulty is tuned here, not in code: a beginner
-    /// opponent looks one move ahead, picks loosely among good moves and now and
-    /// then makes a believable mistake, but never misses a checkmate.
+    /// 체스 AI의 플레이 방식을 정한다. 난이도는 코드가 아니라 여기서 조정한다. 초심자용
+    /// 상대는 한 수 앞만 보고, 좋은 수들 가운데서 느슨하게 고르며, 가끔 그럴듯한 실수를
+    /// 하지만 체크메이트는 절대 놓치지 않는다.
     /// </summary>
     [CreateAssetMenu(menuName = "Promotion/AI Profile", fileName = "AIProfile")]
     public class AIProfile : ScriptableObject
     {
-        [Header("Search")]
-        [Tooltip("Moves looked ahead. 1 only sees what each move wins or loses right away.")]
+        [Header("탐색")]
+        [Tooltip("앞을 내다보는 수의 깊이다. 1이면 각 수로 당장 얻거나 잃는 것만 본다.")]
         [Range(1, 4)] public int maxDepth = 1;
 
-        [Header("Looseness")]
-        [Tooltip("How freely it picks moves that are not the best, in pawns. 0 always plays its top move.")]
+        [Header("느슨함")]
+        [Tooltip("최선이 아닌 수를 얼마나 자유롭게 고르는지로, 폰 단위다. 0이면 항상 최선의 수를 둔다.")]
         [Min(0f)] public float temperature = 1f;
-        [Tooltip("Chance of a deliberate mistake: a plausible move picked at random.")]
+        [Tooltip("의도적인 실수를 할 확률이다. 실수는 그럴듯한 수 중에서 무작위로 고른다.")]
         [Range(0f, 1f)] public float blunderRate = 0.25f;
-        [Tooltip("A mistake may give away at most this much, in pawns (3 = a bishop; the queen is never thrown away).")]
+        [Tooltip("실수 한 번으로 내줄 수 있는 최대치로, 폰 단위다(3 = 비숍. 퀸은 절대 내주지 않는다).")]
         [Min(0f)] public float maxBlunderLoss = 3f;
 
-        [Header("Mercy")]
-        [Tooltip("When the AI leads by this many pawns, it starts making more mistakes.")]
+        [Header("봐주기")]
+        [Tooltip("AI가 폰 기준으로 이만큼 앞서면 실수를 더 자주 하기 시작한다.")]
         [Min(0f)] public float mercyLead = 5f;
-        [Tooltip("Mistake chance once the mercy lead is reached.")]
+        [Tooltip("봐주기 기준 격차에 도달한 뒤의 실수 확률이다.")]
         [Range(0f, 1f)] public float mercyBlunderRate = 0.4f;
 
-        [Header("Must do")]
-        [Tooltip("Chance of playing a checkmate when one is available. 1 means it always finishes the game.")]
+        [Header("반드시 할 일")]
+        [Tooltip("체크메이트가 가능할 때 실제로 두는 확률이다. 1이면 항상 게임을 끝낸다.")]
         [Range(0f, 1f)] public float mateFindRate = 1f;
-        [Tooltip("Opening moves played sensibly (centre pawns, developing pieces) before looseness kicks in.")]
+        [Tooltip("느슨함이 적용되기 전까지 정석대로 두는 초반 수의 개수다(중앙 폰 전진, 기물 전개).")]
         [Min(0)] public int sensibleOpeningMoves = 4;
 
-        [Header("Presentation")]
-        [Tooltip("Minimum seconds the AI appears to think before moving.")]
+        [Header("연출")]
+        [Tooltip("AI가 수를 두기 전에 생각하는 것처럼 보이는 최소 시간(초)이다.")]
         [Min(0f)] public float minThinkSeconds = 0.6f;
     }
 }

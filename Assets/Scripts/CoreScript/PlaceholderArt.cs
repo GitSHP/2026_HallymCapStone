@@ -3,9 +3,9 @@ using UnityEngine;
 namespace Promotion.Core
 {
     /// <summary>
-    /// Generates the temporary sprites used before real art arrives.
-    /// Every view checks its serialized sprite field first, so dropping a real
-    /// sprite into the inspector replaces the placeholder with no code change.
+    /// 실제 아트가 들어오기 전까지 쓰는 임시 스프라이트를 생성한다.
+    /// 모든 뷰는 직렬화된 스프라이트 필드를 먼저 확인하므로, 인스펙터에 실제
+    /// 스프라이트를 넣기만 하면 코드 수정 없이 임시 스프라이트가 대체된다.
     /// </summary>
     public static class PlaceholderArt
     {
@@ -38,9 +38,9 @@ namespace Promotion.Core
         }
 
         /// <summary>
-        /// A 9-sliced rounded rectangle: the one shape the whole UI is built from.
-        /// Slicing means panels, cards and buttons of any size share a single
-        /// corner radius, which is what makes a minimal interface read as one set.
+        /// 9-슬라이스 둥근 사각형이다. UI 전체가 이 한 가지 모양으로 만들어진다.
+        /// 슬라이스 덕분에 크기가 제각각인 패널·카드·버튼이 같은 모서리 반경을 공유하고,
+        /// 그래서 미니멀한 인터페이스가 하나의 세트로 읽힌다.
         /// </summary>
         public static Sprite RoundedRect
         {
@@ -53,10 +53,9 @@ namespace Promotion.Core
         }
 
         /// <summary>
-        /// Sprites are drawn unlit: the board is a flat 2D playfield with no
-        /// lighting design, and the lit shader renders black whenever the URP 2D
-        /// renderer has no registered Light2D — a failure mode with no error.
-        /// Assign a lit material explicitly if lighting is wanted later.
+        /// 스프라이트는 unlit으로 그린다. 보드는 조명 설계가 없는 평면 2D 플레이필드이고,
+        /// lit 셰이더는 URP 2D 렌더러에 등록된 Light2D가 없으면 검게 렌더링된다 —
+        /// 에러도 없이 실패하는 경우다. 나중에 조명이 필요하면 lit 머티리얼을 직접 지정한다.
         /// </summary>
         public static Material UnlitMaterial
         {
@@ -94,7 +93,7 @@ namespace Promotion.Core
             for (int x = 0; x < TextureSize; x++)
             {
                 float dist = Vector2.Distance(new Vector2(x, y), new Vector2(center, center));
-                // One-pixel smoothing on the edge keeps the circle from looking jagged.
+                // 가장자리를 1픽셀 부드럽게 처리해 원이 들쭉날쭉해 보이지 않게 한다.
                 float alpha = Mathf.Clamp01(radius - dist);
                 pixels[y * TextureSize + x] = new Color(1f, 1f, 1f, alpha);
             }
@@ -113,7 +112,7 @@ namespace Promotion.Core
             for (int y = 0; y < TextureSize; y++)
             for (int x = 0; x < TextureSize; x++)
             {
-                // Distance to the nearest corner circle centre; straight edges stay solid.
+                // 가장 가까운 모서리 원 중심까지의 거리다. 직선 변은 꽉 찬 상태로 유지된다.
                 float cx = Mathf.Clamp(x, radius - 0.5f, TextureSize - radius - 0.5f);
                 float cy = Mathf.Clamp(y, radius - 0.5f, TextureSize - radius - 0.5f);
                 float dist = Vector2.Distance(new Vector2(x, y), new Vector2(cx, cy));

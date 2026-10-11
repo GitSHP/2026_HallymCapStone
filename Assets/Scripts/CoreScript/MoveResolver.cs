@@ -17,15 +17,15 @@ namespace Promotion.Core
     }
 
     /// <summary>
-    /// Turns a piece's MovePatterns into the set of squares it may reach.
-    /// Stateless and allocation-free per call — the caller supplies the list.
+    /// 기물의 MovePattern을 도달 가능한 칸의 집합으로 변환한다.
+    /// 상태가 없고 호출마다 할당도 없다 — 리스트는 호출자가 넘겨준다.
     /// </summary>
     public static class MoveResolver
     {
         /// <summary>
-        /// Every square the piece's patterns reach. These are the moves of the
-        /// ordinary stages; the chess duel filters them further through ChessRules
-        /// so the mover's own king is never left in check.
+        /// 기물의 패턴이 닿는 모든 칸이다. 일반 스테이지에서는 이것이 곧 이동 가능 칸이고,
+        /// 체스 대결에서는 ChessRules로 한 번 더 걸러 이동하는 쪽의 킹이
+        /// 체크 상태로 남지 않게 한다.
         /// </summary>
         public static void GetLegalMoves(IBoardView state, Piece piece, List<MoveOption> results)
         {
@@ -65,10 +65,10 @@ namespace Promotion.Core
                         {
                             if (pattern.canMoveToEmpty)
                                 AddUnique(results, new MoveOption(cursor, false));
-                            continue;   // sliding pieces keep going through empty squares
+                            continue;   // 연속 이동 기물은 빈 칸을 지나 계속 나아간다
                         }
 
-                        // Blocked by something: capture it if allowed, then stop either way.
+                        // 무언가에 막혔다. 잡을 수 있으면 잡고, 어느 쪽이든 여기서 멈춘다.
                         if (occupant.Team != piece.Team && pattern.canCapture && !occupant.IsObjective)
                             AddUnique(results, new MoveOption(cursor, true));
 
@@ -85,7 +85,7 @@ namespace Promotion.Core
                 if (results[i].target != option.target)
                     continue;
 
-                // A capture beats a plain move when two patterns reach the same square.
+                // 두 패턴이 같은 칸에 닿으면 단순 이동보다 잡기를 우선한다.
                 if (option.isCapture && !results[i].isCapture)
                     results[i] = option;
                 return;

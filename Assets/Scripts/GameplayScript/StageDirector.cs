@@ -9,40 +9,40 @@ using UnityEngine;
 namespace Promotion.Gameplay
 {
     /// <summary>
-    /// Runs the stage: deploy, then player and enemy turns until the last wave is
-    /// wiped out or an enemy reaches the king — or, in the chess duel, until a
-    /// king is checkmated. Every other system reacts to this; it is the one place
-    /// a stage is declared won or lost.
+    /// 스테이지를 진행한다. 배치 단계 뒤에 플레이어 턴과 적 턴을 반복하며, 마지막 웨이브가
+    /// 전멸하거나 적이 킹에 도달할 때까지 이어진다. 체스 대결에서는 어느 한쪽 킹이
+    /// 체크메이트될 때까지 이어진다. 다른 모든 시스템은 이 클래스에 반응한다.
+    /// 스테이지의 승패를 선언하는 곳은 여기 한 곳뿐이다.
     /// </summary>
     public class StageDirector : MonoBehaviour
     {
-        [Tooltip("Leave empty to derive a stage from DebugStageSetup's placements.")]
+        [Tooltip("비워 두면 DebugStageSetup의 배치에서 스테이지를 만들어 낸다.")]
         public StageDefinition stage;
 
-        [Header("Pacing")]
+        [Header("진행 속도")]
         public float phaseDelay = 0.35f;
         public float enemyResolveDelay = 0.5f;
 
-        [Header("Chess duel")]
-        [Tooltip("Pause after a move before rules are read, so the move is seen landing.")]
+        [Header("체스 대결")]
+        [Tooltip("수를 둔 뒤 규칙을 판정하기 전의 대기 시간. 수가 놓이는 장면이 보이게 한다.")]
         public float duelSettleDelay = 0.35f;
-        [Tooltip("Write every AI choice to the console, for tuning difficulty.")]
+        [Tooltip("난이도 조정을 위해 AI의 모든 선택을 콘솔에 기록한다.")]
         public bool logAIDecisions;
 
         public event Action StateChanged;
 
-        /// <summary>Raised when a side is put in check (the side that is in check).</summary>
+        /// <summary>한 진영이 체크 상태가 되면 발생한다(체크당한 진영을 전달한다).</summary>
         public event Action<Team> CheckDeclared;
 
-        /// <summary>Raised when the player's pawn reaches the far rank and a piece must be chosen.</summary>
+        /// <summary>플레이어의 폰이 끝 줄에 도달해 승급할 기물을 골라야 할 때 발생한다.</summary>
         public event Action PromotionRequested;
 
         public bool IsChessDuel => stage != null && stage.IsChessDuel;
         public int DuelMovesPlayed { get; private set; }
-        /// <summary>The side currently in check in the duel, if any.</summary>
+        /// <summary>체스 대결에서 현재 체크 상태인 진영이다. 없으면 null이다.</summary>
         public Team? InCheck { get; private set; }
         public bool AIThinking { get; private set; }
-        /// <summary>Why the stage ended (checkmate, stalemate, move limit); empty for ordinary stages.</summary>
+        /// <summary>스테이지가 끝난 이유(체크메이트, 스테일메이트, 수 제한)다. 일반 스테이지에서는 비어 있다.</summary>
         public string OutcomeReason { get; private set; } = "";
         public bool AwaitingPromotion { get; private set; }
         public IReadOnlyList<PieceDefinition> PromotionChoices =>
@@ -92,11 +92,11 @@ namespace Promotion.Gameplay
         {
             Resolve();
 
-            // One frame so the opening board is placed before the stage reads it.
+            // 스테이지가 읽기 전에 시작 보드가 배치되도록 한 프레임 기다린다.
             yield return null;
 
-            // A battle entered from the map brings its own stage; opening this
-            // scene directly keeps the one assigned in the inspector.
+            // 맵에서 들어온 전투는 자기 스테이지를 가져온다. 이 씬을 직접 열면
+            // 인스펙터에 지정된 스테이지를 그대로 쓴다.
             var chosen = RunState.Instance.CurrentStage;
             if (chosen != null)
                 stage = chosen;
@@ -135,7 +135,7 @@ namespace Promotion.Gameplay
             _deploy.deployRows = stage.deployRows;
         }
 
-        /// <summary>The stage cannot start until the king has a square.</summary>
+        /// <summary>킹이 칸에 놓이기 전에는 스테이지를 시작할 수 없다.</summary>
         public bool KingPlaced => _state.FindObjective(Team.Player) != null;
 
         public void BeginStage()
@@ -155,8 +155,8 @@ namespace Promotion.Gameplay
         }
 
         /// <summary>
-        /// The king first, then whatever the run carries, then anything the stage
-        /// grants. Shop purchases live in RunState, so they show up here next stage.
+        /// 킹이 먼저 오고, 그다음 런에서 가지고 온 기물, 그다음 스테이지가 주는 기물이 온다.
+        /// 상점 구매품은 RunState에 있으므로 다음 스테이지에서 여기에 나타난다.
         /// </summary>
         List<PieceDefinition> BuildDeployDeck()
         {
@@ -172,7 +172,7 @@ namespace Promotion.Gameplay
             if (stage.startingDeck != null)
                 deck.AddRange(stage.startingDeck);
 
-            // The duel hands out pawns to fill the front rank, on top of the run's pieces.
+            // 체스 대결에서는 런의 기물에 더해 앞줄을 채울 폰을 나눠 준다.
             if (stage.IsChessDuel && stage.freePawn != null)
                 for (int i = 0; i < stage.maxFreePawns; i++)
                     deck.Add(stage.freePawn);
@@ -180,7 +180,7 @@ namespace Promotion.Gameplay
             return deck;
         }
 
-        /// <summary>Leaves the deploy phase and starts turn 1.</summary>
+        /// <summary>배치 단계를 마치고 1턴을 시작한다.</summary>
         public void ConfirmDeploy()
         {
             if (_turn.Phase != TurnPhase.Deploy || !KingPlaced)
@@ -192,7 +192,7 @@ namespace Promotion.Gameplay
 
         public void RequestEndTurn()
         {
-            // In the duel the turn passes by itself once the move is made.
+            // 체스 대결에서는 수를 두면 턴이 저절로 넘어간다.
             if (_resolving || _turn.Phase != TurnPhase.PlayerTurn || IsChessDuel)
                 return;
 
@@ -207,7 +207,7 @@ namespace Promotion.Gameplay
 
             yield return new WaitForSeconds(phaseDelay);
 
-            // Everything scheduled for this turn marches in before anyone moves.
+            // 누구든 움직이기 전에 이번 턴에 예정된 웨이브가 모두 등장한다.
             while (WavesSent < TotalWaves && stage.waves[WavesSent].spawnOnTurn <= _turn.Turn)
             {
                 _spawner.Spawn(stage.waves[WavesSent]);
@@ -250,9 +250,9 @@ namespace Promotion.Gameplay
             StateChanged?.Invoke();
         }
 
-        // ---------- Chess duel ----------
+        // ---------- 체스 대결 ----------
 
-        /// <summary>The duel starts from an empty board with the enemy army in place.</summary>
+        /// <summary>체스 대결은 적 군대만 배치된 빈 보드에서 시작한다.</summary>
         void SetUpDuelBoard()
         {
             _registry.RemoveAll();
@@ -280,8 +280,8 @@ namespace Promotion.Gameplay
         }
 
         /// <summary>
-        /// After the player's move: promote, judge the position for black, let the
-        /// AI think and move, promote, judge for white, hand the turn back.
+        /// 플레이어가 수를 둔 뒤의 처리다. 승급하고, 흑 기준으로 국면을 판정하고,
+        /// AI가 생각한 뒤 수를 두게 하고, 승급하고, 백 기준으로 판정한 뒤 턴을 돌려준다.
         /// </summary>
         IEnumerator DuelReply(Piece playerPiece)
         {
@@ -302,7 +302,7 @@ namespace Promotion.Gameplay
                 yield break;
             }
 
-            // The AI answers at once; the pause is only so it looks considered.
+            // AI는 즉시 답을 낸다. 대기 시간은 고민하는 것처럼 보이게 하려는 것뿐이다.
             var profile = stage.aiProfile != null ? stage.aiProfile : ScriptableObject.CreateInstance<AIProfile>();
             AIThinking = true;
             StateChanged?.Invoke();
@@ -312,7 +312,7 @@ namespace Promotion.Gameplay
                 DuelMovesPlayed - 1, FirstPromotionChoice());
 
             if (logAIDecisions)
-                Debug.Log($"[ChessAI] move {DuelMovesPlayed}: {decision.move.piece?.Def.displayName} " +
+                Debug.Log($"[ChessAI] move {DuelMovesPlayed}: {decision.move.piece?.Def.itemName} " +
                           $"{decision.move.piece?.Coord}->{decision.move.to}  {decision.kind}, rank {decision.rank}, " +
                           $"score {decision.score:0.00} (best {decision.bestScore:0.00})");
 
@@ -322,7 +322,7 @@ namespace Promotion.Gameplay
             var mover = decision.move.piece != null ? _state.GetPiece(decision.move.piece.Coord) : null;
             if (mover == null)
             {
-                // Judge already ends the duel when black has no move; this only guards the impossible.
+                // 흑에게 둘 수가 없으면 Judge가 이미 대결을 끝낸다. 여기는 일어날 수 없는 경우를 막는 방어 코드일 뿐이다.
                 Finish(TurnPhase.Victory, "체크메이트");
                 yield break;
             }
@@ -342,8 +342,8 @@ namespace Promotion.Gameplay
         }
 
         /// <summary>
-        /// Reads the position for the side about to move. Returns true when the
-        /// duel is over: checkmating black wins, every other ending is a loss.
+        /// 이제 수를 둘 진영 기준으로 국면을 판정한다. 대결이 끝났으면 true를 반환한다.
+        /// 흑을 체크메이트하면 승리이고, 그 밖의 모든 종료는 패배다.
         /// </summary>
         bool Judge(Team sideToMove)
         {
@@ -371,7 +371,7 @@ namespace Promotion.Gameplay
             }
         }
 
-        /// <summary>Plays a move on the live board with the same animations as the player's moves.</summary>
+        /// <summary>실제 보드에 수를 둔다. 플레이어의 수와 같은 연출을 쓴다.</summary>
         void PerformMove(Piece piece, Coord to)
         {
             var target = _state.GetPiece(to);
@@ -387,7 +387,7 @@ namespace Promotion.Gameplay
                 Fx.StepTo(view.transform, _grid.CoordToWorld(to));
         }
 
-        /// <summary>Black always promotes to the first choice (the queen).</summary>
+        /// <summary>흑은 항상 첫 번째 선택지(퀸)로 승급한다.</summary>
         void PromoteIfDue(Piece piece)
         {
             if (piece == null || !ChessRules.IsPromotion(_state, piece, piece.Coord))
@@ -398,7 +398,7 @@ namespace Promotion.Gameplay
                 _registry.Replace(piece, into);
         }
 
-        /// <summary>The player picks what their pawn becomes; the duel waits until they do.</summary>
+        /// <summary>플레이어가 폰이 무엇이 될지 고른다. 고를 때까지 대결은 기다린다.</summary>
         IEnumerator PromotePlayer(Piece piece)
         {
             if (piece == null || !ChessRules.IsPromotion(_state, piece, piece.Coord))
@@ -426,7 +426,7 @@ namespace Promotion.Gameplay
             StateChanged?.Invoke();
         }
 
-        /// <summary>Called by the HUD with the piece the player chose to promote into.</summary>
+        /// <summary>플레이어가 승급 대상으로 고른 기물을 HUD가 넘겨 호출한다.</summary>
         public void ChoosePromotion(PieceDefinition into)
         {
             if (AwaitingPromotion && into != null)
@@ -436,7 +436,7 @@ namespace Promotion.Gameplay
         PieceDefinition FirstPromotionChoice()
             => stage.promotionChoices != null && stage.promotionChoices.Length > 0 ? stage.promotionChoices[0] : null;
 
-        /// <summary>Pulls the next scheduled wave in ahead of time. Used by DevTools.</summary>
+        /// <summary>다음 예정 웨이브를 앞당겨 소환한다. DevTools에서 쓴다.</summary>
         public bool SpawnNextWaveNow()
         {
             if (WavesSent >= TotalWaves)
@@ -456,9 +456,8 @@ namespace Promotion.Gameplay
         }
 
         /// <summary>
-        /// Without a StageDefinition asset, the opening board doubles as the
-        /// spec: player pieces become the deck, the enemy type becomes the waves.
-        /// Assign a real asset to take authored control.
+        /// StageDefinition 에셋이 없으면 시작 보드를 명세로 삼는다. 아군 기물은 덱이 되고,
+        /// 적 종류는 웨이브가 된다. 직접 구성하려면 실제 에셋을 지정한다.
         /// </summary>
         StageDefinition BuildStageFromOpeningBoard()
         {

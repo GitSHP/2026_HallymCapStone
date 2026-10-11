@@ -6,8 +6,8 @@ using UnityEngine;
 namespace Promotion.Gameplay
 {
     /// <summary>
-    /// Temporary board filler for P2 so movement can be exercised by hand.
-    /// P5 replaces this with a StageDefinition and the deploy phase.
+    /// P2 단계에서 이동을 직접 시험해 볼 수 있도록 보드를 채우는 임시 코드다.
+    /// P5에서 StageDefinition과 배치 단계로 대체된다.
     /// </summary>
     [RequireComponent(typeof(PieceRegistry))]
     public class DebugStageSetup : MonoBehaviour

@@ -8,22 +8,21 @@ using UnityEngine;
 namespace Promotion.Gameplay
 {
     /// <summary>
-    /// Placing pieces from the deck onto the board: free during the deploy phase,
-    /// paid for in action points once the fighting starts.
+    /// 덱의 기물을 보드에 놓는다. 배치 단계에서는 무료이고, 전투가 시작되면 AP를 소모한다.
     /// </summary>
     public class DeployController : MonoBehaviour
     {
-        [Tooltip("Ranks from the player's edge that pieces may be placed on.")]
+        [Tooltip("기물을 놓을 수 있는, 플레이어 쪽 가장자리부터의 줄 수.")]
         public int deployRows = 3;
 
-        [Tooltip("Cards that are always in hand once the stage starts and are never used up. " +
-                 "Summoning one still costs its action points.")]
+        [Tooltip("스테이지가 시작되면 항상 손에 있고 소모되지 않는 카드. " +
+                 "소환할 때는 여전히 AP를 소모한다.")]
         public PieceDefinition[] alwaysAvailable = Array.Empty<PieceDefinition>();
 
-        [Tooltip("Every card may be placed during setup, not just the king (the chess duel).")]
+        [Tooltip("배치 단계에서 킹뿐 아니라 모든 카드를 놓을 수 있다(체스 대결).")]
         public bool deployAllAtSetup;
 
-        [Tooltip("Cards may be summoned for action points once the fighting starts.")]
+        [Tooltip("전투가 시작된 뒤 AP를 소모해 카드를 소환할 수 있다.")]
         public bool summonDuringBattle = true;
 
         public event Action DeckChanged;
@@ -56,11 +55,11 @@ namespace Promotion.Gameplay
             if (_turn == null) _turn = GetComponent<TurnManager>();
         }
 
-        /// <summary>A card that stays in hand after it is summoned.</summary>
+        /// <summary>소환한 뒤에도 손에 남는 카드인지 확인한다.</summary>
         public bool IsUnlimited(int index) => index >= 0 && index < _unlimited.Count && _unlimited[index];
 
         /// <summary>
-        /// The king leads the hand, the always-available cards follow, then the rest.
+        /// 손패는 킹이 맨 앞에 오고, 그 뒤에 항상 사용 가능한 카드, 그다음 나머지가 온다.
         /// </summary>
         public void LoadDeck(IEnumerable<PieceDefinition> definitions)
         {
@@ -101,7 +100,7 @@ namespace Promotion.Gameplay
             DeckChanged?.Invoke();
         }
 
-        /// <summary>Action point cost right now — deploying is free while setting up.</summary>
+        /// <summary>현재 시점의 AP 비용이다. 배치 단계에서는 무료다.</summary>
         public int CostOf(PieceDefinition def)
         {
             if (def == null || _turn == null)
@@ -110,8 +109,8 @@ namespace Promotion.Gameplay
         }
 
         /// <summary>
-        /// Setting up the stage is only about choosing where the king stands.
-        /// Everything else is summoned during play, for action points.
+        /// 스테이지 배치 단계에서는 킹을 어디에 세울지만 정한다.
+        /// 나머지는 모두 플레이 중에 AP를 소모해 소환한다.
         /// </summary>
         public bool IsDeployableNow(PieceDefinition def)
         {
@@ -155,7 +154,7 @@ namespace Promotion.Gameplay
             TryDeployAt(_input.HoveredCoord);
         }
 
-        /// <summary>Places the selected card on a square. Returns false if it could not be placed.</summary>
+        /// <summary>선택한 카드를 칸에 놓는다. 놓지 못했으면 false를 반환한다.</summary>
         public bool TryDeployAt(Coord coord)
         {
             Resolve();

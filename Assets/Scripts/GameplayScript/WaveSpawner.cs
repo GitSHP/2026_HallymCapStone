@@ -6,10 +6,10 @@ using UnityEngine;
 
 namespace Promotion.Gameplay
 {
-    /// <summary>Drops a wave of enemies onto free squares along the top of the board.</summary>
+    /// <summary>보드 위쪽의 빈 칸에 적 웨이브를 떨어뜨린다.</summary>
     public class WaveSpawner : MonoBehaviour
     {
-        [Tooltip("Ranks from the top edge that enemies may spawn on.")]
+        [Tooltip("적이 생성될 수 있는, 위쪽 가장자리부터의 줄 수.")]
         public int spawnRows = 2;
 
         BoardGrid _grid;

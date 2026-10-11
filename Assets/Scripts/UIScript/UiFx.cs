@@ -6,16 +6,16 @@ using UnityEngine;
 namespace Promotion.UI
 {
     /// <summary>
-    /// The UI half of the tween seam. Screens describe intent — "this card was
-    /// denied", "this panel is entering" — and never name a duration or an ease,
-    /// so the whole interface can be retuned from the TweenPresets asset alone.
-    /// Mirrors <see cref="Promotion.Feel.Fx"/>, which owns the same job on the board.
+    /// 트윈 경계 중 UI 쪽 절반이다. 화면은 "이 카드가 거절됐다", "이 패널이 들어온다" 같은
+    /// 의도만 전달하고 지속 시간이나 이징을 직접 지정하지 않는다. 그래서 인터페이스 전체를
+    /// TweenPresets 에셋 하나로 다시 조정할 수 있다.
+    /// 보드에서 같은 역할을 맡는 <see cref="Promotion.Feel.Fx"/>와 짝을 이룬다.
     /// </summary>
     public static class UiFx
     {
         static Feel.TweenPresets P => Feel.Fx.P;
 
-        // ---------- Screen ----------
+        // ---------- 화면 ----------
 
         public static Tween BackdropIn(CanvasGroup group, float targetAlpha = 1f)
         {
@@ -44,9 +44,9 @@ namespace Promotion.UI
                 .ChainCallback(() => onComplete?.Invoke());
         }
 
-        // ---------- Cards ----------
+        // ---------- 카드 ----------
 
-        /// <summary>Cards rise into place one after another so the offer reads left to right.</summary>
+        /// <summary>카드가 하나씩 차례로 떠올라 자리를 잡아, 진열이 왼쪽에서 오른쪽으로 읽히게 한다.</summary>
         public static void CardIn(RectTransform card, CanvasGroup group, int index)
         {
             var home = card.anchoredPosition;
@@ -60,7 +60,7 @@ namespace Promotion.UI
             Tween.Alpha(group, 1f, P.uiCardIn * 0.7f, Ease.OutQuad, startDelay: delay);
         }
 
-        // ---------- Interaction ----------
+        // ---------- 상호작용 ----------
 
         public static void HoverIn(RectTransform target, Vector2 homePosition)
         {
@@ -82,21 +82,21 @@ namespace Promotion.UI
             => Tween.Scale(target, Vector3.one * (hovered ? P.uiHoverScale : 1f),
                 P.uiPressDuration, Ease.OutQuad);
 
-        // ---------- Feedback ----------
+        // ---------- 피드백 ----------
 
-        /// <summary>Confirmation: something good just happened here.</summary>
+        /// <summary>확인 연출이다. 여기서 좋은 일이 방금 일어났음을 알린다.</summary>
         public static void Punch(Transform target)
             => Tween.PunchScale(target, new ShakeSettings(
                 P.uiPunchStrength, P.uiPunchDuration, P.uiPunchFrequency));
 
-        /// <summary>Refusal: a horizontal head-shake, the gesture everyone already reads as "no".</summary>
+        /// <summary>거절 연출이다. 누구나 "안 된다"로 읽는 좌우 고개 젓기 동작이다.</summary>
         public static void Deny(Transform target)
             => Tween.ShakeLocalPosition(target, new ShakeSettings(
                 P.uiDenyShake, P.uiDenyDuration, P.uiDenyFrequency));
 
         /// <summary>
-        /// Rolls a number instead of snapping it, so the player sees the gold leave
-        /// rather than having to compare two stills.
+        /// 숫자를 한 번에 바꾸지 않고 굴려서 바꾼다. 플레이어가 전후 두 값을 비교할 필요 없이
+        /// 골드가 빠져나가는 것을 직접 보게 된다.
         /// </summary>
         public static Tween CountTo(TMP_Text label, int from, int to, string format = "{0}")
             => Tween.Custom(from, to, P.uiCountDuration, value =>

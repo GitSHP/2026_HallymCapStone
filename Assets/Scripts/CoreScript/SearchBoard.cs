@@ -3,7 +3,7 @@ using Promotion.Data;
 
 namespace Promotion.Core
 {
-    /// <summary>What it takes to take a move back.</summary>
+    /// <summary>수를 되돌리는 데 필요한 정보다.</summary>
     public struct MoveUndo
     {
         public Piece piece;
@@ -12,14 +12,14 @@ namespace Promotion.Core
         public Piece captured;
         public int capturedIndex;
         public bool hadMoved;
-        /// <summary>The piece that replaced <see cref="piece"/> on promotion, or null.</summary>
+        /// <summary>승격 시 <see cref="piece"/>를 대체한 기물이며, 없으면 null이다.</summary>
         public Piece promoted;
     }
 
     /// <summary>
-    /// A private copy of the board that rules checks and the AI can play moves
-    /// on and take back thousands of times, without touching the live board or
-    /// anything on screen. Holds its own Piece objects, cloned from the source.
+    /// 규칙 검사와 AI가 수를 두고 되돌리기를 수천 번 반복할 수 있는 보드의 개별 사본이다.
+    /// 실제 보드나 화면에 있는 것은 전혀 건드리지 않는다. 원본에서 복제한
+    /// 자체 Piece 객체를 가진다.
     /// </summary>
     public sealed class SearchBoard : IBoardView
     {
@@ -37,7 +37,7 @@ namespace Promotion.Core
             _grid = new Piece[width, height];
         }
 
-        /// <summary>Snapshot of another board, live or search.</summary>
+        /// <summary>다른 보드(실제 보드 또는 탐색 보드)의 스냅샷이다.</summary>
         public static SearchBoard CopyOf(IBoardView source)
         {
             var copy = new SearchBoard(source.Width, source.Height);
@@ -61,7 +61,7 @@ namespace Promotion.Core
 
         public Piece GetPiece(Coord c) => IsInside(c) ? _grid[c.x, c.y] : null;
 
-        /// <summary>The piece standing on the same square as <paramref name="original"/> on this copy.</summary>
+        /// <summary>이 사본에서 <paramref name="original"/>과 같은 칸에 서 있는 기물이다.</summary>
         public Piece Mirror(Piece original) => original == null ? null : GetPiece(original.Coord);
 
         public Piece FindKing(Team team)
@@ -73,8 +73,8 @@ namespace Promotion.Core
         }
 
         /// <summary>
-        /// Plays a move. <paramref name="promotion"/> replaces the mover on arrival;
-        /// pass null to keep it as it is.
+        /// 수를 둔다. <paramref name="promotion"/>은 도착 시 이동한 기물을 대체하며,
+        /// 그대로 두려면 null을 넘긴다.
         /// </summary>
         public MoveUndo Make(Piece piece, Coord to, PieceDefinition promotion = null)
         {

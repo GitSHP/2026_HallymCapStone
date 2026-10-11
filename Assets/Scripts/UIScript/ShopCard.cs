@@ -8,12 +8,11 @@ using UnityEngine.UI;
 namespace Promotion.UI
 {
     /// <summary>
-    /// One buyable offer, read as a picture: a large silhouette says what it is,
-    /// a short line says what it does, and a coin says what it costs.
+    /// 구매할 수 있는 상품 하나를 그림처럼 읽히게 보여준다. 큰 실루엣이 무엇인지를,
+    /// 짧은 문장이 무엇을 하는지를, 동전이 얼마인지를 알려준다.
     ///
-    /// It knows how it looks and how it reacts to a pointer, but not what it is
-    /// selling or whether the player can afford it — the screen owns those
-    /// decisions and tells the card which state to wear.
+    /// 카드는 자신의 생김새와 포인터에 대한 반응만 알고, 무엇을 파는지나 플레이어가
+    /// 살 수 있는지는 모른다. 그런 판단은 화면이 맡고, 카드에는 어떤 상태를 보여줄지만 알려준다.
     /// </summary>
     // [아이템 담당] 상점에 놓이는 카드 한 장의 생김새와 반응. 생김새는 프리팹
     // (Assets/UI/Prefabs/ShopCard)에 있고, 그림·이름·설명·가격은 Setup 에서 채운다.
@@ -42,14 +41,14 @@ namespace Promotion.UI
         [SerializeField] RectTransform _soldOverlay;
         [SerializeField] TextMeshProUGUI _soldLabel;
 
-        // Faded together when the card is out of reach.
+        // 카드를 살 수 없을 때 함께 흐려지는 요소들이다.
         [SerializeField] List<Graphic> _contents = new();
 
         Color _accent;
         Vector2 _home;
         bool _hovered;
 
-        /// <summary>Fills a card made from the prefab with one offer, placed at <paramref name="anchoredPosition"/>.</summary>
+        /// <summary>프리팹으로 만든 카드에 상품 하나를 채우고 <paramref name="anchoredPosition"/>에 배치한다.</summary>
         public void Setup(Vector2 anchoredPosition, Sprite icon, string title, string blurb, int cost, Color accent)
         {
             Rect.anchoredPosition = anchoredPosition;
@@ -69,12 +68,12 @@ namespace Promotion.UI
             _soldOverlay.gameObject.SetActive(false);
         }
 
-        // ---------- State ----------
+        // ---------- 상태 ----------
 
         /// <summary>
-        /// Out of reach drains the colour out of the card and greys its coin, but
-        /// leaves it clickable: a dead card teaches nothing, while a card that
-        /// shakes and flashes its price says exactly why the purchase failed.
+        /// 살 수 없는 상태가 되면 카드의 색을 빼고 동전을 회색으로 바꾸지만, 클릭은 그대로
+        /// 받는다. 반응 없는 카드는 아무것도 알려주지 못하지만, 흔들리며 가격을 번쩍이는
+        /// 카드는 구매가 왜 실패했는지 정확히 알려준다.
         /// </summary>
         public void SetAffordable(bool affordable)
         {
@@ -114,7 +113,7 @@ namespace Promotion.UI
             UiFx.HoverOut(Rect, _home);
         }
 
-        // ---------- Animation hooks ----------
+        // ---------- 애니메이션 진입점 ----------
 
         public void PlayIn(int index) => UiFx.CardIn(Rect, _group, index);
 
@@ -124,7 +123,7 @@ namespace Promotion.UI
             UiFx.FlashColor(_priceLabel, UiTheme.Deny, UiTheme.InkOnAccent);
         }
 
-        // ---------- Pointer ----------
+        // ---------- 포인터 ----------
 
         public void OnPointerEnter(PointerEventData eventData)
         {

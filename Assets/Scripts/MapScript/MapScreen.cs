@@ -12,28 +12,28 @@ using UnityEngine.UI;
 namespace Promotion.Map
 {
     /// <summary>
-    /// The map scene: draws the run's map, lets the player pick where to go next and
-    /// sends them there. The frame (title, legend, buttons) is the MapScreen prefab;
-    /// nodes and paths are copies of the MapNode and MapEdge prefabs, made per run.
+    /// 지도 씬이다. 런의 지도를 그리고, 플레이어가 다음 행선지를 고르면 그곳으로 보낸다.
+    /// 틀(제목, 범례, 버튼)은 MapScreen 프리팹이고, 노드와 경로는 런마다
+    /// MapNode·MapEdge 프리팹을 복제해 만든다.
     ///
-    /// Battle nodes and the boss (the final chess duel) load the battle scene with
-    /// their stage. Shop nodes are placeholders that are passed through.
+    /// 전투 노드와 보스(최종 체스 대결)는 해당 스테이지로 전투 씬을 불러온다.
+    /// 상점 노드는 임시로 그냥 지나가는 칸이다.
     /// </summary>
     public class MapScreen : MonoBehaviour
     {
         public MapConfig config;
 
-        [Header("Layout (reference pixels at 1920x1080)")]
+        [Header("레이아웃 (1920x1080 기준 픽셀)")]
         public float floorSpacing = 140f;
         public float columnSpacing = 210f;
-        [Tooltip("How far nodes stray from the grid, so the map does not read as a table.")]
+        [Tooltip("지도가 표처럼 보이지 않도록 노드가 격자에서 벗어나는 정도다.")]
         public float jitter = 28f;
-        [Tooltip("The size the MapNode prefab is drawn at; other node sizes scale it.")]
+        [Tooltip("MapNode 프리팹이 그려지는 크기다. 다른 노드 크기는 이 값을 기준으로 배율을 정한다.")]
         public float nodeSize = 80f;
         public float bossSize = 150f;
         public float edgeWidth = 6f;
 
-        [Tooltip("Pause after a pick so the press is seen before the scene changes.")]
+        [Tooltip("씬이 바뀌기 전에 누른 반응이 보이도록 선택 후 잠시 멈추는 시간이다.")]
         [Min(0f)] public float leaveDelay = 0.2f;
 
         const float Margin = 110f;
@@ -42,7 +42,7 @@ namespace Promotion.Map
         const string ShopPassText = "상점은 아직 준비 중입니다. 이 칸은 그냥 지나갑니다.";
         const string MapEndText = "지도의 끝입니다. 보스 스테이지는 아직 준비 중입니다.";
 
-        [Header("Parts (set in the prefab)")]
+        [Header("구성 요소 (프리팹에서 지정)")]
         [SerializeField] ScrollRect _scroll;
         [SerializeField] RectTransform _content;
         [SerializeField] TextMeshProUGUI _status;
@@ -73,7 +73,7 @@ namespace Promotion.Map
                 _run.Map = MapGenerator.Generate(config, System.Environment.TickCount);
         }
 
-        // ---------- Map (rebuilt on every change) ----------
+        // ---------- 지도 (변경될 때마다 다시 만든다) ----------
 
         void Redraw()
         {
@@ -85,7 +85,7 @@ namespace Promotion.Map
             _content.sizeDelta = new Vector2(0f,
                 Margin * 2f + Map.BossFloor * floorSpacing + floorSpacing * 0.25f + bossSize * 0.5f);
 
-            // Edges first so the nodes sit on top of them.
+            // 노드가 연결선 위에 놓이도록 연결선을 먼저 그린다.
             for (int i = 0; i < Map.nodes.Count; i++)
                 foreach (int next in Map.nodes[i].next)
                     DrawEdge(i, next);
@@ -163,7 +163,7 @@ namespace Promotion.Map
             var view = Instantiate(_nodePrefab, _content);
             view.name = "Node_" + index;
             view.Rect.anchoredPosition = PositionOf(node);
-            // The prefab is drawn at nodeSize; the boss is the same node, larger.
+            // 프리팹은 nodeSize 크기로 그려진다. 보스는 같은 노드를 더 크게 키운 것이다.
             view.Rect.localScale = Vector3.one * (size / nodeSize);
 
             view.halo.gameObject.SetActive(selectable || current);
@@ -205,7 +205,7 @@ namespace Promotion.Map
                 Mathf.Clamp01((focusY - viewHeight * 0.3f) / (contentHeight - viewHeight));
         }
 
-        // ---------- Choices ----------
+        // ---------- 선택 ----------
 
         void OnNodeClicked(int index, Transform view)
         {
@@ -224,7 +224,7 @@ namespace Promotion.Map
                 return;
             }
 
-            // Placeholder nodes: step onto them and carry on from there.
+            // 임시 노드는 밟고 지나가며, 그 자리에서 계속 진행한다.
             _message.text = node.type == MapNodeType.Shop ? ShopPassText : MapEndText;
             Redraw();
         }
@@ -243,7 +243,7 @@ namespace Promotion.Map
             Redraw();
         }
 
-        // ---------- Look ----------
+        // ---------- 외형 ----------
 
         public static IconId IconOf(MapNodeType type) => type switch
         {

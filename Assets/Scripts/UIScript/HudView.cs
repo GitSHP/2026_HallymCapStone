@@ -11,10 +11,10 @@ using UnityEngine.UI;
 namespace Promotion.UI
 {
     /// <summary>
-    /// The stage HUD. The layout is the HUD prefab; this fills it in and wires its
-    /// buttons. Deck cards and promotion choices are copies of their own prefabs.
-    /// Korean renders through the Pretendard fallback registered in TMP Settings,
-    /// so labels can be translated without touching the font setup.
+    /// 스테이지 HUD다. 배치는 HUD 프리팹에 있고, 이 클래스는 내용을 채우고 버튼을 연결한다.
+    /// 덱 카드와 승격 선택지는 각자의 프리팹을 복제해 만든다.
+    /// 한글은 TMP Settings에 등록된 Pretendard 대체 폰트로 표시되므로, 폰트 설정을 건드리지
+    /// 않고도 라벨 문구를 바꿀 수 있다.
     /// </summary>
     public class HudView : MonoBehaviour
     {
@@ -34,7 +34,7 @@ namespace Promotion.UI
         TurnManager _turn;
         DeployController _deploy;
 
-        [Header("Parts (set in the prefab)")]
+        [Header("구성 요소 (프리팹에서 지정)")]
         [SerializeField] TextMeshProUGUI _status;
         [SerializeField] TextMeshProUGUI _ap;
         [SerializeField] Image _apPanel;
@@ -51,7 +51,7 @@ namespace Promotion.UI
         [SerializeField] Button _choiceButtonPrefab;
 
         readonly List<Button> _deckButtons = new();
-        // Identical cards share one button; each entry lists the deck indices behind it.
+        // 같은 카드는 버튼 하나를 공유한다. 각 항목은 그 버튼에 묶인 덱 인덱스 목록이다.
         readonly List<List<int>> _cardGroups = new();
 
         void Start()
@@ -115,7 +115,7 @@ namespace Promotion.UI
         void OnTurnChanged(int turn) => Refresh();
         void OnCheckDeclared(Team side) => Refresh();
 
-        // ---------- construction ----------
+        // ---------- 구성 ----------
 
         static void EnsureEventSystem()
         {
@@ -126,7 +126,7 @@ namespace Promotion.UI
                 return;
             }
 
-            // This project uses the Input System package, so the legacy module cannot drive UI.
+            // 이 프로젝트는 Input System 패키지를 쓰므로 구식 모듈로는 UI를 조작할 수 없다.
             if (existing.GetComponent<InputSystemUIInputModule>() == null)
             {
                 var legacy = existing.GetComponent<BaseInputModule>();
@@ -139,14 +139,14 @@ namespace Promotion.UI
 
         static void ReloadStage() => SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
 
-        /// <summary>Winning the final duel ends the run.</summary>
+        /// <summary>최종 결투에서 이기면 런이 끝난다.</summary>
         static void ReturnToTitle()
         {
             RunState.Instance.ResetRun();
             SceneManager.LoadScene(TitleScene);
         }
 
-        /// <summary>One button per promotion choice; the duel waits until one is pressed.</summary>
+        /// <summary>승격 선택지마다 버튼을 하나씩 만든다. 결투는 그중 하나가 눌릴 때까지 기다린다.</summary>
         void ShowPromotionChoice()
         {
             for (int i = _promotionRow.childCount - 1; i >= 0; i--)
@@ -161,7 +161,7 @@ namespace Promotion.UI
 
                 var button = Instantiate(_choiceButtonPrefab, _promotionRow);
                 button.name = "Promote_" + i;
-                button.GetComponentInChildren<TextMeshProUGUI>().text = def.displayName;
+                button.GetComponentInChildren<TextMeshProUGUI>().text = def.itemName;
                 button.onClick.AddListener(() =>
                 {
                     _promotionPanel.gameObject.SetActive(false);
@@ -172,7 +172,7 @@ namespace Promotion.UI
             _promotionPanel.gameObject.SetActive(true);
         }
 
-        // ---------- reactions ----------
+        // ---------- 반응 ----------
 
         void OnActionPressed()
         {
@@ -230,7 +230,7 @@ namespace Promotion.UI
             }
 
             _bannerPanel.SetActive(over);
-            // A win moves on (shop, or the tutorial's closing lines); only a loss offers a retry.
+            // 승리하면 다음으로 넘어간다(상점, 또는 튜토리얼의 마무리 대사). 재시도는 패배했을 때만 제공한다.
             _restart.gameObject.SetActive(_turn.Phase == TurnPhase.Defeat);
 
             if (over)
@@ -244,8 +244,8 @@ namespace Promotion.UI
         }
 
         /// <summary>
-        /// The final duel: one move per turn, so AP is shown as switched off,
-        /// the turn passes by itself, and the status line reports check and the AI.
+        /// 최종 결투용 갱신이다. 한 턴에 한 수만 두므로 AP는 꺼진 것으로 표시하고, 턴은 저절로
+        /// 넘어가며, 상태 줄에는 체크 여부와 AI 상태를 보여준다.
         /// </summary>
         void RefreshDuel()
         {
@@ -281,7 +281,7 @@ namespace Promotion.UI
                     _status.text = line + (phase == TurnPhase.PlayerTurn ? "   |   백의 차례" : "   |   흑의 차례");
             }
 
-            // The turn passes as soon as a move is made, so the button only starts the duel.
+            // 수를 두는 즉시 턴이 넘어가므로, 버튼은 결투를 시작하는 용도로만 쓴다.
             bool deploying = phase == TurnPhase.Deploy;
             _action.gameObject.SetActive(deploying);
             if (deploying)
@@ -318,7 +318,7 @@ namespace Promotion.UI
             _deckButtons.Clear();
             _cardGroups.Clear();
 
-            // Eight free pawns would overflow the strip, so identical cards stack into one.
+            // 무료 폰 8개를 따로 놓으면 덱 줄이 넘치므로, 같은 카드는 하나로 묶는다.
             var deck = _deploy.Deck;
             for (int i = 0; i < deck.Count; i++)
             {
@@ -340,16 +340,15 @@ namespace Promotion.UI
                 button.onClick.AddListener(() => _deploy.Select(index));
                 var label = button.GetComponentInChildren<TextMeshProUGUI>();
 
-                string name = def.displayName + (count > 1 ? " x" + count : "");
+                string name = def.itemName + (count > 1 ? " x" + count : "");
                 label.text = _director.IsChessDuel
                     ? name + "\n배치 전용"
                     : name + "\n" + def.deployApCost + " AP" + (_deploy.IsUnlimited(index) ? "  · 상시" : "");
                 _deckButtons.Add(button);
             }
 
-            // Deploying the king is what unlocks the start button, and that
-            // arrives as a deck change - so refresh the whole HUD, not just
-            // the card colours.
+            // 시작 버튼은 킹을 배치해야 풀리는데, 그 사실은 덱 변경으로 전달된다.
+            // 그래서 카드 색만이 아니라 HUD 전체를 갱신한다.
             Refresh();
         }
 
@@ -362,8 +361,8 @@ namespace Promotion.UI
                 if (_deckButtons[i] == null || i >= _cardGroups.Count)
                     continue;
 
-                // During setup only the king is playable, so the rest of the
-                // deck is shown greyed out rather than silently doing nothing.
+                // 배치 단계에서는 킹만 놓을 수 있으므로, 나머지 덱은 눌러도 조용히 아무 일이
+                // 없게 두지 않고 회색으로 표시한다.
                 var group = _cardGroups[i];
                 bool playable = group[0] < deck.Count && _deploy.IsDeployableNow(deck[group[0]]);
                 _deckButtons[i].interactable = playable;

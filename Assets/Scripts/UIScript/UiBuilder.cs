@@ -7,9 +7,9 @@ using UnityEngine.UI;
 namespace Promotion.UI
 {
     /// <summary>
-    /// Small constructors for the uGUI objects every screen needs. The project
-    /// builds its views in code rather than from prefabs (see PieceView, TileView),
-    /// and this keeps that code readable instead of a wall of RectTransform setup.
+    /// 모든 화면에 필요한 uGUI 오브젝트를 만드는 작은 생성 함수 모음이다. 이 프로젝트는
+    /// 뷰를 프리팹이 아니라 코드로 만든다(PieceView, TileView 참고). 이 클래스는 그 코드가
+    /// RectTransform 설정의 나열로 뒤덮이지 않고 읽기 쉽게 유지되도록 한다.
     /// </summary>
     public static class UiBuilder
     {
@@ -28,7 +28,7 @@ namespace Promotion.UI
             image.sprite = rounded ? UiArt.RoundedRect : UiArt.Square;
             image.type = rounded ? Image.Type.Sliced : Image.Type.Simple;
             image.color = color;
-            // Sliced sprites smaller than their borders otherwise refuse to draw.
+            // 이렇게 하지 않으면 테두리보다 작은 슬라이스 스프라이트는 그려지지 않는다.
             image.pixelsPerUnitMultiplier = 1f;
             return image;
         }
@@ -51,8 +51,8 @@ namespace Promotion.UI
         }
 
         /// <summary>
-        /// An icon image. Never a raycast target: the card or button under it owns
-        /// the click, and an icon that swallowed pointer-exit would strand a hover.
+        /// 아이콘 이미지를 만든다. 레이캐스트 대상으로 두지 않는다. 클릭은 아래의 카드나
+        /// 버튼이 받아야 하고, 아이콘이 포인터 이탈 이벤트를 삼키면 호버 상태가 풀리지 않고 남는다.
         /// </summary>
         public static Image Icon(string name, Transform parent, Sprite sprite, Color color)
         {
@@ -74,7 +74,7 @@ namespace Promotion.UI
             return group != null ? group : go.AddComponent<CanvasGroup>();
         }
 
-        // ---------- Anchoring ----------
+        // ---------- 앵커 배치 ----------
 
         public static RectTransform Stretch(RectTransform rect, float padding = 0f)
         {
@@ -86,7 +86,7 @@ namespace Promotion.UI
             return rect;
         }
 
-        /// <summary>Anchors and sizes in one call; anchoredPosition is relative to that anchor.</summary>
+        /// <summary>앵커와 크기를 한 번에 지정한다. anchoredPosition은 그 앵커를 기준으로 한다.</summary>
         public static RectTransform Place(RectTransform rect, Vector2 anchor, Vector2 pivot,
             Vector2 anchoredPosition, Vector2 size)
         {
@@ -104,11 +104,11 @@ namespace Promotion.UI
         public static readonly Vector2 Centre = new Vector2(0.5f, 0.5f);
         public static readonly Vector2 TopCentre = new Vector2(0.5f, 1f);
 
-        // ---------- Screens ----------
+        // ---------- 화면 ----------
 
         /// <summary>
-        /// A full-screen overlay canvas. Scales against a 1920x1080 reference so the
-        /// layout below can be written in fixed pixels and still hold at any resolution.
+        /// 전체 화면 오버레이 캔버스를 만든다. 1920x1080 기준 해상도에 맞춰 크기를 조절하므로,
+        /// 그 아래 레이아웃을 고정 픽셀로 작성해도 어떤 해상도에서든 유지된다.
         /// </summary>
         public static Canvas OverlayCanvas(string name, int sortingOrder)
         {

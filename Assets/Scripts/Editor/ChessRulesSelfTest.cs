@@ -8,10 +8,10 @@ using UnityEngine;
 namespace Promotion.EditorTools
 {
     /// <summary>
-    /// Checks the chess rules engine against positions with known answers:
-    /// move counts from the opening (perft), a checkmate, a stalemate, a pin and
-    /// a promotion. Run from Promotion > Tests > Chess Rules after touching
-    /// ChessRules, SearchBoard, MoveResolver or any piece's movement data.
+    /// 정답이 알려진 국면들로 체스 규칙 엔진을 검사한다. 시작 국면의 수 개수(perft),
+    /// 체크메이트, 스테일메이트, 핀, 프로모션을 확인한다. ChessRules, SearchBoard,
+    /// MoveResolver나 기물의 행마 데이터를 수정한 뒤에는 Promotion > Tests > Chess Rules
+    /// 메뉴로 실행한다.
     /// </summary>
     public static class ChessRulesSelfTest
     {
@@ -20,7 +20,7 @@ namespace Promotion.EditorTools
         [MenuItem("Promotion/Tests/Chess Rules")]
         public static void RunFromMenu() => Run(4);
 
-        /// <returns>True when every check passed.</returns>
+        /// <returns>모든 검사를 통과하면 true다.</returns>
         public static bool Run(int perftDepth)
         {
             var log = new StringBuilder("[ChessRulesSelfTest]\n");
@@ -39,7 +39,7 @@ namespace Promotion.EditorTools
                 return false;
             }
 
-            // 1. Move counts from the opening position.
+            // 1. 시작 국면에서의 수 개수.
             long[] expected = { 1, 20, 400, 8902, 197281 };
             var opening = set.OpeningPosition();
             var before = Describe(opening);
@@ -51,7 +51,7 @@ namespace Promotion.EditorTools
             }
             Check("make/unmake leaves the board untouched", Describe(opening) == before);
 
-            // 2. Fool's mate: 1. f3 e5 2. g4 Qh4# — white is mated.
+            // 2. 바보 메이트(Fool's mate): 1. f3 e5 2. g4 Qh4# — 백이 메이트당한다.
             var fool = set.OpeningPosition();
             Play(fool, 5, 1, 5, 2);
             Play(fool, 4, 6, 4, 4);
@@ -59,27 +59,27 @@ namespace Promotion.EditorTools
             Play(fool, 3, 7, 7, 3);
             Check("fool's mate is checkmate", ChessRules.GetStatus(fool, Team.Player) == ChessStatus.Checkmate);
 
-            // 3. One move earlier the same game is only check-free and playable.
+            // 3. 같은 게임도 한 수 전에는 체크가 없고 계속 둘 수 있는 상태다.
             var notYet = set.OpeningPosition();
             Play(notYet, 5, 1, 5, 2);
             Play(notYet, 4, 6, 4, 4);
             Check("ordinary position is ongoing", ChessRules.GetStatus(notYet, Team.Player) == ChessStatus.Ongoing);
 
-            // 4. Stalemate: black king a8, white queen b6, white king h1, black to move.
+            // 4. 스테일메이트: 흑 킹 a8, 백 퀸 b6, 백 킹 h1, 흑 차례.
             var stale = new SearchBoard(8, 8);
             stale.Add(set.king, Team.Enemy, new Coord(0, 7));
             stale.Add(set.queen, Team.Player, new Coord(1, 5));
             stale.Add(set.king, Team.Player, new Coord(7, 0));
             Check("king-and-queen stalemate", ChessRules.GetStatus(stale, Team.Enemy) == ChessStatus.Stalemate);
 
-            // 5. Check that can be escaped is Check, not mate.
+            // 5. 피할 수 있는 체크는 메이트가 아니라 Check다.
             var check = new SearchBoard(8, 8);
             check.Add(set.king, Team.Enemy, new Coord(4, 7));
             check.Add(set.rook, Team.Player, new Coord(4, 0));
             check.Add(set.king, Team.Player, new Coord(0, 0));
             Check("rook check with escape squares", ChessRules.GetStatus(check, Team.Enemy) == ChessStatus.Check);
 
-            // 6. A pinned knight may not move at all.
+            // 6. 핀에 걸린 나이트는 전혀 움직일 수 없다.
             var pin = new SearchBoard(8, 8);
             pin.Add(set.king, Team.Player, new Coord(4, 0));
             var knight = pin.Add(set.knight, Team.Player, new Coord(4, 1));
@@ -89,7 +89,7 @@ namespace Promotion.EditorTools
             ChessRules.GetLegalMoves(pin, knight, moves);
             Check("pinned knight has no moves", moves.Count == 0, moves.Count + " found");
 
-            // 7. The king may not step onto an attacked square.
+            // 7. 킹은 공격받는 칸으로 들어갈 수 없다.
             var guard = new SearchBoard(8, 8);
             var whiteKing = guard.Add(set.king, Team.Player, new Coord(4, 0));
             guard.Add(set.rook, Team.Enemy, new Coord(0, 1));
@@ -98,7 +98,7 @@ namespace Promotion.EditorTools
             bool stepsIntoRank = moves.Exists(m => m.target.y == 1);
             Check("king avoids the rook's rank", !stepsIntoRank && moves.Count == 2, moves.Count + " moves");
 
-            // 8. Promotion: a white pawn on the 7th rank promotes on the 8th, and taking it back restores the pawn.
+            // 8. 프로모션: 7랭크의 백 폰이 8랭크에서 승급하고, 수를 무르면 폰으로 복원된다.
             var promo = new SearchBoard(8, 8);
             var pawn = promo.Add(set.pawn, Team.Player, new Coord(0, 6), hasMoved: true);
             promo.Add(set.king, Team.Player, new Coord(7, 0));
@@ -111,10 +111,10 @@ namespace Promotion.EditorTools
             Check("promotion detected, applied and undone", isPromo && becameQueen && restored);
 
             // ---------- AI ----------
-            var profile = ScriptableObject.CreateInstance<AIProfile>();   // beginner defaults
+            var profile = ScriptableObject.CreateInstance<AIProfile>();   // 초심자용 기본값
             var rng = new System.Random(1234);
 
-            // 9. Mate in one is always taken: white queen h5, white bishop c4 vs black f7 pawn (scholar's mate).
+            // 9. 1수 메이트는 반드시 둔다: 백 퀸 h5, 백 비숍 c4 대 흑 f7 폰(스콜라 메이트).
             var mate = set.OpeningPosition();
             Play(mate, 4, 1, 4, 3);   // e4
             Play(mate, 4, 6, 4, 4);   // e5
@@ -130,7 +130,7 @@ namespace Promotion.EditorTools
             }
             Check("AI always plays mate in one (Qxf7#)", found == 20, found + "/20");
 
-            // 10. The queen is not thrown at a defended pawn: white Qd1, black pawn d5 defended by e6.
+            // 10. 보호받는 폰에 퀸을 내던지지 않는다: 백 Qd1, e6이 보호하는 흑 폰 d5.
             var greed = new SearchBoard(8, 8);
             greed.Add(set.king, Team.Player, new Coord(4, 0));
             greed.Add(set.queen, Team.Player, new Coord(3, 0));
@@ -145,7 +145,7 @@ namespace Promotion.EditorTools
             }
             Check("AI does not hang its queen for a pawn", grabs == 0, grabs + "/50 grabs");
 
-            // 11. AI against itself: every game must end cleanly with only legal moves.
+            // 11. AI끼리 대국: 모든 게임이 합법적인 수만으로 깔끔하게 끝나야 한다.
             int games = 6, totalPlies = 0, illegal = 0;
             var kinds = new Dictionary<AIDecisionKind, int>();
             var endings = new Dictionary<string, int>();
@@ -206,8 +206,8 @@ namespace Promotion.EditorTools
         }
 
         /// <summary>
-        /// The project's piece data, using the chess-duel pawn with the two-square
-        /// opening step so the counts match standard chess.
+        /// 프로젝트의 기물 데이터를 불러온다. 수 개수가 표준 체스와 일치하도록
+        /// 첫 두 칸 전진이 있는 체스 대결용 폰을 쓴다.
         /// </summary>
         sealed class PieceSet
         {
@@ -221,7 +221,7 @@ namespace Promotion.EditorTools
                     king = L("King"), queen = L("Queen"), rook = L("Rook"),
                     bishop = L("Bishop"), knight = L("Knight")
                 };
-                // The duel's own pawn carries the two-square opening step.
+                // 체스 대결 전용 폰에는 첫 두 칸 전진이 들어 있다.
                 set.pawn = L("Pawn_Duel");
                 if (set.king == null || set.queen == null || set.rook == null || set.bishop == null
                     || set.knight == null || set.pawn == null)
