@@ -163,7 +163,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: BlackPieces_Simplified_Rook
+      name: BlackPieces_Simplified_Knight
       rect:
         serializedVersion: 2
         x: 16
@@ -185,7 +185,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: BlackPieces_Simplified_Knight
+      name: BlackPieces_Simplified_Rook
       rect:
         serializedVersion: 2
         x: 32
@@ -288,10 +288,10 @@ TextureImporter:
     nameFileIdTable:
       BlackPieces_Simplified_Bishop: -807961715
       BlackPieces_Simplified_King: 1892425870
-      BlackPieces_Simplified_Knight: -897470585
+      BlackPieces_Simplified_Knight: -1827280364
       BlackPieces_Simplified_Pawn: -919706764
       BlackPieces_Simplified_Queen: -1159764046
-      BlackPieces_Simplified_Rook: -1827280364
+      BlackPieces_Simplified_Rook: -897470585
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

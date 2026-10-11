@@ -11,33 +11,48 @@ using UnityEngine.UI;
 namespace Promotion.UI
 {
     /// <summary>
-    /// The stage HUD, built in code so the scene needs no wiring.
+    /// The stage HUD. The layout is the HUD prefab; this fills it in and wires its
+    /// buttons. Deck cards and promotion choices are copies of their own prefabs.
     /// Korean renders through the Pretendard fallback registered in TMP Settings,
     /// so labels can be translated without touching the font setup.
     /// </summary>
     public class HudView : MonoBehaviour
     {
-        static readonly Color Panel = new Color(0.07f, 0.07f, 0.10f, 0.85f);
-        static readonly Color Ink = new Color(0.94f, 0.93f, 0.90f);
-        static readonly Color ButtonIdle = new Color(0.20f, 0.20f, 0.26f, 0.95f);
+        public static readonly Color Panel = new Color(0.07f, 0.07f, 0.10f, 0.85f);
+        public static readonly Color Ink = new Color(0.94f, 0.93f, 0.90f);
+        public static readonly Color ButtonIdle = new Color(0.20f, 0.20f, 0.26f, 0.95f);
         static readonly Color ButtonOff = new Color(0.14f, 0.14f, 0.17f, 0.80f);
-        static readonly Color CardIdle = new Color(0.18f, 0.18f, 0.24f, 0.95f);
+        public static readonly Color CardIdle = new Color(0.18f, 0.18f, 0.24f, 0.95f);
         static readonly Color CardPicked = new Color(0.95f, 0.78f, 0.25f, 0.95f);
         static readonly Color CardLocked = new Color(0.13f, 0.13f, 0.16f, 0.75f);
+        static readonly Color ApLockedPanel = new Color(0.32f, 0.10f, 0.10f, 0.90f);
+        static readonly Color CheckInk = new Color(1f, 0.45f, 0.45f);
+
+        const string TitleScene = "Title";
 
         StageDirector _director;
         TurnManager _turn;
         DeployController _deploy;
 
-        TextMeshProUGUI _status;
-        TextMeshProUGUI _ap;
-        TextMeshProUGUI _banner;
-        TextMeshProUGUI _actionLabel;
-        Button _action;
-        Button _restart;
-        RectTransform _deckBar;
+        [Header("Parts (set in the prefab)")]
+        [SerializeField] TextMeshProUGUI _status;
+        [SerializeField] TextMeshProUGUI _ap;
+        [SerializeField] Image _apPanel;
+        [SerializeField] GameObject _bannerPanel;
+        [SerializeField] TextMeshProUGUI _banner;
+        [SerializeField] Button _action;
+        [SerializeField] TextMeshProUGUI _actionLabel;
+        [SerializeField] Button _restart;
+        [SerializeField] Button _toTitle;
+        [SerializeField] RectTransform _deckBar;
+        [SerializeField] RectTransform _promotionPanel;
+        [SerializeField] RectTransform _promotionRow;
+        [SerializeField] Button _deckCardPrefab;
+        [SerializeField] Button _choiceButtonPrefab;
 
         readonly List<Button> _deckButtons = new();
+        // Identical cards share one button; each entry lists the deck indices behind it.
+        readonly List<List<int>> _cardGroups = new();
 
         void Start()
         {
@@ -53,12 +68,22 @@ namespace Promotion.UI
             _deploy = _director.GetComponent<DeployController>();
 
             EnsureEventSystem();
-            Build();
+
+            _action.onClick.AddListener(OnActionPressed);
+            _restart.onClick.AddListener(ReloadStage);
+            _toTitle.onClick.AddListener(ReturnToTitle);
+
+            _bannerPanel.SetActive(false);
+            _restart.gameObject.SetActive(false);
+            _toTitle.gameObject.SetActive(false);
+            _promotionPanel.gameObject.SetActive(false);
 
             _turn.PhaseChanged += OnPhaseChanged;
             _turn.ApChanged += OnApChanged;
             _turn.TurnChanged += OnTurnChanged;
             _director.StateChanged += Refresh;
+            _director.CheckDeclared += OnCheckDeclared;
+            _director.PromotionRequested += ShowPromotionChoice;
             _deploy.DeckChanged += RebuildDeck;
 
             RebuildDeck();
@@ -75,7 +100,11 @@ namespace Promotion.UI
             }
 
             if (_director != null)
+            {
                 _director.StateChanged -= Refresh;
+                _director.CheckDeclared -= OnCheckDeclared;
+                _director.PromotionRequested -= ShowPromotionChoice;
+            }
 
             if (_deploy != null)
                 _deploy.DeckChanged -= RebuildDeck;
@@ -84,6 +113,7 @@ namespace Promotion.UI
         void OnPhaseChanged(TurnPhase phase) => Refresh();
         void OnApChanged(int current, int max) => Refresh();
         void OnTurnChanged(int turn) => Refresh();
+        void OnCheckDeclared(Team side) => Refresh();
 
         // ---------- construction ----------
 
@@ -107,102 +137,39 @@ namespace Promotion.UI
             }
         }
 
-        void Build()
-        {
-            var canvas = gameObject.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 100;
-
-            var scaler = gameObject.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.5f;
-
-            gameObject.AddComponent<GraphicRaycaster>();
-
-            var root = (RectTransform)transform;
-
-            var top = MakePanel(root, "TopBar", new Vector2(0.5f, 1f), new Vector2(0f, -46f), new Vector2(900f, 64f));
-            _status = MakeText(top, "Status", 30f);
-
-            var apPanel = MakePanel(root, "ApPanel", new Vector2(0f, 0f), new Vector2(200f, 70f), new Vector2(320f, 76f));
-            _ap = MakeText(apPanel, "Ap", 34f);
-
-            _action = MakeButton(root, "ActionButton", new Vector2(1f, 0f), new Vector2(-220f, 70f),
-                new Vector2(340f, 84f), out _actionLabel, OnActionPressed);
-
-            // The deck sits in the right-hand strip the camera already reserves,
-            // so it never overlaps the board at any aspect ratio.
-            var deckPanel = MakePanel(root, "DeckBar", new Vector2(1f, 0.5f), new Vector2(-150f, 0f), new Vector2(220f, 660f));
-            var layout = deckPanel.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.childAlignment = TextAnchor.UpperCenter;
-            layout.spacing = 8f;
-            layout.padding = new RectOffset(12, 12, 16, 16);
-            layout.childForceExpandWidth = false;
-            layout.childForceExpandHeight = false;
-            _deckBar = deckPanel;
-
-            var deckTitle = MakePanel(root, "DeckTitle", new Vector2(1f, 0.5f), new Vector2(-150f, 360f), new Vector2(220f, 52f));
-            MakeText(deckTitle, "DeckTitleText", 26f).text = "소환";
-
-            var bannerPanel = MakePanel(root, "Banner", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760f, 200f));
-            _banner = MakeText(bannerPanel, "BannerText", 64f);
-
-            _restart = MakeButton(root, "RestartButton", new Vector2(0.5f, 0.5f), new Vector2(0f, -150f),
-                new Vector2(260f, 76f), out var restartLabel, ReloadStage);
-            restartLabel.text = "다시 시작";
-
-            bannerPanel.gameObject.SetActive(false);
-            _restart.gameObject.SetActive(false);
-        }
-
         static void ReloadStage() => SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
 
-        static RectTransform MakePanel(RectTransform parent, string name, Vector2 anchor, Vector2 position, Vector2 size)
+        /// <summary>Winning the final duel ends the run.</summary>
+        static void ReturnToTitle()
         {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
-            var rect = (RectTransform)go.transform;
-            rect.SetParent(parent, false);
-            rect.anchorMin = anchor;
-            rect.anchorMax = anchor;
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = position;
-            rect.sizeDelta = size;
-            go.GetComponent<Image>().color = Panel;
-            return rect;
+            RunState.Instance.ResetRun();
+            SceneManager.LoadScene(TitleScene);
         }
 
-        static TextMeshProUGUI MakeText(RectTransform parent, string name, float size)
+        /// <summary>One button per promotion choice; the duel waits until one is pressed.</summary>
+        void ShowPromotionChoice()
         {
-            var go = new GameObject(name, typeof(RectTransform));
-            var rect = (RectTransform)go.transform;
-            rect.SetParent(parent, false);
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = new Vector2(12f, 6f);
-            rect.offsetMax = new Vector2(-12f, -6f);
+            for (int i = _promotionRow.childCount - 1; i >= 0; i--)
+                Destroy(_promotionRow.GetChild(i).gameObject);
 
-            var text = go.AddComponent<TextMeshProUGUI>();
-            text.fontSize = size;
-            text.alignment = TextAlignmentOptions.Center;
-            text.color = Ink;
-            text.textWrappingMode = TextWrappingModes.NoWrap;
-            return text;
-        }
+            var choices = _director.PromotionChoices;
+            for (int i = 0; i < choices.Count; i++)
+            {
+                var def = choices[i];
+                if (def == null)
+                    continue;
 
-        static Button MakeButton(RectTransform parent, string name, Vector2 anchor, Vector2 position, Vector2 size,
-            out TextMeshProUGUI label, UnityEngine.Events.UnityAction onClick)
-        {
-            var rect = MakePanel(parent, name, anchor, position, size);
-            var image = rect.GetComponent<Image>();
-            image.color = ButtonIdle;
+                var button = Instantiate(_choiceButtonPrefab, _promotionRow);
+                button.name = "Promote_" + i;
+                button.GetComponentInChildren<TextMeshProUGUI>().text = def.displayName;
+                button.onClick.AddListener(() =>
+                {
+                    _promotionPanel.gameObject.SetActive(false);
+                    _director.ChoosePromotion(def);
+                });
+            }
 
-            var button = rect.gameObject.AddComponent<Button>();
-            button.targetGraphic = image;
-            button.onClick.AddListener(onClick);
-
-            label = MakeText(rect, "Label", 30f);
-            return button;
+            _promotionPanel.gameObject.SetActive(true);
         }
 
         // ---------- reactions ----------
@@ -219,6 +186,18 @@ namespace Promotion.UI
         {
             if (_turn == null)
                 return;
+
+            if (_director.IsChessDuel)
+            {
+                RefreshDuel();
+                RefreshDeckColors();
+                return;
+            }
+
+            _status.color = Ink;
+            _ap.fontSize = 34f;
+            _apPanel.color = Panel;
+            _toTitle.gameObject.SetActive(false);
 
             _status.text = _turn.Phase == TurnPhase.Deploy
                 ? (_director.KingPlaced
@@ -250,8 +229,7 @@ namespace Promotion.UI
                     _actionLabel.text = "적 턴...";
             }
 
-            var bannerPanel = _banner.transform.parent.gameObject;
-            bannerPanel.SetActive(over);
+            _bannerPanel.SetActive(over);
             // A win moves on (shop, or the tutorial's closing lines); only a loss offers a retry.
             _restart.gameObject.SetActive(_turn.Phase == TurnPhase.Defeat);
 
@@ -265,6 +243,72 @@ namespace Promotion.UI
             RefreshDeckColors();
         }
 
+        /// <summary>
+        /// The final duel: one move per turn, so AP is shown as switched off,
+        /// the turn passes by itself, and the status line reports check and the AI.
+        /// </summary>
+        void RefreshDuel()
+        {
+            var phase = _turn.Phase;
+            bool over = _turn.IsOver;
+
+            _apPanel.color = ApLockedPanel;
+            _ap.fontSize = 24f;
+            _ap.text = "AP 사용 불가\n<size=80%>체스 결투 - 한 턴에 한 수</size>";
+
+            _status.color = _director.InCheck == Team.Player && !over ? CheckInk : Ink;
+            if (phase == TurnPhase.Deploy)
+            {
+                _status.text = _director.KingPlaced
+                    ? "킹과 기물(폰 최대 8)을 배치한 뒤 결투 시작을 누르세요"
+                    : "최종전 - 킹을 배치해야 시작합니다";
+            }
+            else
+            {
+                string line = "최종전   |   " + (_director.DuelMovesPlayed + (phase == TurnPhase.PlayerTurn ? 1 : 0))
+                              + "수 / " + _director.stage.moveLimit;
+                if (over)
+                    _status.text = line;
+                else if (_director.AwaitingPromotion)
+                    _status.text = line + "   |   승격할 기물을 고르세요";
+                else if (_director.AIThinking)
+                    _status.text = line + "   |   흑이 생각하는 중...";
+                else if (_director.InCheck == Team.Player)
+                    _status.text = line + "   |   체크! 킹을 지키세요";
+                else if (_director.InCheck == Team.Enemy)
+                    _status.text = line + "   |   체크!";
+                else
+                    _status.text = line + (phase == TurnPhase.PlayerTurn ? "   |   백의 차례" : "   |   흑의 차례");
+            }
+
+            // The turn passes as soon as a move is made, so the button only starts the duel.
+            bool deploying = phase == TurnPhase.Deploy;
+            _action.gameObject.SetActive(deploying);
+            if (deploying)
+            {
+                _action.interactable = _director.KingPlaced;
+                _action.image.color = _director.KingPlaced ? ButtonIdle : ButtonOff;
+                _actionLabel.text = _director.KingPlaced ? "결투 시작" : "킹을 먼저 배치";
+            }
+
+            bool won = phase == TurnPhase.Victory;
+            _bannerPanel.SetActive(over);
+            _restart.gameObject.SetActive(phase == TurnPhase.Defeat);
+            _toTitle.gameObject.SetActive(won);
+
+            if (over)
+            {
+                string reason = _director.OutcomeReason;
+                if (!won && reason == "체크메이트")
+                    reason = "체크메이트 당함";
+
+                _banner.text = won
+                    ? "체크메이트!\n<size=50%>런 클리어</size>"
+                    : "패배\n<size=50%>" + reason + "</size>";
+                _banner.color = won ? new Color(0.55f, 0.95f, 0.55f) : new Color(1f, 0.45f, 0.45f);
+            }
+        }
+
         void RebuildDeck()
         {
             foreach (var button in _deckButtons)
@@ -272,23 +316,34 @@ namespace Promotion.UI
                     Destroy(button.gameObject);
 
             _deckButtons.Clear();
+            _cardGroups.Clear();
 
+            // Eight free pawns would overflow the strip, so identical cards stack into one.
             var deck = _deploy.Deck;
             for (int i = 0; i < deck.Count; i++)
             {
-                int index = i;
-                var def = deck[i];
+                var group = _cardGroups.Find(g => deck[g[0]] == deck[i] && _deploy.IsUnlimited(g[0]) == _deploy.IsUnlimited(i));
+                if (group != null)
+                    group.Add(i);
+                else
+                    _cardGroups.Add(new List<int> { i });
+            }
 
-                var button = MakeButton(_deckBar, "Card_" + i, new Vector2(0.5f, 0.5f), Vector2.zero,
-                    new Vector2(192f, 62f), out var label, () => _deploy.Select(index));
+            for (int g = 0; g < _cardGroups.Count; g++)
+            {
+                int index = _cardGroups[g][0];
+                int count = _cardGroups[g].Count;
+                var def = deck[index];
 
-                var element = button.gameObject.AddComponent<LayoutElement>();
-                element.preferredWidth = 192f;
-                element.preferredHeight = 62f;
+                var button = Instantiate(_deckCardPrefab, _deckBar);
+                button.name = "Card_" + g;
+                button.onClick.AddListener(() => _deploy.Select(index));
+                var label = button.GetComponentInChildren<TextMeshProUGUI>();
 
-                label.fontSize = 22f;
-                label.text = def.displayName + "\n" + def.deployApCost + " AP"
-                             + (_deploy.IsUnlimited(i) ? "  · 상시" : "");
+                string name = def.displayName + (count > 1 ? " x" + count : "");
+                label.text = _director.IsChessDuel
+                    ? name + "\n배치 전용"
+                    : name + "\n" + def.deployApCost + " AP" + (_deploy.IsUnlimited(index) ? "  · 상시" : "");
                 _deckButtons.Add(button);
             }
 
@@ -304,17 +359,18 @@ namespace Promotion.UI
 
             for (int i = 0; i < _deckButtons.Count; i++)
             {
-                if (_deckButtons[i] == null)
+                if (_deckButtons[i] == null || i >= _cardGroups.Count)
                     continue;
 
                 // During setup only the king is playable, so the rest of the
                 // deck is shown greyed out rather than silently doing nothing.
-                bool playable = i < deck.Count && _deploy.IsDeployableNow(deck[i]);
+                var group = _cardGroups[i];
+                bool playable = group[0] < deck.Count && _deploy.IsDeployableNow(deck[group[0]]);
                 _deckButtons[i].interactable = playable;
 
                 _deckButtons[i].image.color = !playable
                     ? CardLocked
-                    : (i == _deploy.SelectedIndex ? CardPicked : CardIdle);
+                    : (group.Contains(_deploy.SelectedIndex) ? CardPicked : CardIdle);
             }
         }
     }

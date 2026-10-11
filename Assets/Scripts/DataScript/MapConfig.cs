@@ -26,6 +26,9 @@ namespace Promotion.Data
         [Tooltip("Battle nodes draw their stage from here at random.")]
         public StageDefinition[] battleStages = Array.Empty<StageDefinition>();
 
+        [Tooltip("The stage behind the boss node (the final chess duel). Empty leaves the boss as a placeholder.")]
+        public StageDefinition bossStage;
+
         [Header("Scenes")]
         [Tooltip("Scene loaded when a battle node is entered.")]
         public string battleScene = "Game";

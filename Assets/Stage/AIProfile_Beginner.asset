@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b460d4c478611542bcd6f7e49aeba65, type: 3}
+  m_Name: AIProfile_Beginner
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Data.AIProfile
+  maxDepth: 1
+  temperature: 1
+  blunderRate: 0.25
+  maxBlunderLoss: 3
+  mercyLead: 5
+  mercyBlunderRate: 0.4
+  mateFindRate: 1
+  sensibleOpeningMoves: 4
+  minThinkSeconds: 0.6

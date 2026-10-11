@@ -8,7 +8,7 @@ namespace Promotion.Core
     /// Occupancy of the board. Gameplay systems ask this what is where;
     /// nothing here knows about sprites, tweens or input.
     /// </summary>
-    public class BoardState : MonoBehaviour
+    public class BoardState : MonoBehaviour, IBoardView
     {
         BoardGrid _grid;
         Piece[,] _pieces;
@@ -17,6 +17,8 @@ namespace Promotion.Core
 
         public IReadOnlyList<Piece> AllPieces => _all;
         public BoardGrid Grid => _grid;
+        public int Width => _grid.width;
+        public int Height => _grid.height;
 
         void Awake()
         {
@@ -47,8 +49,15 @@ namespace Promotion.Core
             if (piece == null || !_grid.IsInside(to))
                 return;
 
+            // A piece already on the destination is taken off the board now, even if
+            // its death animation plays on for a moment: rules read the board at once.
+            var occupant = _pieces[to.x, to.y];
+            if (occupant != null && occupant != piece)
+                _all.Remove(occupant);
+
             _pieces[piece.Coord.x, piece.Coord.y] = null;
             piece.Coord = to;
+            piece.HasMoved = true;
             _pieces[to.x, to.y] = piece;
         }
 

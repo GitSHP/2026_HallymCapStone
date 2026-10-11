@@ -36,5 +36,13 @@ namespace Promotion.Data
 
         [Header("Movement")]
         public MovePattern[] patterns = new MovePattern[0];
+
+        [Header("Chess duel")]
+        [Tooltip("Art used when this piece fights for the enemy (black). Empty tints the player art with enemyColor.")]
+        public Sprite enemySprite;
+        [Tooltip("Worth of the piece to the chess AI, in pawns (pawn 1, knight/bishop 3, rook 5, queen 9).")]
+        [Min(0f)] public float aiValue = 1f;
+        [Tooltip("Turns into another piece on reaching the far rank (the pawn).")]
+        public bool canPromote;
     }
 }

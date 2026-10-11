@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Promotion.Core;
+using Promotion.Data;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -17,6 +18,9 @@ namespace Promotion.Gameplay
     {
         [Tooltip("Show the shortcut panel when the stage starts.")]
         public bool visibleOnStart = true;
+
+        [Tooltip("The stage F11 jumps to (the final chess duel).")]
+        public StageDefinition finalStage;
 
         StageDirector _director;
         TurnManager _turn;
@@ -56,6 +60,7 @@ namespace Promotion.Gameplay
             if (keyboard.f8Key.wasPressedThisFrame) ClearEnemies();
             if (keyboard.f9Key.wasPressedThisFrame) AutoDeployKing();
             if (keyboard.f10Key.wasPressedThisFrame) Restart();
+            if (keyboard.f11Key.wasPressedThisFrame) JumpToFinal();
         }
 
         // ---------- actions ----------
@@ -144,8 +149,42 @@ namespace Promotion.Gameplay
                 }
             }
 
+            // The duel deploys everything up front: fill the second rank, then the first.
+            if (_director.IsChessDuel)
+                PlaceRestOfDeck();
+
             _director.ConfirmDeploy();
             _lastAction = "King placed, stage started";
+        }
+
+        void PlaceRestOfDeck()
+        {
+            int rows = Mathf.Clamp(_deploy.deployRows, 1, _grid.height);
+            for (int y = rows - 1; y >= 0 && _deploy.Deck.Count > 0; y--)
+            {
+                for (int x = 0; x < _grid.width && _deploy.Deck.Count > 0; x++)
+                {
+                    var square = new Coord(x, y);
+                    if (!_state.IsEmpty(square))
+                        continue;
+
+                    _deploy.Select(0);
+                    _deploy.TryDeployAt(square);
+                }
+            }
+        }
+
+        /// <summary>Reloads the battle scene with the final duel as the stage.</summary>
+        void JumpToFinal()
+        {
+            if (finalStage == null)
+            {
+                _lastAction = "No final stage assigned on DevTools";
+                return;
+            }
+
+            RunState.Instance.CurrentStage = finalStage;
+            Restart();
         }
 
         static void Restart() => SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
@@ -161,7 +200,7 @@ namespace Promotion.Gameplay
             }
 
             const float width = 330f;
-            GUILayout.BeginArea(new Rect(10f, 10f, width, 340f), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(10f, 10f, width, 370f), GUI.skin.box);
 
             GUILayout.Label("DEV TOOLS   (F1 to hide)");
             GUILayout.Label(Status());
@@ -176,6 +215,7 @@ namespace Promotion.Gameplay
             if (GUILayout.Button("F8  Remove all enemies")) ClearEnemies();
             if (GUILayout.Button("F9  Auto-place king and start")) AutoDeployKing();
             if (GUILayout.Button("F10 Restart stage")) Restart();
+            if (GUILayout.Button("F11 Jump to final duel")) JumpToFinal();
 
             if (!string.IsNullOrEmpty(_lastAction))
             {
@@ -197,7 +237,8 @@ namespace Promotion.Gameplay
                    + "\nwaves " + _director.WavesSent + "/" + _director.TotalWaves
                    + "   enemies " + _director.EnemiesOnBoard
                    + "   gold " + RunState.Instance.Gold
-                   + "\nking placed: " + _director.KingPlaced;
+                   + "\nking placed: " + _director.KingPlaced
+                   + (_director.IsChessDuel ? "   duel moves " + _director.DuelMovesPlayed : "");
         }
     }
 }

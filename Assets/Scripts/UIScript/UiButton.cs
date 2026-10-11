@@ -19,64 +19,27 @@ namespace Promotion.UI
     {
         public event Action Clicked;
 
-        public RectTransform Rect { get; private set; }
+        public RectTransform Rect => (RectTransform)transform;
 
-        Image _face;
-        Image _icon;
-        TextMeshProUGUI _label;
-        Color _baseColor;
+        [SerializeField] Image _face;
+        [SerializeField] Image _icon;
+        [SerializeField] TextMeshProUGUI _label;
+        [SerializeField] Color _baseColor = Color.white;
+
         Vector2 _home;
+        bool _homeKnown;
         bool _hovered;
         bool _interactable = true;
 
-        /// <summary>A square icon button with no caption at all — used for close and back.</summary>
-        public static UiButton CreateIcon(Transform parent, string objectName, IconId icon,
-            Vector2 anchor, Vector2 pivot, Vector2 anchoredPosition, float size,
-            Color face, Color iconColor)
+        void Awake() => RememberHome();
+
+        /// <summary>Where the button rests; hover lifts it from here and returns it here.</summary>
+        void RememberHome()
         {
-            var button = Shell(parent, objectName, anchor, pivot, anchoredPosition,
-                new Vector2(size, size), face);
-
-            button._icon = UiBuilder.Icon("Icon", button.transform, icon, iconColor);
-            UiBuilder.Place(button._icon.rectTransform, UiBuilder.Centre, UiBuilder.Centre,
-                Vector2.zero, Vector2.one * (size * 0.5f));
-
-            return button;
-        }
-
-        /// <summary>An icon with a short caption beside it, for the one action that ends a screen.</summary>
-        public static UiButton CreateAction(Transform parent, string objectName, IconId icon, string caption,
-            Vector2 anchor, Vector2 pivot, Vector2 anchoredPosition, Vector2 size,
-            Color face, Color contentColor, float fontSize = 22f)
-        {
-            var button = Shell(parent, objectName, anchor, pivot, anchoredPosition, size, face);
-
-            button._label = UiBuilder.Label("Caption", button.transform, caption, fontSize, contentColor,
-                TextAlignmentOptions.Left, FontStyles.Bold);
-            UiBuilder.Place(button._label.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
-                new Vector2(30f, 0f), new Vector2(size.x - 90f, 30f));
-            button._label.characterSpacing = 6f;
-            button._label.textWrappingMode = TextWrappingModes.NoWrap;
-
-            button._icon = UiBuilder.Icon("Icon", button.transform, icon, contentColor);
-            UiBuilder.Place(button._icon.rectTransform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
-                new Vector2(-26f, 0f), Vector2.one * (size.y * 0.46f));
-
-            return button;
-        }
-
-        static UiButton Shell(Transform parent, string objectName, Vector2 anchor, Vector2 pivot,
-            Vector2 anchoredPosition, Vector2 size, Color face)
-        {
-            var image = UiBuilder.Panel(objectName, parent, face);
-            UiBuilder.Place(image.rectTransform, anchor, pivot, anchoredPosition, size);
-
-            var button = image.gameObject.AddComponent<UiButton>();
-            button.Rect = image.rectTransform;
-            button._face = image;
-            button._baseColor = face;
-            button._home = anchoredPosition;
-            return button;
+            if (_homeKnown)
+                return;
+            _home = Rect.anchoredPosition;
+            _homeKnown = true;
         }
 
         public void SetCaption(string text)
@@ -96,7 +59,11 @@ namespace Promotion.UI
         }
 
         public void PlayIn(int index)
-            => UiFx.CardIn(Rect, UiBuilder.Group(gameObject), index);
+        {
+            RememberHome();
+            Rect.anchoredPosition = _home;
+            UiFx.CardIn(Rect, UiBuilder.Group(gameObject), index);
+        }
 
         public void OnPointerEnter(PointerEventData eventData)
         {
@@ -104,6 +71,7 @@ namespace Promotion.UI
                 return;
 
             _hovered = true;
+            RememberHome();
             UiFx.HoverIn(Rect, _home);
         }
 
@@ -113,6 +81,7 @@ namespace Promotion.UI
                 return;
 
             _hovered = false;
+            RememberHome();
             UiFx.HoverOut(Rect, _home);
         }
 

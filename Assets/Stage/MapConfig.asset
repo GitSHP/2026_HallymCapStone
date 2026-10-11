@@ -19,4 +19,5 @@ MonoBehaviour:
   firstShopFloor: 2
   battleStages:
   - {fileID: 11400000, guid: 67bbabed91c91ce4dab09054de5c1185, type: 2}
+  bossStage: {fileID: 11400000, guid: 4da2ac7a2b5ba334e81d14a19ea0e303, type: 2}
   battleScene: Game

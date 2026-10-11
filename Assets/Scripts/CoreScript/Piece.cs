@@ -9,6 +9,9 @@ namespace Promotion.Core
         public Team Team { get; }
         public Coord Coord { get; set; }
 
+        /// <summary>Set once the piece has moved; some patterns (the pawn's double step) only apply before that.</summary>
+        public bool HasMoved { get; set; }
+
         public bool IsObjective => Def.isObjective;
 
         public Piece(PieceDefinition def, Team team, Coord coord)

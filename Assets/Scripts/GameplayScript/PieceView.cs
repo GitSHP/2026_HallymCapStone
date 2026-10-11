@@ -27,9 +27,15 @@ namespace Promotion.Gameplay
             name = $"{piece.Team}_{piece.Def.displayName}";
 
             _body = gameObject.AddComponent<SpriteRenderer>();
-            bool hasArt = piece.Def.sprite != null;
-            _body.sprite = hasArt ? piece.Def.sprite : PlaceholderArt.Circle;
-            _bodyColor = piece.Team == Team.Player ? piece.Def.playerColor : piece.Def.enemyColor;
+
+            // Black pieces in the chess duel have art of their own; anything else
+            // falls back to the player art tinted with the team colour.
+            bool enemyArt = piece.Team == Team.Enemy && piece.Def.enemySprite != null;
+            var art = enemyArt ? piece.Def.enemySprite : piece.Def.sprite;
+            bool hasArt = art != null;
+            _body.sprite = hasArt ? art : PlaceholderArt.Circle;
+            _bodyColor = enemyArt ? Color.white
+                : piece.Team == Team.Player ? piece.Def.playerColor : piece.Def.enemyColor;
             _body.color = _bodyColor;
             _body.sortingOrder = PieceSortingOrder;
             _body.sharedMaterial = PlaceholderArt.UnlitMaterial;

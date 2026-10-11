@@ -98,6 +98,19 @@ namespace Promotion.Core
             _tileRoot = go.transform;
         }
 
+        /// <summary>Swaps the board picture, for stages that bring their own.</summary>
+        public void SetBoardArt(Sprite art)
+        {
+            if (art == null || art == boardArt)
+                return;
+
+            boardArt = art;
+            EnsureArt();
+            if (_tiles != null)
+                foreach (var tile in _tiles)
+                    tile.SetBaseColor(Color.clear);
+        }
+
         void EnsureArt()
         {
             if (_art == null)

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Promotion.Data.PieceDefinition
   displayName: "\uB098\uC774\uD2B8"
   glyph: N
-  sprite: {fileID: -1872254758, guid: fc1a88760a585a946aa63ed7cefc2f25, type: 3}
+  sprite: {fileID: 534566094, guid: fc1a88760a585a946aa63ed7cefc2f25, type: 3}
   playerColor: {r: 1, g: 1, b: 1, a: 1}
   enemyColor: {r: 1, g: 1, b: 1, a: 1}
   moveApCost: 1
@@ -37,3 +37,7 @@ MonoBehaviour:
     canMoveToEmpty: 1
     canCapture: 1
     relativeToFacing: 0
+    firstMoveOnly: 0
+  enemySprite: {fileID: 248173805, guid: b60a7a02e80929949960283b107ffcf0, type: 3}
+  aiValue: 3
+  canPromote: 0

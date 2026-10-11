@@ -22,7 +22,23 @@ namespace Promotion.Gameplay
 
         public bool IsOver => Phase == TurnPhase.Victory || Phase == TurnPhase.Defeat;
 
-        public void Configure(int apPerTurn) => MaxAp = Mathf.Max(1, apPerTurn);
+        /// <summary>
+        /// The chess duel has no action points: one move a turn, whatever the piece.
+        /// The HUD reads this to show the bar as locked.
+        /// </summary>
+        public bool ApDisabled { get; private set; }
+
+        public void Configure(int apPerTurn)
+        {
+            ApDisabled = false;
+            MaxAp = Mathf.Max(1, apPerTurn);
+        }
+
+        public void ConfigureOneMovePerTurn()
+        {
+            ApDisabled = true;
+            MaxAp = 1;
+        }
 
         public void ResetForStage()
         {
@@ -59,14 +75,15 @@ namespace Promotion.Gameplay
             ApChanged?.Invoke(Ap, MaxAp);
         }
 
-        public bool CanAfford(int cost) => Phase == TurnPhase.PlayerTurn && cost <= Ap;
+        public bool CanAfford(int cost)
+            => Phase == TurnPhase.PlayerTurn && (ApDisabled ? Ap > 0 : cost <= Ap);
 
         public bool TrySpend(int cost)
         {
             if (!CanAfford(cost))
                 return false;
 
-            Ap -= cost;
+            Ap -= ApDisabled ? 1 : cost;
             ApChanged?.Invoke(Ap, MaxAp);
             return true;
         }
