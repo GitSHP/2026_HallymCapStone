@@ -13,11 +13,11 @@ namespace Promotion.Map
 {
     /// <summary>
     /// The map scene: draws the run's map, lets the player pick where to go next and
-    /// sends them there. Built in code like the HUD, so the scene only needs this
-    /// component and a MapConfig.
+    /// sends them there. The frame (title, legend, buttons) is the MapScreen prefab;
+    /// nodes and paths are copies of the MapNode and MapEdge prefabs, made per run.
     ///
-    /// Only battle nodes do anything yet. Shop and boss nodes are placeholders that
-    /// are passed through, so the route logic can be exercised before they exist.
+    /// Battle nodes and the boss (the final chess duel) load the battle scene with
+    /// their stage. Shop nodes are placeholders that are passed through.
     /// </summary>
     public class MapScreen : MonoBehaviour
     {
@@ -28,6 +28,7 @@ namespace Promotion.Map
         public float columnSpacing = 210f;
         [Tooltip("How far nodes stray from the grid, so the map does not read as a table.")]
         public float jitter = 28f;
+        [Tooltip("The size the MapNode prefab is drawn at; other node sizes scale it.")]
         public float nodeSize = 80f;
         public float bossSize = 150f;
         public float edgeWidth = 6f;
@@ -41,13 +42,16 @@ namespace Promotion.Map
         const string ShopPassText = "상점은 아직 준비 중입니다. 이 칸은 그냥 지나갑니다.";
         const string MapEndText = "지도의 끝입니다. 보스 스테이지는 아직 준비 중입니다.";
 
+        [Header("Parts (set in the prefab)")]
+        [SerializeField] ScrollRect _scroll;
+        [SerializeField] RectTransform _content;
+        [SerializeField] TextMeshProUGUI _status;
+        [SerializeField] TextMeshProUGUI _message;
+        [SerializeField] UiButton _newRun;
+        [SerializeField] MapNodeView _nodePrefab;
+        [SerializeField] Image _edgePrefab;
+
         RunState _run;
-        RectTransform _root;
-        ScrollRect _scroll;
-        RectTransform _content;
-        TextMeshProUGUI _status;
-        TextMeshProUGUI _message;
-        UiButton _newRun;
 
         readonly List<int> _selectable = new();
         bool _leaving;
@@ -58,7 +62,8 @@ namespace Promotion.Map
         {
             _run = RunState.Instance;
             EnsureMap();
-            BuildFrame();
+            _message.text = PromptText;
+            _newRun.Clicked += StartNewRun;
             Redraw();
         }
 
@@ -66,93 +71,6 @@ namespace Promotion.Map
         {
             if (_run.Map == null)
                 _run.Map = MapGenerator.Generate(config, System.Environment.TickCount);
-        }
-
-        // ---------- Frame (built once) ----------
-
-        void BuildFrame()
-        {
-            var canvas = UiBuilder.OverlayCanvas("MapCanvas", 0);
-            canvas.transform.SetParent(transform, false);
-            _root = (RectTransform)canvas.transform;
-
-            var background = UiBuilder.Panel("Background", _root, UiTheme.Panel, false);
-            UiBuilder.Stretch(background.rectTransform);
-
-            var title = UiBuilder.Label("Title", _root, "지도", 40f, UiTheme.Ink,
-                TextAlignmentOptions.Left, FontStyles.Bold);
-            UiBuilder.Place(title.rectTransform, UiBuilder.TopLeft, UiBuilder.TopLeft,
-                new Vector2(60f, -36f), new Vector2(300f, 56f));
-
-            _status = UiBuilder.Label("Status", _root, "", 26f, UiTheme.InkMuted, TextAlignmentOptions.Right);
-            UiBuilder.Place(_status.rectTransform, UiBuilder.TopRight, UiBuilder.TopRight,
-                new Vector2(-60f, -42f), new Vector2(700f, 44f));
-
-            BuildLegend();
-            BuildScrollArea();
-
-            _message = UiBuilder.Label("Message", _root, PromptText, 26f, UiTheme.Ink);
-            UiBuilder.Place(_message.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
-                new Vector2(-160f, 120f), new Vector2(1200f, 40f));
-
-            _newRun = UiButton.CreateAction(_root, "NewRun", IconId.Arrow, "새 런",
-                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(-160f, 34f),
-                new Vector2(240f, 70f), UiTheme.Confirm, UiTheme.InkOnAccent);
-            _newRun.Clicked += StartNewRun;
-        }
-
-        void BuildLegend()
-        {
-            var panel = UiBuilder.Panel("Legend", _root, UiTheme.Card);
-            UiBuilder.Place(panel.rectTransform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
-                new Vector2(-60f, 0f), new Vector2(280f, 250f));
-
-            var heading = UiBuilder.Label("Heading", panel.transform, "범례", 24f, UiTheme.InkMuted,
-                TextAlignmentOptions.Left, FontStyles.Bold);
-            UiBuilder.Place(heading.rectTransform, UiBuilder.TopLeft, UiBuilder.TopLeft,
-                new Vector2(24f, -16f), new Vector2(230f, 36f));
-
-            LegendRow(panel.transform, 0, MapNodeType.Battle, "전투");
-            LegendRow(panel.transform, 1, MapNodeType.Shop, "상점 (준비 중)");
-            LegendRow(panel.transform, 2, MapNodeType.Boss, "보스 (준비 중)");
-        }
-
-        void LegendRow(Transform parent, int row, MapNodeType type, string text)
-        {
-            float y = -78f - row * 56f;
-
-            var icon = UiBuilder.Icon("Icon", parent, IconOf(type), AccentOf(type));
-            UiBuilder.Place(icon.rectTransform, UiBuilder.TopLeft, new Vector2(0f, 0.5f),
-                new Vector2(24f, y), Vector2.one * 38f);
-
-            var label = UiBuilder.Label("Label", parent, text, 22f, UiTheme.Ink, TextAlignmentOptions.Left);
-            UiBuilder.Place(label.rectTransform, UiBuilder.TopLeft, new Vector2(0f, 0.5f),
-                new Vector2(76f, y), new Vector2(190f, 36f));
-        }
-
-        void BuildScrollArea()
-        {
-            var viewport = UiBuilder.Panel("Viewport", _root, Color.clear, false);
-            var rect = viewport.rectTransform;
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = new Vector2(60f, 170f);
-            rect.offsetMax = new Vector2(-380f, -110f);
-            viewport.gameObject.AddComponent<RectMask2D>();
-
-            _content = UiBuilder.Node("Content", rect);
-            _content.anchorMin = Vector2.zero;
-            _content.anchorMax = new Vector2(1f, 0f);
-            _content.pivot = new Vector2(0.5f, 0f);
-            _content.anchoredPosition = Vector2.zero;
-
-            _scroll = viewport.gameObject.AddComponent<ScrollRect>();
-            _scroll.viewport = rect;
-            _scroll.content = _content;
-            _scroll.horizontal = false;
-            _scroll.vertical = true;
-            _scroll.movementType = ScrollRect.MovementType.Clamped;
-            _scroll.scrollSensitivity = 40f;
         }
 
         // ---------- Map (rebuilt on every change) ----------
@@ -209,12 +127,11 @@ namespace Promotion.Map
             var b = PositionOf(Map.nodes[to]);
             var delta = b - a;
 
-            var line = UiBuilder.Panel("Edge_" + from + "_" + to, _content, EdgeColor(from, to), false);
-            line.raycastTarget = false;
+            var line = Instantiate(_edgePrefab, _content);
+            line.name = "Edge_" + from + "_" + to;
+            line.color = EdgeColor(from, to);
 
             var rect = line.rectTransform;
-            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0f);
-            rect.pivot = new Vector2(0f, 0.5f);
             rect.sizeDelta = new Vector2(delta.magnitude, edgeWidth);
             rect.anchoredPosition = a;
             rect.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
@@ -237,54 +154,37 @@ namespace Promotion.Map
         {
             var node = Map.nodes[index];
             float size = node.type == MapNodeType.Boss ? bossSize : nodeSize;
-            var position = PositionOf(node);
-            var anchor = new Vector2(0.5f, 0f);
             var accent = AccentOf(node.type);
 
             bool selectable = !_leaving && _selectable.Contains(index);
             bool current = index == _run.CurrentMapNode;
             bool visited = _run.MapPath.Contains(index);
 
+            var view = Instantiate(_nodePrefab, _content);
+            view.name = "Node_" + index;
+            view.Rect.anchoredPosition = PositionOf(node);
+            // The prefab is drawn at nodeSize; the boss is the same node, larger.
+            view.Rect.localScale = Vector3.one * (size / nodeSize);
+
+            view.halo.gameObject.SetActive(selectable || current);
             if (selectable || current)
             {
-                var halo = UiBuilder.Icon("Halo_" + index, _content, PlaceholderArt.Circle,
-                    current ? WithAlpha(UiTheme.Gold, 0.45f) : WithAlpha(accent, 0.22f));
-                UiBuilder.Place(halo.rectTransform, anchor, UiBuilder.Centre, position, Vector2.one * size * 1.35f);
+                view.halo.color = current ? WithAlpha(UiTheme.Gold, 0.45f) : WithAlpha(accent, 0.22f);
                 if (selectable)
-                    Fx.Breathe(halo.transform);
+                    Fx.Breathe(view.halo.transform);
             }
 
-            Image face;
+            view.icon.sprite = UiSprites.Get(IconOf(node.type));
+            view.icon.color = selectable ? accent
+                : visited ? Color.Lerp(accent, UiTheme.InkMuted, 0.4f)
+                : UiTheme.InkMuted;
+
+            view.group.alpha = selectable || visited ? 1f : 0.6f;
+            view.visited.SetActive(visited && !current);
+
+            view.button.enabled = selectable;
             if (selectable)
-            {
-                var button = UiButton.CreateIcon(_content, "Node_" + index, IconOf(node.type),
-                    anchor, UiBuilder.Centre, position, size, UiTheme.CardWell, accent);
-                button.Clicked += () => OnNodeClicked(index, button.transform);
-                face = button.GetComponent<Image>();
-            }
-            else
-            {
-                face = UiBuilder.Panel("Node_" + index, _content, UiTheme.CardWell, false);
-                UiBuilder.Place(face.rectTransform, anchor, UiBuilder.Centre, position, Vector2.one * size);
-
-                var iconColor = visited ? Color.Lerp(accent, UiTheme.InkMuted, 0.4f) : UiTheme.InkMuted;
-                var icon = UiBuilder.Icon("Icon", face.transform, IconOf(node.type), iconColor);
-                UiBuilder.Place(icon.rectTransform, UiBuilder.Centre, UiBuilder.Centre, Vector2.zero,
-                    Vector2.one * size * 0.5f);
-
-                if (!visited)
-                    UiBuilder.Group(face.gameObject).alpha = 0.6f;
-            }
-
-            face.sprite = PlaceholderArt.Circle;
-            face.type = Image.Type.Simple;
-
-            if (visited && !current)
-            {
-                var tick = UiBuilder.Icon("Visited", face.transform, IconId.Check, UiTheme.Gold);
-                UiBuilder.Place(tick.rectTransform, new Vector2(1f, 0f), UiBuilder.Centre,
-                    new Vector2(-size * 0.12f, size * 0.12f), Vector2.one * size * 0.36f);
-            }
+                view.button.Clicked += () => OnNodeClicked(index, view.button.transform);
         }
 
         void ScrollToCurrent()
@@ -316,7 +216,7 @@ namespace Promotion.Map
             _run.MapPath.Add(index);
             UiFx.Punch(view);
 
-            if (node.type == MapNodeType.Battle)
+            if (node.type == MapNodeType.Battle || (node.type == MapNodeType.Boss && node.stage != null))
             {
                 _leaving = true;
                 _run.CurrentStage = node.stage;
@@ -345,14 +245,14 @@ namespace Promotion.Map
 
         // ---------- Look ----------
 
-        static IconId IconOf(MapNodeType type) => type switch
+        public static IconId IconOf(MapNodeType type) => type switch
         {
             MapNodeType.Shop => IconId.Bag,
             MapNodeType.Boss => IconId.Crown,
             _ => IconId.Sword
         };
 
-        static Color AccentOf(MapNodeType type) => type switch
+        public static Color AccentOf(MapNodeType type) => type switch
         {
             MapNodeType.Shop => UiTheme.Gold,
             MapNodeType.Boss => UiTheme.ArtifactAccent,

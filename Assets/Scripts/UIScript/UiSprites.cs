@@ -28,6 +28,14 @@ namespace Promotion.UI
             if (Cache.TryGetValue(id, out var cached) && cached != null)
                 return cached;
 
+            // The saved icon asset wins, so prefabs and code-made views share one image.
+            var saved = UiArt.Icon(id);
+            if (saved != null)
+            {
+                Cache[id] = saved;
+                return saved;
+            }
+
             var sprite = Build(id);
             Cache[id] = sprite;
             return sprite;

@@ -25,7 +25,7 @@ namespace Promotion.UI
         {
             var rect = Node(name, parent);
             var image = rect.gameObject.AddComponent<Image>();
-            image.sprite = rounded ? PlaceholderArt.RoundedRect : PlaceholderArt.Square;
+            image.sprite = rounded ? UiArt.RoundedRect : UiArt.Square;
             image.type = rounded ? Image.Type.Sliced : Image.Type.Simple;
             image.color = color;
             // Sliced sprites smaller than their borders otherwise refuse to draw.

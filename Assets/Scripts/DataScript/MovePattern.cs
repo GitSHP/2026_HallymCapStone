@@ -28,5 +28,8 @@ namespace Promotion.Data
 
         [Tooltip("Mirror the Y axis for the enemy team so 'forward' means the right way for both sides.")]
         public bool relativeToFacing;
+
+        [Tooltip("Only usable while the piece has not moved yet (the pawn's two-square opening step).")]
+        public bool firstMoveOnly;
     }
 }

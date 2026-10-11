@@ -16,6 +16,12 @@ namespace Promotion.Gameplay
         [Tooltip("Which side the local player controls.")]
         public Team controlledTeam = Team.Player;
 
+        [Tooltip("Full chess legality: moves that leave the own king in check are not offered (the chess duel).")]
+        public bool chessLegality;
+
+        /// <summary>Raised once a drag has committed a move: the piece and the square it went to.</summary>
+        public event System.Action<Piece, Coord> MoveCommitted;
+
         BoardGrid _grid;
         BoardState _state;
         BoardInput _input;
@@ -90,7 +96,15 @@ namespace Promotion.Gameplay
             _dragOrigin = coord;
             _ghostTarget = view.transform.position;
 
-            MoveResolver.GetLegalMoves(_state, piece, _options);
+            if (chessLegality)
+            {
+                var copy = SearchBoard.CopyOf(_state);
+                ChessRules.GetLegalMoves(copy, copy.Mirror(piece), _options);
+            }
+            else
+            {
+                MoveResolver.GetLegalMoves(_state, piece, _options);
+            }
             ShowOptions();
 
             view.SetSortingBoost(true);
@@ -151,6 +165,7 @@ namespace Promotion.Gameplay
                 // The resolver moves the piece and animates the whole capture,
                 // so the drag must not start a competing move of its own.
                 _combat.CaptureInto(piece, _state.GetPiece(target), target);
+                MoveCommitted?.Invoke(piece, target);
                 return;
             }
 
@@ -159,6 +174,7 @@ namespace Promotion.Gameplay
 
             _state.Move(piece, target);
             Fx.Drop(view.transform, _grid.CoordToWorld(target), transform, view.BaseScale);
+            MoveCommitted?.Invoke(piece, target);
         }
 
         bool KillOutright(Piece victim)

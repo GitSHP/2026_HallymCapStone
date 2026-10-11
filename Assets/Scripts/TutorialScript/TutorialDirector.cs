@@ -54,7 +54,13 @@ namespace Promotion.Tutorial
             _director = FindAnyObjectByType<StageDirector>();
             _turn = _director.GetComponent<TurnManager>();
             _state = _director.GetComponent<BoardState>();
-            _view = DialogueView.Create(_script);
+            _view = FindAnyObjectByType<DialogueView>(FindObjectsInactive.Include);
+            if (_view == null)
+            {
+                Debug.LogError("[TutorialDirector] No DialogueView in the scene - add the TutorialDialogue prefab.");
+                yield break;
+            }
+            _view.Init(_script);
 
             // Cover straight away if the story opens the tutorial, so the board never flashes.
             if (_script.steps.Length > 0 && _script.steps[0] != null && _script.steps[0].coverBoard)

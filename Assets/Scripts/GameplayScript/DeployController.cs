@@ -20,6 +20,12 @@ namespace Promotion.Gameplay
                  "Summoning one still costs its action points.")]
         public PieceDefinition[] alwaysAvailable = Array.Empty<PieceDefinition>();
 
+        [Tooltip("Every card may be placed during setup, not just the king (the chess duel).")]
+        public bool deployAllAtSetup;
+
+        [Tooltip("Cards may be summoned for action points once the fighting starts.")]
+        public bool summonDuringBattle = true;
+
         public event Action DeckChanged;
 
         readonly List<PieceDefinition> _deck = new();
@@ -76,9 +82,10 @@ namespace Promotion.Gameplay
                 }
             }
 
-            foreach (var def in alwaysAvailable)
-                if (def != null)
-                    Add(def, true);
+            if (summonDuringBattle)
+                foreach (var def in alwaysAvailable)
+                    if (def != null)
+                        Add(def, true);
 
             foreach (var def in rest)
                 Add(def, false);
@@ -112,9 +119,9 @@ namespace Promotion.Gameplay
                 return false;
 
             if (_turn.Phase == TurnPhase.Deploy)
-                return def.isObjective;
+                return def.isObjective || deployAllAtSetup;
 
-            return _turn.Phase == TurnPhase.PlayerTurn;
+            return summonDuringBattle && _turn.Phase == TurnPhase.PlayerTurn;
         }
 
         public bool CanDeploy(PieceDefinition def, Coord coord)

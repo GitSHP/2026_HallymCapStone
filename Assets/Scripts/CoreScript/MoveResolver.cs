@@ -22,7 +22,12 @@ namespace Promotion.Core
     /// </summary>
     public static class MoveResolver
     {
-        public static void GetLegalMoves(BoardState state, Piece piece, List<MoveOption> results)
+        /// <summary>
+        /// Every square the piece's patterns reach. These are the moves of the
+        /// ordinary stages; the chess duel filters them further through ChessRules
+        /// so the mover's own king is never left in check.
+        /// </summary>
+        public static void GetLegalMoves(IBoardView state, Piece piece, List<MoveOption> results)
         {
             results.Clear();
             if (piece == null || piece.Def.patterns == null)
@@ -31,6 +36,9 @@ namespace Promotion.Core
             foreach (var pattern in piece.Def.patterns)
             {
                 if (pattern?.directions == null)
+                    continue;
+
+                if (pattern.firstMoveOnly && piece.HasMoved)
                     continue;
 
                 foreach (var rawDir in pattern.directions)

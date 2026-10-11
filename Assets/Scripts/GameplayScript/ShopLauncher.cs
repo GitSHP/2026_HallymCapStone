@@ -20,6 +20,9 @@ namespace Promotion.Gameplay
         [Header("Shop")]
         public ShopPool shopPool;
 
+        [Tooltip("The shop screen placed (switched off) in this scene. Found automatically when empty.")]
+        public ShopScreen shopScreen;
+
         [Tooltip("Gold awarded for clearing the stage, paid in just before the shop opens.")]
         [Min(0)] public int clearReward = 6;
 
@@ -44,6 +47,11 @@ namespace Promotion.Gameplay
             if (_opened || phase != TurnPhase.Victory)
                 return;
 
+            // Winning the chess duel ends the run; there is nothing left to shop for.
+            var director = GetComponent<StageDirector>();
+            if (director != null && director.IsChessDuel)
+                return;
+
             _opened = true;
             RunState.Instance.AddGold(clearReward);
 
@@ -59,7 +67,16 @@ namespace Promotion.Gameplay
 
             var run = RunState.Instance;
             string headline = $"스테이지 {run.StageIndex + 1} 클리어   ·   골드 +{clearReward} 획득";
-            ShopScreen.Open(shopPool, headline, GoToNextStage);
+            if (shopScreen == null)
+                shopScreen = FindAnyObjectByType<ShopScreen>(FindObjectsInactive.Include);
+            if (shopScreen == null)
+            {
+                Debug.LogWarning("[ShopLauncher] No ShopScreen in the scene - skipping the shop.");
+                GoToNextStage();
+                return;
+            }
+
+            shopScreen.Open(shopPool, headline, GoToNextStage);
         }
 
         void GoToNextStage()

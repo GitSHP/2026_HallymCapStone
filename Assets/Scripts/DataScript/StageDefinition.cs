@@ -3,6 +3,23 @@ using UnityEngine;
 
 namespace Promotion.Data
 {
+    public enum StageMode
+    {
+        /// <summary>Hold off waves of enemies that walk toward the king.</summary>
+        Waves,
+        /// <summary>A game of chess against the AI, won by checkmate.</summary>
+        ChessDuel
+    }
+
+    /// <summary>A piece standing on a square at the start of a stage.</summary>
+    [Serializable]
+    public class PiecePlacement
+    {
+        public PieceDefinition piece;
+        [Tooltip("x = file (0 = a), y = rank (0 = the player's back rank).")]
+        public Vector2Int square;
+    }
+
     [Serializable]
     public class WaveDefinition
     {
@@ -19,6 +36,13 @@ namespace Promotion.Data
     [CreateAssetMenu(menuName = "Promotion/Stage Definition", fileName = "Stage")]
     public class StageDefinition : ScriptableObject
     {
+        [Header("Mode")]
+        public StageMode mode = StageMode.Waves;
+
+        [Header("Look")]
+        [Tooltip("Board picture for this stage. Empty keeps the scene's own board.")]
+        public Sprite boardArt;
+
         [Header("Action points")]
         public int apPerTurn = 5;
 
@@ -40,5 +64,19 @@ namespace Promotion.Data
         [Header("Rules")]
         [Tooltip("Enemies may step diagonally toward the king.")]
         public bool enemiesMoveDiagonally = true;
+
+        [Header("Chess duel")]
+        [Tooltip("The enemy (black) army and where it stands.")]
+        public PiecePlacement[] enemyLayout = Array.Empty<PiecePlacement>();
+        [Tooltip("Pawn handed out for free at deploy, on top of what the run collected.")]
+        public PieceDefinition freePawn;
+        [Min(0)] public int maxFreePawns = 8;
+        [Tooltip("Player moves allowed before the duel counts as lost.")]
+        [Min(1)] public int moveLimit = 100;
+        [Tooltip("What a pawn may become on the far rank. The AI always takes the first entry.")]
+        public PieceDefinition[] promotionChoices = Array.Empty<PieceDefinition>();
+        public AIProfile aiProfile;
+
+        public bool IsChessDuel => mode == StageMode.ChessDuel;
     }
 }

@@ -63,7 +63,10 @@ namespace Promotion.Map
             }
 
             int boss = map.nodes.Count;
-            map.nodes.Add(new MapNode { floor = floors, column = columns / 2, type = MapNodeType.Boss });
+            map.nodes.Add(new MapNode
+            {
+                floor = floors, column = columns / 2, type = MapNodeType.Boss, stage = config.bossStage
+            });
             for (int i = 0; i < boss; i++)
                 if (map.nodes[i].floor == floors - 1)
                     map.nodes[i].next.Add(boss);

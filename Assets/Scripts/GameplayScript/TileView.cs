@@ -61,6 +61,14 @@ namespace Promotion.Gameplay
             _overlay.enabled = false;
         }
 
+        /// <summary>Recolours the square itself; clear when a board picture shows underneath.</summary>
+        public void SetBaseColor(Color color)
+        {
+            _baseColor = color;
+            if (_base != null)
+                _base.color = color;
+        }
+
         /// <param name="popIndex">Stagger index so a set of highlights ripples in rather than snapping.</param>
         public void SetHighlight(TileHighlight highlight, int popIndex = 0)
         {

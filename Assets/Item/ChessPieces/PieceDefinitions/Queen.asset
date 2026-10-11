@@ -37,3 +37,7 @@ MonoBehaviour:
     canMoveToEmpty: 1
     canCapture: 1
     relativeToFacing: 0
+    firstMoveOnly: 0
+  enemySprite: {fileID: -1154639281, guid: b60a7a02e80929949960283b107ffcf0, type: 3}
+  aiValue: 9
+  canPromote: 0
