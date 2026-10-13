@@ -2,19 +2,18 @@ using Promotion.Data;
 
 namespace Promotion.Core
 {
-    /// <summary>보드 위 기물 하나의 런타임 상태다. 순수 데이터이며 Unity 타입을 쓰지 않는다.</summary>
-    public class Piece
+    public class Piece   // 보드 위에 놓인 기물 하나의 상태(무엇인지, 누구 편인지, 어디 있는지)를 담는 클래스
+    // -> 화면 표시(PieceView)와 분리된 순수 데이터라서 규칙 계산용 복사 보드에서도 그대로 사용함
     {
-        public PieceDefinition Def { get; }
-        public Team Team { get; }
-        public Coord Coord { get; set; }
+        public PieceDefinition Def { get; }   // 기물의 원본 데이터(SO) -> 이름, 그림, 비용, 행마법이 들어있음
+        public Team Team { get; }   // 이 기물이 속한 진영 (플레이어 / 적)
+        public Coord Coord { get; set; }   // 현재 서 있는 칸의 좌표
 
-        /// <summary>기물이 한 번이라도 움직이면 설정된다. 일부 패턴(폰의 두 칸 전진)은 그 전에만 적용된다.</summary>
-        public bool HasMoved { get; set; }
+        public bool HasMoved { get; set; }   // 한 번이라도 움직였는지 여부 -> "첫 수에만 가능한 이동"(폰 2칸 전진 등) 판정에 사용
 
-        public bool IsObjective => Def.isObjective;
+        public bool IsObjective => Def.isObjective;   // 지켜야 하는 핵심 기물(킹)인지 여부 -> 킹은 잡히지 않고, 적이 그 칸에 들어오면 패배
 
-        public Piece(PieceDefinition def, Team team, Coord coord)
+        public Piece(PieceDefinition def, Team team, Coord coord)   // 기물 데이터·진영·위치를 받아 새 기물을 만드는 생성자
         {
             Def = def;
             Team = team;
