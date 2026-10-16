@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Promotion.Core;
 using Promotion.Gameplay;
 using TMPro;
@@ -20,9 +19,6 @@ namespace Promotion.UI
         public static readonly Color Ink = new Color(0.94f, 0.93f, 0.90f);  // 기본 글자 색
         public static readonly Color ButtonIdle = new Color(0.20f, 0.20f, 0.26f, 0.95f);  // 누를 수 있는 버튼 색
         static readonly Color ButtonOff = new Color(0.14f, 0.14f, 0.17f, 0.80f);  // 누를 수 없는 버튼 색
-        public static readonly Color CardIdle = new Color(0.18f, 0.18f, 0.24f, 0.95f);  // 선택되지 않은 덱 카드 색
-        static readonly Color CardPicked = new Color(0.95f, 0.78f, 0.25f, 0.95f);  // 현재 선택된 덱 카드 색 (금색)
-        static readonly Color CardLocked = new Color(0.13f, 0.13f, 0.16f, 0.75f);  // 지금 놓을 수 없는 덱 카드 색 (회색)
         static readonly Color ApLockedPanel = new Color(0.32f, 0.10f, 0.10f, 0.90f);  // 최종전(체스 결투)에서 AP를 못 쓴다는 표시용 붉은 패널 색
         static readonly Color CheckInk = new Color(1f, 0.45f, 0.45f);  // 내 킹이 체크 상태일 때 상태 줄 글자 색 (빨강)
 
@@ -30,7 +26,8 @@ namespace Promotion.UI
 
         StageDirector _director;  // 스테이지 진행·승패 판정을 담당하는 오브젝트
         TurnManager _turn;  // 턴·AP·현재 단계(배치/플레이어 턴/적 턴/승리/패배)를 관리하는 오브젝트
-        DeployController _deploy;  // 덱 카드 선택과 기물 배치를 담당하는 오브젝트
+        DeployController _deploy;  // 기물 배치를 담당하는 오브젝트 -> 킹 배치 여부가 바뀌면 시작 버튼을 갱신하려고 구독함
+        // -> 기물 소환 UI는 인벤토리(InventoryManager)의 기물 슬롯이 맡음 (예전 오른쪽 "소환" 목록은 삭제)
 
         [Header("구성 요소 (프리팹에서 지정)")]
         [SerializeField] TextMeshProUGUI _status;  // 화면 위쪽 상태 줄 (턴·웨이브·적 수 또는 안내 문구)
@@ -40,16 +37,10 @@ namespace Promotion.UI
         [SerializeField] TextMeshProUGUI _banner;  // 승리/패배 문구를 표시하는 텍스트 UI
         [SerializeField] Button _action;  // 행동 버튼 (스테이지 시작 / 턴 종료 / 결투 시작)
         [SerializeField] TextMeshProUGUI _actionLabel;  // 행동 버튼의 글자
-        [SerializeField] Button _restart;  // 다시 하기 버튼 (패배했을 때만 보임)
-        [SerializeField] Button _toTitle;  // 타이틀로 버튼 (최종전에서 이겼을 때만 보임)
-        [SerializeField] RectTransform _deckBar;  // 덱 카드 버튼들이 들어가는 영역
+        [SerializeField] Button _toTitle;  // 타이틀로 버튼 -> 패배(런 종료)하거나 최종전에서 이겼을 때 보임
         [SerializeField] RectTransform _promotionPanel;  // 폰 승격 시 기물을 고르는 선택창
         [SerializeField] RectTransform _promotionRow;  // 승격 선택 버튼들이 들어가는 줄
-        [SerializeField] Button _deckCardPrefab;  // 덱 카드 버튼 프리팹 -> 카드 종류 수만큼 복제
         [SerializeField] Button _choiceButtonPrefab;  // 승격 선택 버튼 프리팹 -> 선택지 수만큼 복제
-
-        readonly List<Button> _deckButtons = new();  // 현재 화면에 만들어진 덱 카드 버튼 목록
-        readonly List<List<int>> _cardGroups = new();  // 같은 카드끼리 묶은 목록 -> 버튼 하나에 묶인 덱 인덱스들 (예: 폰 8장 → 버튼 하나 "폰 x8")
 
         void Start()  // 시작할 때 필요한 오브젝트를 찾고, 버튼과 이벤트를 연결하는 함수
         {
@@ -68,12 +59,10 @@ namespace Promotion.UI
 
             // 버튼을 눌렀을 때 실행할 함수 연결
             _action.onClick.AddListener(OnActionPressed);  // 행동 버튼 → 스테이지 시작 / 턴 종료
-            _restart.onClick.AddListener(ReloadStage);  // 다시 하기 버튼 → 현재 씬 다시 불러오기
             _toTitle.onClick.AddListener(ReturnToTitle);  // 타이틀로 버튼 → 런 초기화 후 타이틀 씬으로
 
             // 처음에는 결과 관련 UI를 모두 숨겨 둠
             _bannerPanel.SetActive(false);
-            _restart.gameObject.SetActive(false);
             _toTitle.gameObject.SetActive(false);
             _promotionPanel.gameObject.SetActive(false);
 
@@ -84,9 +73,8 @@ namespace Promotion.UI
             _director.StateChanged += Refresh;  // 스테이지 상태(웨이브·적 수 등) 변경
             _director.CheckDeclared += OnCheckDeclared;  // 최종전에서 체크 발생
             _director.PromotionRequested += ShowPromotionChoice;  // 최종전에서 폰이 끝 줄에 도달해 승격 선택이 필요할 때
-            _deploy.DeckChanged += RebuildDeck;  // 덱 구성이 바뀌었을 때 (카드 사용·킹 배치 등)
+            _deploy.DeckChanged += Refresh;  // 덱·선택이 바뀌었을 때 (킹 배치 → 시작 버튼 활성화)
 
-            RebuildDeck();  // 덱 카드 버튼을 처음 만들고
             Refresh();  // HUD 전체를 한 번 그림
         }
 
@@ -107,7 +95,7 @@ namespace Promotion.UI
             }
 
             if (_deploy != null)
-                _deploy.DeckChanged -= RebuildDeck;
+                _deploy.DeckChanged -= Refresh;
         }
 
         // 각 이벤트는 넘겨받는 값이 달라서 함수 모양을 맞춰 주기만 하고, 실제로는 모두 Refresh로 HUD 전체를 다시 그림
@@ -136,7 +124,6 @@ namespace Promotion.UI
             }
         }
 
-        static void ReloadStage() => SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);  // 현재 씬을 다시 불러와서 스테이지를 처음부터 다시 하는 함수
 
         static void ReturnToTitle()  // 런을 끝내고 타이틀 화면으로 돌아가는 함수 (최종전 승리 후)
         {
@@ -186,7 +173,6 @@ namespace Promotion.UI
             if (_director.IsChessDuel)  // 만약 최종전(체스 결투)이라면 -> 결투 전용 표시로 그리고 끝냄
             {
                 RefreshDuel();
-                RefreshDeckColors();
                 return;
             }
 
@@ -194,13 +180,12 @@ namespace Promotion.UI
             _status.color = Ink;
             _ap.fontSize = 34f;
             _apPanel.color = Panel;
-            _toTitle.gameObject.SetActive(false);  // 타이틀로 버튼은 최종전 승리에서만 쓰므로 숨김
 
             // 상태 줄: 배치 단계라면 안내 문구, 전투 중이라면 턴·웨이브·적 수를 표시
             _status.text = _turn.Phase == TurnPhase.Deploy
                 ? (_director.KingPlaced
                     ? "배치 완료 - 스테이지 시작을 누르세요"
-                    : "킹을 배치해야 시작합니다 - 오른쪽 덱에서 선택하세요")
+                    : "킹을 배치해야 시작합니다 - 인벤토리 기물 칸에서 킹을 고르세요")
                 : "턴 " + _turn.Turn
                   + "   |   웨이브 " + _director.WavesSent + "/" + _director.TotalWaves
                   + "   |   적 " + _director.EnemiesOnBoard;
@@ -230,17 +215,16 @@ namespace Promotion.UI
             }
 
             _bannerPanel.SetActive(over);  // 끝났을 때만 승패 배너를 보여 주고
-            _restart.gameObject.SetActive(_turn.Phase == TurnPhase.Defeat);  // 다시 하기 버튼은 패배했을 때만 보여 줌
+            _toTitle.gameObject.SetActive(_turn.Phase == TurnPhase.Defeat);  // 패배하면 런이 끝나므로 타이틀로 버튼을 보여 줌
             // -> 승리하면 다른 시스템(상점 등)이 결과를 받아서 다음으로 넘어감
 
             if (over)  // 만약 끝났다면 -> 승패에 맞는 문구와 색(초록/빨강)을 배너에 표시
             {
                 bool won = _turn.Phase == TurnPhase.Victory;
-                _banner.text = won ? "승리" : "패배";
+                _banner.text = won ? "승리" : "패배\n<size=50%>런 종료</size>";
                 _banner.color = won ? new Color(0.55f, 0.95f, 0.55f) : new Color(1f, 0.45f, 0.45f);
             }
 
-            RefreshDeckColors();  // 마지막으로 덱 카드 색 갱신
         }
 
         void RefreshDuel()  // 최종전(체스 결투)용 HUD를 그리는 함수
@@ -291,8 +275,7 @@ namespace Promotion.UI
 
             bool won = phase == TurnPhase.Victory;
             _bannerPanel.SetActive(over);  // 끝났을 때만 배너 표시
-            _restart.gameObject.SetActive(phase == TurnPhase.Defeat);  // 패배하면 다시 하기 버튼
-            _toTitle.gameObject.SetActive(won);  // 승리하면 런이 끝나므로 타이틀로 버튼
+            _toTitle.gameObject.SetActive(over);  // 이기든 지든 최종전이 끝나면 런이 끝나므로 타이틀로 버튼
 
             if (over)  // 만약 결투가 끝났다면 -> 결과 배너 문구를 채움
             {
@@ -304,68 +287,6 @@ namespace Promotion.UI
                     ? "체크메이트!\n<size=50%>런 클리어</size>"
                     : "패배\n<size=50%>" + reason + "</size>";
                 _banner.color = won ? new Color(0.55f, 0.95f, 0.55f) : new Color(1f, 0.45f, 0.45f);  // 승리는 초록, 패배는 빨강
-            }
-        }
-
-        void RebuildDeck()  // 덱 카드 버튼을 전부 지우고 현재 덱 구성에 맞게 다시 만드는 함수
-        {
-            foreach (var button in _deckButtons)  // 기존 카드 버튼을 모두 삭제
-                if (button != null)
-                    Destroy(button.gameObject);
-
-            _deckButtons.Clear();
-            _cardGroups.Clear();
-
-            // 같은 카드끼리 묶기 -> 폰 8장을 따로 만들면 덱 줄이 넘치므로 같은 카드는 버튼 하나로 합침
-            var deck = _deploy.Deck;
-            for (int i = 0; i < deck.Count; i++)  // 덱의 카드를 하나씩 보면서
-            {
-                var group = _cardGroups.Find(g => deck[g[0]] == deck[i] && _deploy.IsUnlimited(g[0]) == _deploy.IsUnlimited(i));
-                // 같은 기물이면서 상시(사용해도 사라지지 않는 카드) 여부도 같은 묶음이 이미 있는지 찾고
-                if (group != null)  // 만약 있다면 그 묶음에 추가
-                    group.Add(i);
-                else  // 없다면 새 묶음을 만듦
-                    _cardGroups.Add(new List<int> { i });
-            }
-
-            for (int g = 0; g < _cardGroups.Count; g++)  // 묶음마다 버튼을 하나씩 만듦
-            {
-                int index = _cardGroups[g][0];  // 묶음의 첫 번째 카드를 대표로 사용
-                int count = _cardGroups[g].Count;  // 묶음에 들어 있는 카드 장수
-                var def = deck[index];  // 대표 카드의 기물 데이터
-
-                var button = Instantiate(_deckCardPrefab, _deckBar);  // 덱 카드 프리팹을 덱 영역에 복제하고
-                button.name = "Card_" + g;
-                button.onClick.AddListener(() => _deploy.Select(index));  // 누르면 그 카드를 배치할 카드로 선택
-                var label = button.GetComponentInChildren<TextMeshProUGUI>();
-
-                string name = def.itemName + (count > 1 ? " x" + count : "");  // 2장 이상이면 "폰 x8"처럼 장수를 붙임
-                label.text = _director.IsChessDuel
-                    ? name + "\n배치 전용"  // 최종전에서는 AP를 쓰지 않고 배치 단계에서만 놓으므로 "배치 전용"
-                    : name + "\n" + def.deployApCost + " AP" + (_deploy.IsUnlimited(index) ? "  · 상시" : "");  // 일반 스테이지에서는 소환 AP 비용 표시, 상시 카드는 "상시" 표시
-                _deckButtons.Add(button);
-            }
-
-            Refresh();  // 덱이 바뀌면 시작 버튼 활성 여부(킹 배치 등)도 달라지므로 카드 색뿐 아니라 HUD 전체를 갱신
-        }
-
-        void RefreshDeckColors()  // 덱 카드 버튼마다 지금 놓을 수 있는지·선택됐는지에 따라 색을 바꾸는 함수
-        {
-            var deck = _deploy.Deck;
-
-            for (int i = 0; i < _deckButtons.Count; i++)
-            {
-                if (_deckButtons[i] == null || i >= _cardGroups.Count)  // 버튼이 없거나 묶음 정보가 맞지 않으면 건너뜀
-                    continue;
-
-                var group = _cardGroups[i];
-                bool playable = group[0] < deck.Count && _deploy.IsDeployableNow(deck[group[0]]);
-                // 지금 단계에서 이 카드를 놓을 수 있는지 -> 예: 배치 단계에서는 킹만 놓을 수 있으므로 나머지는 회색 처리
-                _deckButtons[i].interactable = playable;  // 놓을 수 없으면 버튼을 누를 수 없게 함
-
-                _deckButtons[i].image.color = !playable
-                    ? CardLocked  // 놓을 수 없음 → 회색
-                    : (group.Contains(_deploy.SelectedIndex) ? CardPicked : CardIdle);  // 선택된 카드가 이 묶음에 있으면 금색, 아니면 기본 색
             }
         }
     }

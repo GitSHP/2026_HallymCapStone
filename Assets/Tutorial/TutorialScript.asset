@@ -71,8 +71,9 @@ MonoBehaviour:
     storyFrame: {fileID: 0}
     coverBoard: 0
   - text: "\uBA3C\uC800 \uC6B0\uB9AC\uC758 \uD0B9\uC744 \uB193\uC544\uC57C \uD574\uC694.
-      \uC624\uB978\uCABD \uB371\uC5D0\uC11C \uD0B9\uC744 \uACE0\uB978 \uB4A4, \uC544\uB798\uCABD
-      \uBE5B\uB098\uB294 \uCE78\uC5D0 \uB193\uC544 \uC8FC\uC138\uC694."
+      \uC624\uB978\uCABD \uC778\uBCA4\uD1A0\uB9AC \uAE30\uBB3C \uCE78\uC5D0\uC11C
+      \uD0B9\uC744 \uACE0\uB978 \uB4A4, \uC544\uB798\uCABD \uBE5B\uB098\uB294 \uCE78\uC5D0
+      \uB193\uC544 \uC8FC\uC138\uC694."
     wait: 1
     action: 0
     portrait: {fileID: 0}
@@ -93,9 +94,9 @@ MonoBehaviour:
     portrait: {fileID: 0}
     storyFrame: {fileID: 0}
     coverBoard: 0
-  - text: "\uB371\uC5D0\uC11C \uD3F0\uC744 \uACE0\uB974\uACE0, \uD0B9 \uADFC\uCC98
-      \uBE5B\uB098\uB294 \uCE78\uC5D0 \uC18C\uD658\uD574 \uBCF4\uC138\uC694. (AP
-      1)"
+  - text: "\uC778\uBCA4\uD1A0\uB9AC\uC5D0\uC11C \uD3F0\uC744 \uACE0\uB974\uACE0,
+      \uD0B9 \uADFC\uCC98 \uBE5B\uB098\uB294 \uCE78\uC5D0 \uC18C\uD658\uD574 \uBCF4\uC138\uC694.
+      (AP 1)"
     wait: 3
     action: 0
     portrait: {fileID: 0}

@@ -25,6 +25,7 @@ namespace Promotion.Gameplay
         public bool summonDuringBattle = true;  // true면 전투 중 AP를 써서 소환 가능(일반 스테이지용)
 
         public event Action DeckChanged;    // 덱 내용이나 선택한 카드가 바뀔 때 발생하는 이벤트 -> HUD의 카드 목록이 갱신됨
+        public event Action OwnedPieceDeployed;   // 인벤토리의 보유 기물을 보드에 소환했을 때 발생하는 이벤트 -> 인벤토리가 남은 개수를 다시 그림
 
         readonly List<PieceDefinition> _deck = new();   // 현재 손에 있는 카드(기물 종류) 목록
         readonly List<bool> _unlimited = new(); // 같은 순서로 각 카드가 무제한(써도 안 사라짐)인지 저장하는 목록
@@ -32,9 +33,12 @@ namespace Promotion.Gameplay
         public IReadOnlyList<PieceDefinition> Deck => _deck;    // 외부(HUD)에서 덱을 읽기만 할 수 있게 열어 둔 속성
         public int SelectedIndex { get; private set; } = -1;    // 현재 선택한 카드의 순번(-1이면 선택 안 함)
 
+        public PieceDefinition SelectedOwned { get; private set; }   // 인벤토리에서 고른 보유 기물(없으면 null) -> 덱 카드 선택과 동시에 쓰이지 않음
+
         public PieceDefinition Selected =>
-            SelectedIndex >= 0 && SelectedIndex < _deck.Count ? _deck[SelectedIndex] : null;
-        // 현재 선택한 카드의 기물 종류(선택 안 했거나 범위를 벗어나면 null)
+            SelectedOwned != null ? SelectedOwned
+            : SelectedIndex >= 0 && SelectedIndex < _deck.Count ? _deck[SelectedIndex] : null;
+        // 현재 선택한 기물 종류 -> 인벤토리에서 고른 보유 기물이 있으면 그것, 아니면 덱에서 고른 카드(둘 다 없으면 null)
 
         BoardGrid _grid;    // 칸 좌표 변환과 칸 강조 표시용
         BoardState _state;  // 칸이 비어 있는지 확인하는 보드 데이터
@@ -88,13 +92,62 @@ namespace Promotion.Gameplay
                 Add(def, false);
 
             SelectedIndex = -1; // 선택 해제
+            SelectedOwned = null;
             DeckChanged?.Invoke();  // HUD에 덱이 바뀌었음을 알림
         }
 
         public void Select(int index)   // HUD에서 카드를 클릭했을 때 그 카드를 선택하는 함수
         {
+            SelectedOwned = null;   // 덱 카드를 고르면 인벤토리 보유 기물 선택은 풀림
             SelectedIndex = index == SelectedIndex ? -1 : index;    // 이미 선택한 카드를 다시 누르면 선택 해제, 아니면 그 카드 선택
             ShowDeployableTiles();  // 놓을 수 있는 칸을 강조 표시
+            DeckChanged?.Invoke();
+        }
+
+        public bool SelectOwned(PieceDefinition def)  // 인벤토리의 "사용하기"·좌클릭에서 보유 기물을 소환할 기물로 고르는 함수 -> 골랐으면 true
+        // def: 인벤토리 슬롯에 들어 있는 기물(ItemSlot.item을 PieceDefinition으로 바꾼 것)
+        // -> 같은 기물을 다시 고르면 선택 해제. 이후 보드 칸을 클릭하면 TryDeployAt이 덱 카드와 똑같이 처리함
+        {
+            Resolve();
+
+            if (def == null || SelectedOwned == def)   // 만약 기물이 없거나 이미 고른 기물이라면 -> 선택 해제
+            {
+                ClearSelection();
+                return false;
+            }
+
+            if (AvailableOwned(def) <= 0 || !IsDeployableNow(def))   // 만약 남은 개수가 없거나 지금 단계에서 소환할 수 없다면 -> 고르지 않음
+                return false;
+
+            SelectedIndex = -1;     // 덱 카드 선택은 풀고
+            SelectedOwned = def;    // 보유 기물을 선택
+            ShowDeployableTiles();  // 놓을 수 있는 칸을 강조 표시
+            DeckChanged?.Invoke();  // 선택이 바뀌었음을 알림 -> HUD·인벤토리가 선택 표시를 갱신
+            return true;
+        }
+
+        public int AvailableOwned(PieceDefinition def)  // 이 보유 기물을 지금 몇 개 더 소환할 수 있는지 세는 함수
+        // = 런 인벤토리에 있는 개수 - 이미 보드에 나가 있는 개수
+        // -> 소환해도 인벤토리 장부(RunState)에서는 지우지 않으므로, 보드에 나간 수를 빼서 "남은 수"를 계산함
+        {
+            Resolve();
+            if (def == null)
+                return 0;
+
+            int onBoard = 0;
+            foreach (var piece in _state.AllPieces)   // 보드 위 기물 중
+                if (piece.Owned && piece.Def == def)  // 인벤토리에서 꺼낸 같은 기물을 세고
+                    onBoard++;
+
+            return RunState.Instance.CountOf(def) - onBoard;   // 보유 개수에서 빼면 남은 개수
+        }
+
+        public void ClearSelection()   // 덱 카드·보유 기물 선택을 모두 풀고 칸 강조를 지우는 함수
+        {
+            Resolve();
+            SelectedIndex = -1;
+            SelectedOwned = null;
+            _grid.ClearHighlights();
             DeckChanged?.Invoke();
         }
 
@@ -163,18 +216,24 @@ namespace Promotion.Gameplay
             if (view == null)
                 return false;
 
+            bool owned = SelectedOwned != null;   // 인벤토리에서 꺼낸 보유 기물인지
+            view.Piece.Owned = owned;   // 보유 기물이면 표시해 둠 -> 적에게 잡히면 CombatResolver가 런 인벤토리에서도 지움
+
             Fx.Drop(view.transform, _grid.CoordToWorld(coord), transform, view.BaseScale);
             // 기물이 칸에 탁 내려앉는 연출(보드도 살짝 흔들림)
 
-            if (!IsUnlimited(SelectedIndex))    // 무제한 카드가 아니라면 사용한 카드를 덱에서 제거
+            if (!owned && !IsUnlimited(SelectedIndex))    // 덱 카드이면서 무제한 카드가 아니라면 사용한 카드를 덱에서 제거
             {
                 _deck.RemoveAt(SelectedIndex);
                 _unlimited.RemoveAt(SelectedIndex);
             }
 
             SelectedIndex = -1; // 선택 해제하고
+            SelectedOwned = null;
             _grid.ClearHighlights();    // 칸 강조 표시를 지우고
             DeckChanged?.Invoke();  // HUD에 덱이 바뀌었음을 알림
+            if (owned)
+                OwnedPieceDeployed?.Invoke();   // 보유 기물을 소환했다면 인벤토리에도 알림 -> 남은 개수가 하나 줄어 보임
             return true;
         }
 

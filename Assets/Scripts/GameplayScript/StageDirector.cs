@@ -146,16 +146,13 @@ namespace Promotion.Gameplay
         }
 
         List<PieceDefinition> BuildDeployDeck()   // 이번 스테이지에서 놓을 수 있는 기물 목록(덱)을 만드는 함수
-        // 순서: 킹 -> 런(이번 판)에서 모은 기물 -> 스테이지가 기본으로 주는 기물 -> (체스 대결이면) 무료 폰
+        // 순서: 킹 -> 스테이지가 기본으로 주는 기물 -> (체스 대결이면) 무료 폰
+        // -> 런에서 모은 보유 기물은 여기 넣지 않음. 인벤토리에서 DeployController.SelectOwned로 직접 소환함
         {
             var deck = new List<PieceDefinition>();
 
             if (stage.kingDefinition != null && !KingPlaced)    // 아직 킹이 보드에 없다면 킹을 덱 맨 앞에 넣음
                 deck.Add(stage.kingDefinition);
-
-            var run = RunState.Instance;    // 런 전체 진행 정보(상점에서 산 기물 등)
-            if (run != null)    // 상점에서 구매한 기물은 RunState에 있으므로 다음 스테이지 덱에 여기서 들어옴
-                deck.AddRange(run.Deck);
 
             if (stage.startingDeck != null) // 스테이지가 기본으로 주는 기물 추가
                 deck.AddRange(stage.startingDeck);
