@@ -15,17 +15,18 @@ public class DragSlot : MonoBehaviour
 
     void Start()
     {
-        instance = this;
-        SetColor(0);
+        instance = this;    // 드래그 중인 슬롯은 하나의 아이템만 들어가야하므로 싱글톤 패턴을 사용해 드래그 슬롯의 갱신을 차단
+        SetColor(0);    // 드래그 슬롯이 Scene이 시작되면 화면 중앙에 빈 칸으로 보이는 것을 안보이게 함
     }
 
-    public void DragSetImage(Image _itemImage)
+    public void DragSetImage(Image _itemImage)  // 드래그 슬롯의 아이템 이미지를 설정
     {
         itemImage.sprite = _itemImage.sprite;
         SetColor(1);
     }
 
-    public void SetColor(float _alpha)
+    public void SetColor(float _alpha)  // 아이템 이미지와 투명도를 조절해 슬롯을 보이게 할지 안보이게 할지 결정하는 함수
+    // _alpha 값으로 투명도 값을 받아서 _alpha 값으로 아이템 슬롯의 투명도를 결정
     {
         Color color = itemImage.color;
         color.a = _alpha;
