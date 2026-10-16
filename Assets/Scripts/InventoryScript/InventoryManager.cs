@@ -35,7 +35,7 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
     [SerializeField]
     private GameObject artifactDuplicateWarningUI;  // 이미 같은 아티팩트를 가지고 있을 때 띄우는 알림창
     [SerializeField]
-    private GameObject itemFullWarningUI; // 아티팩트를 저장하지 못했을 때 띄우는 알림창
+    private GameObject itemFullWarningUI; // 아이템이 가득 찼을 때 띄우는 알림창
     [SerializeField]
     private GameObject itemActionMenuUI;    // 아이템 사용, 버리기 메뉴 UI 변수
     [SerializeField]
@@ -265,35 +265,36 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
         itemFullWarningUI.SetActive(false);
     }
 
-    public void ReplacePendingItem(int _slotIndex)
-    // 인벤토리에 저장하지 못한 대기 중인 아이템을 _slotIndex 위치의 아이템과 교환하는 함수
-    {
-        if (pendingItem == null)
-            return;
+    // public void ReplacePendingItem(int _slotIndex)
+    // // 인벤토리에 저장하지 못한 대기 중인 아이템을 _slotIndex 위치의 아이템과 교환하는 함수
+    // {
+    //     if (pendingItem == null)
+    //         return;
 
-        if (pendingItem.itemType == ItemData.ItemType.Usable)
-        {
-            if (_slotIndex < 0 || _slotIndex >= itemSlots.Length)  // 슬롯 인덱스의 값을 미리 확인
-            {
-                Debug.Log("InventoryManager, ReplacePendingItem 함수 _slotIndex 매개변수 문제 발생");
-                return;
-            }
-            itemSlots[_slotIndex].AddItem(pendingItem, pendingItemCount);
-        }
-        else if (pendingItem.itemType == ItemData.ItemType.Artifact)
-        {
-            if (_slotIndex < 0 || _slotIndex >= run.Artifacts.Count)
-            {
-                Debug.Log("InventoryManager, ReplacePendingItem 함수 _slotIndex 매개변수 문제 발생");
-                return;
-            }
-            run.RemoveArtifact(run.Artifacts[_slotIndex]);  // 그 자리의 유물을 장부에서 빼고
-            run.AddArtifact(pendingItem);   // 대기 중이던 유물을 넣음
-        }
+    //     if (pendingItem.itemType == ItemData.ItemType.Usable)
+    //     {
+    //         if (_slotIndex < 0 || _slotIndex >= itemSlots.Length)  // 슬롯 인덱스의 값을 미리 확인
+    //         {
+    //             Debug.Log("InventoryManager, ReplacePendingItem 함수 _slotIndex 매개변수 문제 발생");
+    //             return;
+    //         }
+    //         itemSlots[_slotIndex].AddItem(pendingItem, pendingItemCount);
+    //     }
+    //     else if (pendingItem.itemType == ItemData.ItemType.Artifact)
+    //     {
+    //         if (_slotIndex < 0 || _slotIndex >= run.Artifacts.Count)
+    //         {
+    //             Debug.Log("InventoryManager, ReplacePendingItem 함수 _slotIndex 매개변수 문제 발생");
+    //             return;
+    //         }
+    //         run.RemoveArtifact(run.Artifacts[_slotIndex]);  // 그 자리의 유물을 장부에서 빼고
+    //         run.AddArtifact(pendingItem);   // 대기 중이던 유물을 넣음
+    //     }
 
-        pendingItem = null;
-        itemFullWarningUI.SetActive(false);
-    }
+    //     pendingItem = null;
+    //     itemFullWarningUI.SetActive(false);
+    // }    -- 인벤토리 창이 꽉 차 저장하지 못한 아이템이 있다면 이를 임시로 저장하고 사용자의 선택에 따라 버릴지 교환할 지를 선택하는 함수
+    //      -- 였는데 아이템이 꽉차면 꽉찼다는 UI만 띄우고 사용자가 알아서 아이템을 버리고 정리하도록 하는 쪽으로 변경해 사용하지는 않음
 
     public bool HasArtifact(ItemData _artifact) => run.Owns(_artifact);
     // 같은 아티팩트를 이미 가지고 있는지 확인하는 함수 -> 장부(RunState)에서 확인
