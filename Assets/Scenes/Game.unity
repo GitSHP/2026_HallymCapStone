@@ -211,14 +211,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5475652424101927190, guid: 08a17515271532d49bd4aeddf1c0750f, type: 3}
-      propertyPath: item
-      value: 
-      objectReference: {fileID: 11400000, guid: 8f05452fe2cd5f24babe30fc062019f8, type: 2}
-    - target: {fileID: 5475652424101927190, guid: 08a17515271532d49bd4aeddf1c0750f, type: 3}
-      propertyPath: itemCount
-      value: 5
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1415,12 +1407,24 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1964147235614867282, guid: a8f79e7cc048bdd41924cb69112d64e3, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: c7002037e28e4d44eba9e97ec505bfcd, type: 2}
+    - target: {fileID: 1964147235614867282, guid: a8f79e7cc048bdd41924cb69112d64e3, type: 3}
+      propertyPath: m_sharedMaterial
+      value: 
+      objectReference: {fileID: -2464982757583298443, guid: c7002037e28e4d44eba9e97ec505bfcd, type: 2}
+    - target: {fileID: 1964147235614867282, guid: a8f79e7cc048bdd41924cb69112d64e3, type: 3}
       propertyPath: m_fontColor32.rgba
       value: 4293324272
       objectReference: {fileID: 0}
     - target: {fileID: 1964147235614867282, guid: a8f79e7cc048bdd41924cb69112d64e3, type: 3}
       propertyPath: m_TextStyleHashCode
       value: -1183493901
+      objectReference: {fileID: 0}
+    - target: {fileID: 1964147235614867282, guid: a8f79e7cc048bdd41924cb69112d64e3, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4338673652353332066, guid: a8f79e7cc048bdd41924cb69112d64e3, type: 3}
       propertyPath: m_Pivot.x
@@ -2853,14 +2857,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2122479822}
     m_Modifications:
-    - target: {fileID: 2599104670853943765, guid: 3e8952451b8857f4fa1f52a9088dff27, type: 3}
-      propertyPath: item
-      value: 
-      objectReference: {fileID: 11400000, guid: fb4c10058d56b134ebb3932795e99418, type: 2}
-    - target: {fileID: 2599104670853943765, guid: 3e8952451b8857f4fa1f52a9088dff27, type: 3}
-      propertyPath: itemCount
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 6982571871566268401, guid: 3e8952451b8857f4fa1f52a9088dff27, type: 3}
       propertyPath: m_Name
       value: ArtifactSlot
