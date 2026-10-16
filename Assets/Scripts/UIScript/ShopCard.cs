@@ -7,158 +7,144 @@ using UnityEngine.UI;
 
 namespace Promotion.UI
 {
-    /// <summary>
-    /// 구매할 수 있는 상품 하나를 그림처럼 읽히게 보여준다. 큰 실루엣이 무엇인지를,
-    /// 짧은 문장이 무엇을 하는지를, 동전이 얼마인지를 알려준다.
-    ///
-    /// 카드는 자신의 생김새와 포인터에 대한 반응만 알고, 무엇을 파는지나 플레이어가
-    /// 살 수 있는지는 모른다. 그런 판단은 화면이 맡고, 카드에는 어떤 상태를 보여줄지만 알려준다.
-    /// </summary>
-    // [아이템 담당] 상점에 놓이는 카드 한 장의 생김새와 반응. 생김새는 프리팹
-    // (Assets/UI/Prefabs/ShopCard)에 있고, 그림·이름·설명·가격은 Setup 에서 채운다.
-    // 카드에 새 정보를 더 보여주고 싶다면 프리팹에 요소를 추가하고 여기서 연결한다.
     public class ShopCard : MonoBehaviour,
         IPointerEnterHandler, IPointerExitHandler,
         IPointerDownHandler, IPointerUpHandler, IPointerClickHandler
+    // 상점에 진열되는 카드 한 장(기물 또는 유물)을 담당하는 클래스
+    // -> 카드 모양은 프리팹(Assets/UI/Prefabs)에 있고, 이 스크립트는 내용 채우기·상태 표시·마우스 연출만 담당함
+    // -> 실제 구매 처리는 하지 않고 클릭 사실만 ShopScreen에 알림
     {
-        public event Action<ShopCard> Clicked;
+        public event Action<ShopCard> Clicked;  // 카드가 클릭됐을 때 ShopScreen에 알리는 이벤트 -> 어떤 카드인지 자신을 함께 넘겨줌
 
-        public int Cost { get; private set; }
-        public bool Sold { get; private set; }
-        public bool Affordable { get; private set; } = true;
-        public RectTransform Rect => (RectTransform)transform;
+        public int Cost { get; private set; }  // 이 카드의 가격(골드)
+        public bool Sold { get; private set; }  // 이미 구매(또는 보유)되어 더 이상 살 수 없는 카드인지 여부
+        public bool Affordable { get; private set; } = true;  // 현재 보유 골드로 살 수 있는지 여부
+        public RectTransform Rect => (RectTransform)transform;  // 이 카드의 RectTransform을 바로 꺼내 쓰기 위한 속성
 
-        [SerializeField] CanvasGroup _group;
-        [SerializeField] Image _face;
-        [SerializeField] Image _strip;
-        [SerializeField] Image _well;
-        [SerializeField] Image _icon;
-        [SerializeField] TextMeshProUGUI _title;
-        [SerializeField] TextMeshProUGUI _blurb;
-        [SerializeField] Image _priceBacking;
-        [SerializeField] Image _priceCoin;
-        [SerializeField] TextMeshProUGUI _priceLabel;
-        [SerializeField] RectTransform _soldOverlay;
-        [SerializeField] TextMeshProUGUI _soldLabel;
+        [SerializeField] CanvasGroup _group;  // 카드 전체의 투명도를 조절할 때 사용할 변수 (등장 연출용)
+        [SerializeField] Image _face;  // 카드 바탕 이미지
+        [SerializeField] Image _strip;  // 카드 위쪽의 강조색 띠 (기물: 하늘색 / 유물: 보라색)
+        [SerializeField] Image _well;  // 아이콘 뒤의 옅은 강조색 배경
+        [SerializeField] Image _icon;  // 기물·유물 아이콘 이미지
+        [SerializeField] TextMeshProUGUI _title;  // 이름을 표시하는 텍스트 UI
+        [SerializeField] TextMeshProUGUI _blurb;  // 짧은 설명을 표시하는 텍스트 UI
+        [SerializeField] Image _priceBacking;  // 가격 표시 부분의 바탕 이미지 (금색)
+        [SerializeField] Image _priceCoin;  // 가격 옆의 동전 아이콘
+        [SerializeField] TextMeshProUGUI _priceLabel;  // 가격 숫자를 표시하는 텍스트 UI
+        [SerializeField] RectTransform _soldOverlay;  // 구매 완료 시 카드 위에 덮이는 표시 (평소에는 꺼져 있음)
+        [SerializeField] TextMeshProUGUI _soldLabel;  // 구매 완료 표시에 들어가는 글자 ("보유 중" 등)
 
-        // 카드를 살 수 없을 때 함께 흐려지는 요소들이다.
-        [SerializeField] List<Graphic> _contents = new();
+        [SerializeField] List<Graphic> _contents = new();  // 골드가 부족할 때 흐리게 만들 그래픽 목록 (아이콘·이름·설명 등, 인스펙터에서 등록)
 
-        Color _accent;
-        Vector2 _home;
-        bool _hovered;
+        Color _accent;  // 이 카드의 강조색 -> 살 수 있는 상태로 돌아올 때 원래 색을 복구하기 위해 기억
+        Vector2 _home;  // 카드의 원래 위치 -> 마우스를 올려 떠올랐다가 돌아올 기준점
+        bool _hovered;  // 현재 마우스가 카드 위에 올라와 있는지 여부
 
-        /// <summary>프리팹으로 만든 카드에 상품 하나를 채우고 <paramref name="anchoredPosition"/>에 배치한다.</summary>
         public void Setup(Vector2 anchoredPosition, Sprite icon, string title, string blurb, int cost, Color accent)
+        // 카드의 위치와 표시 내용(아이콘·이름·설명·가격·강조색)을 채우는 함수 -> ShopScreen이 상품을 진열할 때 호출함
         {
-            Rect.anchoredPosition = anchoredPosition;
-            _home = anchoredPosition;
+            Rect.anchoredPosition = anchoredPosition;  // 카드를 지정한 위치에 놓고
+            _home = anchoredPosition;  // 그 위치를 원래 위치로 기억
             _accent = accent;
             Cost = cost;
-            Sold = false;
+            Sold = false;  // 새로 진열하는 카드이므로 판매 전 상태로 초기화
 
-            _strip.color = accent;
-            _well.color = UiTheme.Well(accent);
+            _strip.color = accent;  // 위쪽 띠를 강조색으로 칠하고
+            _well.color = UiTheme.Well(accent);  // 아이콘 배경은 강조색을 옅게 해서 칠함
             _icon.sprite = icon;
-            _icon.color = UiTheme.Glyph(accent);
+            _icon.color = UiTheme.Glyph(accent);  // 아이콘은 강조색보다 조금 밝게
             _title.text = title;
-            _blurb.text = blurb ?? "";
-            _blurb.gameObject.SetActive(!string.IsNullOrEmpty(blurb));
-            _priceLabel.text = cost.ToString();
-            _soldOverlay.gameObject.SetActive(false);
+            _blurb.text = blurb ?? "";  // 설명이 null이면 빈 문자열로 처리
+            _blurb.gameObject.SetActive(!string.IsNullOrEmpty(blurb));  // 설명이 없으면 설명 텍스트 UI 자체를 숨김
+            _priceLabel.text = cost.ToString();  // 가격 숫자 표시
+            _soldOverlay.gameObject.SetActive(false);  // 구매 완료 표시는 꺼 둠
         }
 
-        // ---------- 상태 ----------
-
-        /// <summary>
-        /// 살 수 없는 상태가 되면 카드의 색을 빼고 동전을 회색으로 바꾸지만, 클릭은 그대로
-        /// 받는다. 반응 없는 카드는 아무것도 알려주지 못하지만, 흔들리며 가격을 번쩍이는
-        /// 카드는 구매가 왜 실패했는지 정확히 알려준다.
-        /// </summary>
-        public void SetAffordable(bool affordable)
+        public void SetAffordable(bool affordable)  // 보유 골드로 살 수 있는지에 따라 카드 모양을 바꾸는 함수
         {
-            if (Sold)
+            if (Sold)  // 만약 이미 판매된 카드라면 -> 모양을 바꾸지 않음 (구매 완료 표시 유지)
                 return;
 
             Affordable = affordable;
-            _face.color = affordable ? UiTheme.Card : UiTheme.CardDim;
-            _well.color = affordable ? UiTheme.Well(_accent) : UiTheme.Well(UiTheme.InkFaint);
-            _priceBacking.color = affordable ? UiTheme.Gold : UiTheme.Disabled;
-            _priceLabel.color = affordable ? UiTheme.InkOnAccent : UiTheme.InkMuted;
-            _priceCoin.color = affordable ? UiTheme.InkOnAccent : UiTheme.InkMuted;
+            _face.color = affordable ? UiTheme.Card : UiTheme.CardDim;  // 살 수 없으면 카드 바탕을 어둡게
+            _well.color = affordable ? UiTheme.Well(_accent) : UiTheme.Well(UiTheme.InkFaint);  // 아이콘 배경도 강조색 대신 회색 계열로
+            _priceBacking.color = affordable ? UiTheme.Gold : UiTheme.Disabled;  // 가격 바탕을 금색 → 회색으로
+            _priceLabel.color = affordable ? UiTheme.InkOnAccent : UiTheme.InkMuted;  // 가격 글자 색 변경
+            _priceCoin.color = affordable ? UiTheme.InkOnAccent : UiTheme.InkMuted;  // 동전 아이콘 색 변경
 
-            float fade = affordable ? 1f : 0.4f;
-            foreach (var graphic in _contents)
+            float fade = affordable ? 1f : 0.4f;  // 살 수 없으면 내용물을 40% 투명도로 흐리게 함
+            foreach (var graphic in _contents)  // 등록된 모든 그래픽에 대해
             {
-                if (graphic == null)
+                if (graphic == null)  // 비어 있는 칸은 건너뜀 -> 인스펙터에서 빠진 항목이 있어도 에러 방지
                     continue;
 
-                var c = graphic.color;
-                c.a = fade;
-                graphic.color = c;
+                var c = graphic.color;  // 기존 색은 그대로 두고
+                c.a = fade;  // 투명도만 바꿔서
+                graphic.color = c;  // 다시 적용
             }
         }
 
-        public void MarkSold(string label = "보유 중")
+        public void MarkSold(string label = "보유 중")  // 카드를 판매 완료 상태로 바꾸는 함수 -> 구매 직후 또는 이미 가진 유물일 때 호출
         {
-            if (Sold)
+            if (Sold)  // 만약 이미 판매 완료 상태라면 -> 연출이 두 번 나오지 않도록 무시
                 return;
 
-            Sold = true;
+            Sold = true;  // 판매 완료로 표시하고
             _hovered = false;
-            _soldLabel.text = label;
-            _soldOverlay.gameObject.SetActive(true);
+            _soldLabel.text = label;  // 덮개에 표시할 글자를 넣고
+            _soldOverlay.gameObject.SetActive(true);  // 구매 완료 덮개를 켬
 
-            UiFx.Punch(transform);
-            UiFx.HoverOut(Rect, _home);
+            UiFx.Punch(transform);  // 카드가 톡 튀는 연출
+            UiFx.HoverOut(Rect, _home);  // 떠올라 있던 카드를 원래 위치로 내림
         }
 
-        // ---------- 애니메이션 진입점 ----------
+        public void PlayIn(int index) => UiFx.CardIn(Rect, _group, index);  // 카드 등장 연출 함수 -> index 순서대로 차례차례 나타남
 
-        public void PlayIn(int index) => UiFx.CardIn(Rect, _group, index);
-
-        public void PlayDeny()
+        public void PlayDeny()  // 구매할 수 없을 때(골드 부족) 거절 연출을 재생하는 함수
         {
-            UiFx.Deny(transform);
-            UiFx.FlashColor(_priceLabel, UiTheme.Deny, UiTheme.InkOnAccent);
+            UiFx.Deny(transform);  // 카드를 좌우로 흔들고
+            UiFx.FlashColor(_priceLabel, UiTheme.Deny, UiTheme.InkOnAccent);  // 가격 글자를 빨갛게 번쩍였다가 원래 색으로 되돌림
         }
 
-        // ---------- 포인터 ----------
-
+        // 마우스가 카드 위에 올라왔을 때 발생하는 이벤트
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (Sold)
+            if (Sold)  // 만약 판매 완료된 카드라면 -> 연출 없음
                 return;
 
             _hovered = true;
-            UiFx.HoverIn(Rect, _home);
+            UiFx.HoverIn(Rect, _home);  // 카드를 살짝 키우고 위로 띄움
         }
 
+        // 마우스가 카드 밖으로 나갔을 때 발생하는 이벤트
         public void OnPointerExit(PointerEventData eventData)
         {
             if (Sold)
                 return;
 
             _hovered = false;
-            UiFx.HoverOut(Rect, _home);
+            UiFx.HoverOut(Rect, _home);  // 카드를 원래 크기·위치로 되돌림
         }
 
+        // 마우스 버튼을 눌렀을 때 발생하는 이벤트
         public void OnPointerDown(PointerEventData eventData)
         {
-            if (!Sold)
-                UiFx.Press(transform);
+            if (!Sold)  // 판매 전 카드일 때만
+                UiFx.Press(transform);  // 눌린 것처럼 작아지는 연출
         }
 
+        // 마우스 버튼을 뗐을 때 발생하는 이벤트
         public void OnPointerUp(PointerEventData eventData)
         {
             if (!Sold)
-                UiFx.Release(transform, _hovered);
+                UiFx.Release(transform, _hovered);  // 원래 크기로 복귀 (마우스가 위에 있으면 떠오른 크기로)
         }
 
+        // 카드가 클릭됐을 때 발생하는 이벤트
         public void OnPointerClick(PointerEventData eventData)
         {
-            if (!Sold)
-                Clicked?.Invoke(this);
+            if (!Sold)  // 판매 전 카드일 때만
+                Clicked?.Invoke(this);  // ShopScreen에 이 카드가 클릭됐다고 알림 -> 골드 확인·구매 처리는 ShopScreen이 함
         }
     }
 }

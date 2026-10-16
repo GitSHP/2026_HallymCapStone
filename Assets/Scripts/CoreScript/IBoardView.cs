@@ -2,16 +2,14 @@ using System.Collections.Generic;
 
 namespace Promotion.Core
 {
-    /// <summary>
-    /// 보드의 읽기 전용 뷰로, 어느 칸에 무엇이 있는지를 제공한다. 실제 보드와 AI의
-    /// 탐색용 사본이 모두 이를 구현하므로, 이동 규칙을 한 번만 작성해 공유한다.
-    /// </summary>
-    public interface IBoardView
+    public interface IBoardView   // 보드를 "읽기만" 하는 공통 창구 인터페이스
+    // -> 실제 보드(BoardState)와 계산용 복사 보드(SearchBoard)가 둘 다 구현하므로
+    //    행마법 계산(MoveResolver)·체스 규칙(ChessRules)이 어느 보드든 같은 코드로 동작함
     {
-        int Width { get; }
-        int Height { get; }
-        IReadOnlyList<Piece> AllPieces { get; }
-        bool IsInside(Coord c);
-        Piece GetPiece(Coord c);
+        int Width { get; }   // 보드의 가로 칸 수
+        int Height { get; }   // 보드의 세로 칸 수
+        IReadOnlyList<Piece> AllPieces { get; }   // 보드 위에 있는 모든 기물 목록 (아군·적 모두)
+        bool IsInside(Coord c);   // 좌표가 보드 안쪽 칸인지 확인하는 함수
+        Piece GetPiece(Coord c);   // 그 칸에 서 있는 기물을 돌려주는 함수 (없으면 null)
     }
 }
