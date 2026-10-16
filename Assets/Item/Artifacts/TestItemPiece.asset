@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 640f29fc82842d8439995ecb4c58a544, type: 3}
-  m_Name: TestItem2
+  m_Name: TestItemPiece
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   itemName: TestItem2
   itemType: 2
-  itemImage: {fileID: 0}
+  itemImage: {fileID: 21300000, guid: 821f4f85d45649944b6c99fc4127573a, type: 3}
   itemPrefab: {fileID: 0}

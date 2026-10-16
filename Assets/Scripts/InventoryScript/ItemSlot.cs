@@ -3,11 +3,16 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class ItemSlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler
+public class ItemSlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler, IPointerClickHandler
+    // 인벤토리 내부의 아아템 슬롯을 관리하는 스크립트
+    // 아이템을 저장, 사용, 버리기, 드래그 앤 드롭 등의 기능을 총괄한다
+    // 또한 슬롯 내부의 정보(슬롯에 저장된 아이템 갯수, 아이템 스프라이트 등)를 나타내는 UI를 띄우는 기능을 한다
 {
     public ItemData item; // 인벤토리에 저장할 아이템
     public int itemCount; // 저장된 아이템의 갯수
     public Image itemImage; // 저장된 아이템의 이미지
+
+    private InventoryManager inventoryManager;  // itemSlot의 부모인 InventoryManager에 접근하기 위한 변수
 
     [SerializeField]
     private TextMeshProUGUI itemTextCount; // 아이템의 갯수를 표시하는 텍스트 UI에 접근하기 위한 변수
@@ -16,11 +21,16 @@ public class ItemSlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     [SerializeField]
     private ItemData.ItemType allowedType;  // 이 슬롯에 저장할 수 있는 아이템 유형 (인스펙터에서 설정)
 
+    void Awake()
+    {
+        inventoryManager = GetComponentInParent<InventoryManager>();    
+        // 아이템 슬롯의 부모 오브젝트인 InventoryManager 오브젝트를 찾아 할당
+    }
+
     void Start()
     {
-        Debug.Log("인벤토리 초기화");
-        SetImageAlpha(0);   // 최초 인벤토리를 불러올 때 슬롯의 정보를 초기화
-        ClearSlot();
+        SetImageAlpha(0);   // 최초 인벤토리를 불러올 때 슬롯의 이미지들이 보이지 않도록 설정
+        itemCountImage.SetActive(false);
     }
     private void SetImageAlpha(float _alpha) // 아이템 이미지의 투명도 조절 
     // -> 아이템이 저장된 경우 아이템 이미지의 투명도를 높여 이미지가 보이도록 조절하고 저장되지 않은 상태면 투명도를 낮춰 보이지 않게함
@@ -66,7 +76,7 @@ public class ItemSlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         }
     }
 
-    private void ClearSlot() // 현재 슬롯에 저장된 아이템을 삭제하는 함수
+    public void ClearSlot() // 현재 슬롯에 저장된 아이템을 삭제하는 함수
     {
         item = null;    // 현재 저장된 아이템 정보를 삭제하고
         itemCount = 0;  // 아이템과 관련된 모든 정보(아이템 갯수, 이미지, 텍스트 UI, 이미지 투명도)를 초기화 후 UI에서 보이지 않도록 함
@@ -111,6 +121,22 @@ public class ItemSlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         {
            ChangeSlot();
         }
+    }
+
+    public void OnPointerClick(PointerEventData eventData)  // 슬롯을 클릭했을 때 실행되는 함수
+    {
+        Debug.Log("슬롯 우클릭 확인");
+        if (eventData.button != PointerEventData.InputButton.Right) {   // 우클릭이 아닌 좌클릭을 했을 때는 아무것도 하지 않음
+            Debug.Log("슬롯 좌클릭 확인");
+            return;  
+        }
+        if (item == null) {    // 만약 아이템이 저장되어있지 않은 빈 슬롯이라면 아무것도 하지 않음
+            Debug.Log("빈 슬롯 우클릭 확인");
+            return;  
+        } 
+
+        inventoryManager.OpenItemActionMenu(this, eventData.position);  
+        // 이 슬롯과 관련된 정보를 inventoryManager에게 넘기고 우클릭한 위치에 아이템 사용, 버리기 메뉴를 열도록 함
     }
     
     private void ChangeSlot()
