@@ -1395,12 +1395,24 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1007922332759752463, guid: a8f79e7cc048bdd41924cb69112d64e3, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: c7002037e28e4d44eba9e97ec505bfcd, type: 2}
+    - target: {fileID: 1007922332759752463, guid: a8f79e7cc048bdd41924cb69112d64e3, type: 3}
+      propertyPath: m_sharedMaterial
+      value: 
+      objectReference: {fileID: -2464982757583298443, guid: c7002037e28e4d44eba9e97ec505bfcd, type: 2}
+    - target: {fileID: 1007922332759752463, guid: a8f79e7cc048bdd41924cb69112d64e3, type: 3}
       propertyPath: m_fontColor32.rgba
       value: 4293324272
       objectReference: {fileID: 0}
     - target: {fileID: 1007922332759752463, guid: a8f79e7cc048bdd41924cb69112d64e3, type: 3}
       propertyPath: m_TextStyleHashCode
       value: -1183493901
+      objectReference: {fileID: 0}
+    - target: {fileID: 1007922332759752463, guid: a8f79e7cc048bdd41924cb69112d64e3, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1964147235614867282, guid: a8f79e7cc048bdd41924cb69112d64e3, type: 3}
       propertyPath: m_fontColor32.rgba
@@ -1495,12 +1507,24 @@ PrefabInstance:
       value: 25
       objectReference: {fileID: 0}
     - target: {fileID: 8383922204112607519, guid: a8f79e7cc048bdd41924cb69112d64e3, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: c7002037e28e4d44eba9e97ec505bfcd, type: 2}
+    - target: {fileID: 8383922204112607519, guid: a8f79e7cc048bdd41924cb69112d64e3, type: 3}
+      propertyPath: m_sharedMaterial
+      value: 
+      objectReference: {fileID: -2464982757583298443, guid: c7002037e28e4d44eba9e97ec505bfcd, type: 2}
+    - target: {fileID: 8383922204112607519, guid: a8f79e7cc048bdd41924cb69112d64e3, type: 3}
       propertyPath: m_fontColor32.rgba
       value: 4293324272
       objectReference: {fileID: 0}
     - target: {fileID: 8383922204112607519, guid: a8f79e7cc048bdd41924cb69112d64e3, type: 3}
       propertyPath: m_TextStyleHashCode
       value: -1183493901
+      objectReference: {fileID: 0}
+    - target: {fileID: 8383922204112607519, guid: a8f79e7cc048bdd41924cb69112d64e3, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8752399496096048975, guid: a8f79e7cc048bdd41924cb69112d64e3, type: 3}
       propertyPath: m_Name
