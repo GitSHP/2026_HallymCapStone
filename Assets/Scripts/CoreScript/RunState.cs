@@ -55,6 +55,7 @@ namespace Promotion.Core
 
         public StageDefinition CurrentStage { get; set; }   // 맵에서 선택해 들어온 전투 스테이지 정보 -> 전투 씬을 직접 열었을 때는 null
 
+        public event Action InventoryChanged;   // 보유 기물·유물 목록이 바뀔 때 발생하는 이벤트 -> 인벤토리 UI가 이 신호를 받아 슬롯을 다시 그림
         public event Action<int, int> GoldChanged;   // 골드가 바뀔 때 발생하는 이벤트 -> (이전 값, 현재 값)을 함께 보내므로 UI가 숫자를 부드럽게 바꿀 수 있음
 
         void Awake()   // 오브젝트가 생성될 때 한 번 실행
@@ -106,16 +107,46 @@ namespace Promotion.Core
             return true;   // 성공을 알림
         }
 
-        public void AddPiece(PieceDefinition piece)   // 덱에 기물을 추가하는 함수 (상점 구매 등)
+        public void AddPiece(PieceDefinition piece)   // 보유 기물(인벤토리)에 기물을 하나 추가하는 함수 (상점 구매 등)
         {
-            if (piece != null)
-                _deck.Add(piece);
+            if (piece == null)
+                return;
+            _deck.Add(piece);
+            InventoryChanged?.Invoke();   // 인벤토리 UI에 목록이 바뀌었음을 알림
+        }
+
+        public bool RemovePiece(PieceDefinition piece)   // 보유 기물에서 그 기물을 하나 지우는 함수 -> 지웠으면 true
+        // -> 기물이 영구히 사라지는 경우(적에게 잡힘, 버리기)에만 호출함. 보드에 소환한 것만으로는 지우지 않음
+        {
+            if (piece == null || !_deck.Remove(piece))   // 만약 그 기물을 가지고 있지 않다면 실패
+                return false;
+            InventoryChanged?.Invoke();
+            return true;
+        }
+
+        public int CountOf(PieceDefinition piece)   // 그 기물을 몇 개 보유하고 있는지 세는 함수
+        {
+            int count = 0;
+            foreach (var owned in _deck)
+                if (owned == piece)
+                    count++;
+            return count;
         }
 
         public void AddArtifact(ItemData artifact)   // 유물을 보유 목록에 추가하는 함수 -> 상점에서 구매가 성사됐을 때 호출 (효과 적용은 아직 연결되지 않음)
         {
-            if (artifact != null)
-                _artifacts.Add(artifact);
+            if (artifact == null)
+                return;
+            _artifacts.Add(artifact);
+            InventoryChanged?.Invoke();
+        }
+
+        public bool RemoveArtifact(ItemData artifact)   // 유물을 보유 목록에서 지우는 함수 (인벤토리에서 버리기) -> 지웠으면 true
+        {
+            if (artifact == null || !_artifacts.Remove(artifact))
+                return false;
+            InventoryChanged?.Invoke();
+            return true;
         }
 
         public bool Owns(ItemData artifact)   // 그 유물을 이미 가지고 있는지 확인하는 함수 -> 중복 구매 방지에 사용
@@ -133,6 +164,7 @@ namespace Promotion.Core
             MapPath.Clear();   // 지나온 경로도 비우고
             CurrentStage = null;   // 선택된 스테이지도 비운 뒤
             Initialise();   // 시작 골드·덱을 다시 채움
+            InventoryChanged?.Invoke();   // 인벤토리도 새 런 기준으로 다시 그리도록 알림
             GoldChanged?.Invoke(Gold, Gold);   // 골드 UI가 새 값으로 갱신되도록 이벤트를 보냄
         }
     }

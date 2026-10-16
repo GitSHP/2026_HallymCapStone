@@ -28,6 +28,8 @@ namespace Promotion.Gameplay
             if (!CanCapture(target))    // 잡을 수 없는 대상(없음 또는 킹)이라면 실패
                 return false;
 
+            LoseFromInventory(target);  // 잡히는 것이 확정된 순간 인벤토리 장부부터 정리 -> 연출이 중간에 끊겨도 장부는 정확함
+
             var attackerView = _registry.GetView(attacker); // 공격자의 화면 오브젝트
             var targetView = _registry.GetView(target); // 대상의 화면 오브젝트
 
@@ -47,6 +49,8 @@ namespace Promotion.Gameplay
             if (attacker == null || !CanCapture(target))    // 공격자가 없거나 잡을 수 없는 대상이라면 실패
                 return false;
 
+            LoseFromInventory(target);  // 잡히는 것이 확정된 순간 인벤토리 장부부터 정리
+
             var attackerView = _registry.GetView(attacker);
             var targetView = _registry.GetView(target);
             var victimWorld = _grid.CoordToWorld(target.Coord); // 대상이 있던 위치(연출용) -> 데이터를 옮기기 전에 미리 저장
@@ -64,6 +68,15 @@ namespace Promotion.Gameplay
             // 공격자가 대상에게 달려들어 부딪히고 목적지에 자리 잡는 연출 -> 부딪히는 순간 대상을 제거
 
             return true;
+        }
+
+        static void LoseFromInventory(Piece target) // 잡힌 기물이 인벤토리에서 꺼낸 보유 기물이면 런 인벤토리에서 영구히 지우는 함수
+        {
+            if (target.Team != Team.Player || !target.Owned)   // 플레이어의 보유 기물이 아니라면(적, 킹·상시 폰 같은 임시 기물) 장부와 무관
+                return;
+
+            target.Owned = false;   // 먼저 보유 표시를 끔 -> 연출이 끝나 보드에서 사라지기 전에도 "보드에 나가 있는 보유 기물"로 세지 않게 함
+            RunState.Instance.RemovePiece(target.Def);   // 런 인벤토리에서 하나 지움 -> 다음 스테이지에 돌아오지 않음 (인벤토리는 이 신호로 다시 그려짐)
         }
 
         static bool CanCapture(Piece target) => target != null && !target.IsObjective;    // 잡을 수 있는 대상인지 검사하는 함수 -> 킹(목표 기물)은 잡히지 않음
