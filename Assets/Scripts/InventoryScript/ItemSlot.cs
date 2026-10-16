@@ -200,4 +200,3 @@ public class ItemSlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         // _fromSlot.CanAccept(item) -> 드래그를 시작한 아이템 슬롯에 드롭한 위치에 있는 아이템 슬롯에 저장된 아이템을 저장 가능한가를 확인
     }
 }
-// 테스트
