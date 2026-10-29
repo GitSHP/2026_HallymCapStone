@@ -18,8 +18,18 @@ MonoBehaviour:
   - item: {fileID: 11400000, guid: a99f9e4c21917cc419716d16532a5739, type: 2}
     cost: 1
     weight: 1
-    unique: 0
+    unique: 1
     blurb: "\uD038\uC988 \uAC9C\uBE57 \uC544\uD2F0\uD329\uD2B8"
+  - item: {fileID: 11400000, guid: 4862c18f414960c4cbe33f5ebcc91204, type: 2}
+    cost: 1
+    weight: 1
+    unique: 1
+    blurb: "\uC2DC\uC2E4\uB9AC\uC548 \uB514\uD39C\uC2A4 \uC544\uD2F0\uD329\uD2B8"
+  - item: {fileID: 11400000, guid: 72b4ed7d9ee5d894b8585ac6f99b0a5b, type: 2}
+    cost: 1
+    weight: 1
+    unique: 1
+    blurb: "\uC774\uD0C8\uB9AC\uC548 \uAC8C\uC784 \uC544\uD2F0\uD329\uD2B8"
   pieces:
   - {fileID: 11400000, guid: f67a518ee14ae324484f9ab773792fbc, type: 2}
   - {fileID: 11400000, guid: 1c48c9228ef6cc14d96083af0e1804a1, type: 2}
