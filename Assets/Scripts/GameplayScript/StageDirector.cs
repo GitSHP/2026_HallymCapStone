@@ -143,6 +143,8 @@ namespace Promotion.Gameplay
             _deploy.LoadDeck(BuildDeployDeck());    // 이번 스테이지에서 쓸 수 있는 기물 목록(덱)을 만들어 넘겨줌
             RefreshEnemyCount();    // 적 수를 다시 세고
             StateChanged?.Invoke(); // HUD 등에 상태가 바뀌었음을 알림
+            GameEventManager.RaiseStageStarted();   
+            // GameEventManager 스크립트에게 스테이지 준비(덱 구성 포함)가 끝났음을 알림
         }
 
         List<PieceDefinition> BuildDeployDeck()   // 이번 스테이지에서 놓을 수 있는 기물 목록(덱)을 만드는 함수
@@ -177,8 +179,10 @@ namespace Promotion.Gameplay
         {
             if (_resolving || _turn.Phase != TurnPhase.PlayerTurn || IsChessDuel)
             // 이미 적 턴을 처리 중이거나, 플레이어 턴이 아니거나, 체스 대결이라면 무시 -> 체스 대결은 수를 두면 턴이 저절로 넘어감
+            {
                 return;
-
+            }
+            GameEventManager.RaisePlayerTurnEnded(_turn.Turn);  // 플레이어가 턴을 마쳤음을 알림
             StartCoroutine(EnemyPhase());   // 적 턴 처리를 코루틴으로 시작(중간중간 연출 대기가 필요하므로)
         }
 
@@ -232,6 +236,8 @@ namespace Promotion.Gameplay
             AIThinking = false;
             _turn.SetPhase(outcome);    // 단계를 승리/패배로 바꿈 -> 이후 입력이 막힘
             StateChanged?.Invoke(); // 상점 등 결과를 기다리는 시스템에 알림
+            GameEventManager.RaiseStageEnded(outcome);  
+            // GameEventManager 에게 스테이지가 승리/패배로 끝났음을 알림
         }
 
         // ---------- 체스 대결(최종전) ----------

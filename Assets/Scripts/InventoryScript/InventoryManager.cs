@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Promotion.Core;
 using Promotion.Data;
 using Promotion.Gameplay;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -40,6 +41,19 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
     private GameObject itemActionMenuUI;    // 아이템 사용, 버리기 메뉴 UI 변수
     [SerializeField]
     private GameObject discardConfirmUI;    // 아이템을 정말 버릴지 묻는 확인 UI 변수
+        [SerializeField]
+    private GameObject rewardFullConfirmUI; // 보상 기물을 받을 자리가 없을 때 "버리고 받으시겠습니까?"를 묻는 예/아니요 창
+    [SerializeField]
+    private TextMeshProUGUI rewardFullConfirmText;  // 위 창의 안내 문구 (비워 두면 문구를 바꾸지 않음)
+    [SerializeField]
+    private GameObject rewardPendingNoticeUI;   // "예"를 누른 뒤 자리가 날 때까지 띄워 둘 안내 표시 (비워 둬도 동작함)
+
+    private readonly List<PieceDefinition> askingRewardPieces = new List<PieceDefinition>();
+    // 받을지 묻는 중인 보상 기물 -> "예"면 pendingRewardPieces로 옮기고, "아니요"면 버림
+    private readonly List<PieceDefinition> pendingRewardPieces = new List<PieceDefinition>();
+    // "예"를 눌러 임시 저장된 보상 기물 -> 빈 슬롯이 생기면 자동으로 인벤토리에 들어감
+    private bool isGrantingRewards; // 보상을 넣는 중인지 여부 -> 넣기 → InventoryChanged → Refresh → 넣기… 로 다시 들어오는 것을 막음
+    private bool isBlockingBoardForReward;  // 확인창 때문에 보드 입력을 막고 있는지 여부 -> InputGate.Push/Pop 횟수를 맞추기 위함
 
     void Start()    // 오브젝트가 생성될 때 한 번 실행 -> 슬롯을 모으고, 장부·소환과 연결한 뒤 처음 그림
     {
@@ -70,6 +84,12 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
             deploy.DeckChanged -= Refresh;
             deploy.OwnedPieceDeployed -= Refresh;
         }
+
+        if (isBlockingBoardForReward)   // ← 추가: 확인창이 열린 채로 씬이 바뀌었다면 막아 둔 보드 입력을 풀어 줌
+        {
+            InputGate.Pop();
+            isBlockingBoardForReward = false;
+        }
     }
 
     void Update()
@@ -94,6 +114,8 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
 
         RefreshPieces();
         RefreshArtifacts();
+
+        TryGrantPendingRewards();   // 슬롯 상황이 바뀌었으니, 임시 저장된 보상 기물이 들어갈 자리가 생겼는지 확인
     }
 
     private void RefreshPieces()    // 기물 슬롯을 그리는 함수
@@ -419,5 +441,173 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
         }
 
         CloseItemActionUI();   // 메뉴 바깥을 눌렀다면 메뉴를 닫음
+    }
+
+    // ---------- 보상 기물 받기 (가득 찼을 때 예/아니요) ----------
+
+    public void ReceiveRewardPiece(PieceDefinition _piece)  // 아티팩트 효과가 보상 기물을 줄 때 호출하는 입구
+    {
+        if (_piece == null)
+        {
+            return;
+        }
+
+        if (HasRoomForPiece(_piece))    // 빈 슬롯이 있다면(또는 같은 기물 슬롯이 이미 있다면) 바로 저장
+        {
+            run.AddPiece(_piece);   // 보유 기물 장부에 1개 추가 -> InventoryChanged → Refresh로 슬롯에 나타남
+            return;
+        }
+
+        askingRewardPieces.Add(_piece); // 자리가 없다면 일단 "묻는 중" 목록에 보관하고
+        ShowRewardFullConfirm();    // 버리고 받을지 묻는 창을 띄움
+    }
+
+    private void ShowRewardFullConfirm()    // "가득 찼습니다. 버리고 받으시겠습니까?" 창을 띄우는 함수
+    {
+        // if (rewardFullConfirmText != null)  // 문구 텍스트가 연결되어 있다면 받을 기물 이름을 넣어 안내
+        // {
+        //     string pieceName = askingRewardPieces[askingRewardPieces.Count - 1].itemName;
+        //     rewardFullConfirmText.text = "기물 인벤토리가 가득 찼습니다.\n"
+        //         + "기물을 버려 자리를 만들고 " + pieceName + "을(를) 받으시겠습니까?\n"
+        //         + "(아니요를 누르면 " + pieceName + "은(는) 사라집니다)";
+        // }
+
+        rewardFullConfirmUI.SetActive(true);
+        SetBoardBlockedForReward(true); // 창이 떠 있는 동안 보드 클릭을 막음
+    }
+
+    public void OnClickRewardYes()  // 확인창의 "예" 버튼에 연결하는 함수
+    {
+        Debug.Log("OnClickRewardYes 버튼 클릭 감지");
+        for (int i = 0; i < askingRewardPieces.Count; i++)  // 묻는 중이던 보상을 모두 임시 저장 목록으로 옮김
+        {
+            pendingRewardPieces.Add(askingRewardPieces[i]);
+        }
+        askingRewardPieces.Clear();
+
+        CloseRewardFullConfirm();   // 창을 닫고
+        inventoryBase.SetActive(true);  // 버릴 기물을 고를 수 있게 인벤토리 창을 열어 줌
+
+        TryGrantPendingRewards();   // 창이 떠 있던 사이에 이미 자리가 났을 수도 있으므로 한 번 확인
+        UpdateRewardPendingNotice();    // 아직 못 넣었다면 대기 안내를 띄움
+    }
+
+    public void OnClickRewardNo()   // 확인창의 "아니요" 버튼에 연결하는 함수
+    {
+        Debug.Log("OnClickRewardNo 버튼 클릭 감지");
+        for (int i = 0; i < askingRewardPieces.Count; i++)
+        {
+            Debug.Log("[InventoryManager] 보상 기물을 받지 않았습니다: " + askingRewardPieces[i].itemName);
+        }
+        askingRewardPieces.Clear(); // 묻는 중이던 보상을 저장하지 않고 버림
+
+        CloseRewardFullConfirm();   // 창만 닫음
+    }
+
+    private void CloseRewardFullConfirm()   // 확인창을 닫고 보드 입력을 다시 풀어 주는 함수
+    {
+        rewardFullConfirmUI.SetActive(false);
+        SetBoardBlockedForReward(false);
+    }
+
+    private void SetBoardBlockedForReward(bool _block)  // 보드 입력을 막거나 푸는 함수 -> Push/Pop을 꼭 한 번씩만 하도록 플래그로 관리
+    {
+        if (_block)
+        {
+            if (!isBlockingBoardForReward)  // 아직 막지 않았을 때만 막음
+            {
+                InputGate.Push();
+                isBlockingBoardForReward = true;
+            }
+        }
+        else
+        {
+            if (isBlockingBoardForReward)   // 막아 둔 상태일 때만 풂
+            {
+                InputGate.Pop();
+                isBlockingBoardForReward = false;
+            }
+        }
+    }
+
+   private void TryGrantPendingRewards()   // 임시 저장된 보상 기물을 들어갈 자리가 있는 만큼 인벤토리에 넣는 함수
+    {
+        if (isGrantingRewards)  // 이미 넣는 중이라면 (AddPiece → InventoryChanged → Refresh → 이 함수) 중복 실행하지 않음
+        {
+            return;
+        }
+        if (pendingRewardPieces.Count == 0) // 기다리는 보상이 없다면 종료
+        {
+            return;
+        }
+
+        isGrantingRewards = true;
+        while (pendingRewardPieces.Count > 0)   // 현재 보상으로 받기 위해 대기 중인 아이템이 있다면 실행
+        {
+            PieceDefinition next = pendingRewardPieces[0];  // 가장 먼저 대기 중인 아이템부터 시작
+            if (!HasRoomForPiece(next)) // 자리가 없다면 다음 기회(다음 Refresh)를 기다림
+            {
+                break;
+            }
+            pendingRewardPieces.RemoveAt(0);    // 목록에서 먼저 빼고
+            run.AddPiece(next); // 보유 기물 장부에 1개 추가
+        }
+        isGrantingRewards = false;
+
+        UpdateRewardPendingNotice();    // 다 넣었다면 대기 안내를 숨김
+    }
+
+    private void UpdateRewardPendingNotice()    // 임시 저장된 보상이 있으면 안내를 보이고, 없으면 숨기는 함수
+    {
+        if (rewardPendingNoticeUI == null)  // 안내 UI를 연결하지 않았다면 아무것도 하지 않음
+        {
+            return;
+        }
+
+        bool hasPending = pendingRewardPieces.Count > 0;
+        rewardPendingNoticeUI.SetActive(hasPending);
+    }
+
+    private bool HasRoomForPiece(PieceDefinition _piece)    // 기물을 인벤토리에 추가하려고 할 때 빈 슬롯이 있는지 확인하는 함수
+    {
+        if (run.CountOf(_piece) > 0)    // 같은 기물을 이미 보유 중이라면 그 슬롯에 1개가 추가되므로 (퀸 ×2) 새 자리가 필요 없음
+        {
+            return true;
+        }
+        return CountUsedPieceSlots() < pieceSlots.Length;   // 처음 받는 기물이라면 빈 슬롯이 하나라도 있어야 함
+    }
+
+    private int CountUsedPieceSlots()   // 지금 사용되고 있는 슬롯이 몇 슬롯이 있는지 확인하는 함수 -> RefreshPieces와 같은 규칙으로 묶어서 셈
+    {
+        int used = 0;
+
+        if (deploy != null) // 전투 씬이라면 덱 카드(킹, 상시 폰 등): (기물, 무제한 여부)가 같으면 한 칸
+        {
+            List<PieceDefinition> shown = new List<PieceDefinition>();
+            List<bool> shownUnlimited = new List<bool>();
+            for (int i = 0; i < deploy.Deck.Count; i++)
+            {
+                bool unlimited = deploy.IsUnlimited(i);
+                if (IndexOfPair(shown, shownUnlimited, deploy.Deck[i], unlimited) >= 0)
+                {
+                    continue;
+                }
+                shown.Add(deploy.Deck[i]);
+                shownUnlimited.Add(unlimited);
+                used++;
+            }
+        }
+
+        List<PieceDefinition> owned = new List<PieceDefinition>();  // 보유 기물: 종류가 같으면 한 칸
+        foreach (PieceDefinition piece in run.Deck)
+        {
+            if (piece != null && !owned.Contains(piece))
+            {
+                owned.Add(piece);
+            }
+        }
+        used += owned.Count;
+
+        return used;
     }
 }

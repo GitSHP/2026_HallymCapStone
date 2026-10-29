@@ -20,7 +20,7 @@ MonoBehaviour:
   playerColor: {r: 1, g: 1, b: 1, a: 1}
   enemyColor: {r: 1, g: 1, b: 1, a: 1}
   moveApCost: 1
-  deployApCost: 6
+  deployApCost: 1
   shopCost: 9
   shopWeight: 0.4
   isObjective: 0

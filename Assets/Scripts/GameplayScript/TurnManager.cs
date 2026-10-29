@@ -58,6 +58,8 @@ namespace Promotion.Gameplay
             TurnChanged?.Invoke(Turn);
             ApChanged?.Invoke(Ap, MaxAp);
             SetPhase(TurnPhase.PlayerTurn);
+            GameEventManager.RaisePlayerTurnStarted(Turn);  
+            // GameEventManager 스크립트에게 플레이어 턴 시작 이벤트가 발생했음을 알림
         }
 
         public void RefillAp()  // AP를 최대치로 다시 채우는 함수(DevTools F6용)

@@ -14,7 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Promotion.Data.ShopPool
   artifactSlots: 3
   pieceSlots: 3
-  artifactOffers: []
+  artifactOffers:
+  - item: {fileID: 11400000, guid: a99f9e4c21917cc419716d16532a5739, type: 2}
+    cost: 1
+    weight: 1
+    unique: 0
+    blurb: "\uD038\uC988 \uAC9C\uBE57 \uC544\uD2F0\uD329\uD2B8"
   pieces:
   - {fileID: 11400000, guid: f67a518ee14ae324484f9ab773792fbc, type: 2}
   - {fileID: 11400000, guid: 1c48c9228ef6cc14d96083af0e1804a1, type: 2}

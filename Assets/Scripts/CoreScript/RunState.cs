@@ -35,6 +35,8 @@ namespace Promotion.Core
 
         [Header("시작 덱 (킹은 덱이 아니라 스테이지가 배치한다)")]
         [SerializeField] List<PieceDefinition> startingDeck = new();   // 런을 시작할 때 가지고 시작하는 기물 목록 (인스펙터에서 설정)
+        readonly ArtifactManager _artifactEffects = new ArtifactManager();   
+        // 보유 아티팩트의 효과를 켜고 끄는 관리자
 
         readonly List<PieceDefinition> _deck = new();   // 현재 플레이어가 보유한 기물 목록 (상점에서 사면 늘어남)
         readonly List<ItemData> _artifacts = new();   // 현재 플레이어가 보유한 유물(아티팩트) 목록 -> 상점에서 구매하면 여기에 쌓임
@@ -136,15 +138,21 @@ namespace Promotion.Core
         public void AddArtifact(ItemData artifact)   // 유물을 보유 목록에 추가하는 함수 -> 상점에서 구매가 성사됐을 때 호출 (효과 적용은 아직 연결되지 않음)
         {
             if (artifact == null)
+            {
                 return;
+            }
             _artifacts.Add(artifact);
+            _artifactEffects.Activate(artifact);    // 아티팩트이기 때문에 보유 목록에 넣은 순간 효과 발동 시작
             InventoryChanged?.Invoke();
         }
 
         public bool RemoveArtifact(ItemData artifact)   // 유물을 보유 목록에서 지우는 함수 (인벤토리에서 버리기) -> 지웠으면 true
         {
-            if (artifact == null || !_artifacts.Remove(artifact))
+            if (artifact == null || !_artifacts.Remove(artifact)) 
+            {
                 return false;
+            }
+            _artifactEffects.Deactivate(artifact);  // 아티팩트 보유 목록에서 빠진 순간 효과 발동 종료
             InventoryChanged?.Invoke();
             return true;
         }
@@ -159,6 +167,7 @@ namespace Promotion.Core
         {
             _initialised = false;   // 초기화 표시를 풀어서 Initialise가 다시 동작하게 하고
             StageIndex = 0;   // 스테이지 진행을 처음으로
+            _artifactEffects.DeactivateAll();   // 새 런이므로 모든 아티팩트 효과를 발동 종료하고
             _artifacts.Clear();   // 유물을 모두 비우고
             Map = null;   // 맵을 버려 다음에 새 맵이 생성되게 하고
             MapPath.Clear();   // 지나온 경로도 비우고

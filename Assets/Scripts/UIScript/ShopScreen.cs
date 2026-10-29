@@ -154,11 +154,15 @@ namespace Promotion.UI
             {
                 _run.AddArtifact(artifact);  // 유물을 보유 목록에 추가하고
                 card.MarkSold("보유 중");  // 카드를 "보유 중" 상태로 표시
+                GameEventManager.RaiseItemPurchased(artifact);  
+                // GameEventManager 에게 유물을 샀음을 알림
             }
             else if (_pieceOf.TryGetValue(card, out var piece))  // 만약 기물 카드라면
             {
                 _run.AddPiece(piece);  // 기물을 보유 목록에 추가하고
                 card.MarkSold("추가됨");  // 카드를 "추가됨" 상태로 표시
+                GameEventManager.RaiseItemPurchased(piece);  
+                // GameEventManager 에게 기물을 샀음을 알림
             }
 
             RefreshAffordability();  // 골드가 줄었으므로 나머지 카드들이 아직 살 수 있는지 다시 표시
