@@ -15,6 +15,7 @@ namespace Promotion.Gameplay
         [Tooltip("완전한 체스 합법성 판정. 자기 킹을 체크 상태로 두는 수는 제시하지 않는다(체스 대결).")]
         public bool chessLegality;  // true면 실제 체스 규칙으로 갈 수 있는 칸을 계산(체스 대결용)
 
+        public event System.Action<Piece, Piece> CaptureBlocked;    // 잡을 수 없는 상대(면역)에게 기물을 놓았을 때 발생하는 이벤트 -> (놓은 기물, 막은 상대). '막힘!' 표시가 구독함
         public event System.Action<Piece, Coord> MoveCommitted; // 드래그로 이동이 확정됐을 때 발생하는 이벤트 -> 움직인 기물과 도착 칸을 넘겨줌
 
         BoardGrid _grid;    // 칸 좌표 변환과 칸 강조 표시용
@@ -25,14 +26,21 @@ namespace Promotion.Gameplay
         CombatResolver _combat; // 잡기를 처리하는 컴포넌트
 
         readonly List<MoveOption> _options = new(); // 지금 집은 기물이 갈 수 있는 칸 목록(잡기 여부 포함)
+        readonly List<Coord> _blocked = new();  // 행마법으로는 닿지만 상대가 면역이라 잡을 수 없는 칸 목록 (예: 폰 -> 중갑병)
 
         PieceView _dragged; // 지금 드래그 중인 기물의 화면 오브젝트(드래그 중이 아니면 null)
         Coord _dragOrigin;  // 드래그를 시작한 칸 -> 취소하면 이 칸으로 돌아감
         Vector3 _ghostTarget;   // 드래그 중인 기물이 따라가야 할 목표 위치(포인터 위치)
 
-        public bool IsDragging => _dragged != null; // 지금 드래그 중인지 여부
+        public bool IsDragging // 지금 드래그 중인지 여부
+        {
+            get { return _dragged != null; }
+        }
 
-        void Awake() => Resolve();  // 오브젝트가 생성될 때 한 번 실행 -> 필요한 컴포넌트를 찾아 둠
+        void Awake()  // 오브젝트가 생성될 때 한 번 실행 -> 필요한 컴포넌트를 찾아 둠
+        {
+            Resolve();
+        }
 
         void Resolve()  // 같은 오브젝트에 붙어 있는 컴포넌트를 찾아 변수에 저장하는 함수 -> 이미 찾은 것은 건너뜀
         {
@@ -89,6 +97,7 @@ namespace Promotion.Gameplay
             _dragOrigin = coord;
             _ghostTarget = view.transform.position;
 
+            _blocked.Clear();   // 이전에 집었던 기물의 막힌 칸 기록을 지움
             if (chessLegality)  // 체스 대결이라면 실제 체스 규칙으로 갈 수 있는 칸을 계산
             {
                 var copy = SearchBoard.CopyOf(_state);  // 계산용 복사 보드를 만들고
@@ -97,7 +106,7 @@ namespace Promotion.Gameplay
             }
             else    // 일반 스테이지라면 기물의 행마법만으로 갈 수 있는 칸을 계산
             {
-                MoveResolver.GetLegalMoves(_state, piece, _options);
+                MoveResolver.GetLegalMoves(_state, piece, _options, _blocked);
             }
             ShowOptions();  // 갈 수 있는 칸을 강조 표시
 
@@ -140,6 +149,8 @@ namespace Promotion.Gameplay
 
             if (!legal) // 갈 수 없는 칸이라면 원래 자리로 되돌림 -> 보드 밖에 놓는 것이 자연스러운 "취소"
             {
+                if (_blocked.Contains(target))  // 잡으려 했지만 상대가 면역인 칸이라면(폰 -> 중갑병) '막힘!'을 알림
+                    CaptureBlocked?.Invoke(piece, _state.GetPiece(target));
                 Fx.Drop(view.transform, _grid.CoordToWorld(_dragOrigin), transform, view.BaseScale);
                 return;
             }

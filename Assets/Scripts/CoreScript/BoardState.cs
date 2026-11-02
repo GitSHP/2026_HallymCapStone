@@ -12,10 +12,22 @@ namespace Promotion.Core
 
         readonly List<Piece> _all = new();   // 보드 위의 모든 기물 목록 -> 전체 순회(적 찾기, 킹 찾기 등)에 사용
 
-        public IReadOnlyList<Piece> AllPieces => _all;   // 외부에서 기물 목록을 읽기만 할 수 있게 공개
-        public BoardGrid Grid => _grid;   // 보드 격자에 접근하기 위한 속성
-        public int Width => _grid.width;   // 보드 가로 칸 수
-        public int Height => _grid.height;   // 보드 세로 칸 수
+        public IReadOnlyList<Piece> AllPieces   // 외부에서 기물 목록을 읽기만 할 수 있게 공개
+        {
+            get { return _all; }
+        }
+        public BoardGrid Grid   // 보드 격자에 접근하기 위한 속성
+        {
+            get { return _grid; }
+        }
+        public int Width   // 보드 가로 칸 수
+        {
+            get { return _grid.width; }
+        }
+        public int Height   // 보드 세로 칸 수
+        {
+            get { return _grid.height; }
+        }
 
         void Awake()   // 오브젝트가 생성될 때 한 번 실행
         {
@@ -23,12 +35,20 @@ namespace Promotion.Core
             _pieces = new Piece[_grid.width, _grid.height];   // 보드 크기만큼 빈 칸 배열을 만듦
         }
 
-        public bool IsInside(Coord c) => _grid.IsInside(c);   // 좌표가 보드 안쪽인지 확인하는 함수 (BoardGrid에 위임)
+        public bool IsInside(Coord c)   // 좌표가 보드 안쪽인지 확인하는 함수 (BoardGrid에 위임)
+        {
+            return _grid.IsInside(c);
+        }
 
         public Piece GetPiece(Coord c)   // 그 칸에 있는 기물을 돌려주는 함수
-            => _grid.IsInside(c) ? _pieces[c.x, c.y] : null;   // 보드 밖 좌표면 배열 범위 에러 대신 null을 돌려줌
+        {
+            return _grid.IsInside(c) ? _pieces[c.x, c.y] : null;   // 보드 밖 좌표면 배열 범위 에러 대신 null을 돌려줌
+        }
 
-        public bool IsEmpty(Coord c) => _grid.IsInside(c) && _pieces[c.x, c.y] == null;   // 보드 안쪽이면서 기물이 없는 빈 칸인지 확인하는 함수
+        public bool IsEmpty(Coord c)   // 보드 안쪽이면서 기물이 없는 빈 칸인지 확인하는 함수
+        {
+            return _grid.IsInside(c) && _pieces[c.x, c.y] == null;
+        }
 
         public Piece Place(PieceDefinition def, Team team, Coord coord)   // 새 기물을 만들어 지정한 칸에 놓는 함수 (소환·배치·적 스폰에 사용)
         {

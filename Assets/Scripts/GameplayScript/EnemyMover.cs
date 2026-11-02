@@ -37,7 +37,10 @@ namespace Promotion.Gameplay
 
         const int Unreachable = int.MaxValue;   // 킹까지 갈 수 없는 칸을 나타내는 값
 
-        void Awake() => Resolve();  // 오브젝트가 생성될 때 한 번 실행 -> 필요한 컴포넌트를 찾아 둠
+        void Awake()  // 오브젝트가 생성될 때 한 번 실행 -> 필요한 컴포넌트를 찾아 둠
+        {
+            Resolve();
+        }
 
         void Resolve()  // 같은 오브젝트에 붙어 있는 컴포넌트를 찾아 변수에 저장하는 함수 -> 이미 찾은 것은 건너뜀
         {
@@ -47,7 +50,10 @@ namespace Promotion.Gameplay
             if (_combat == null) _combat = GetComponent<CombatResolver>();
         }
 
-        Vector2Int[] Directions => moveDiagonally ? AllEight : Orthogonal;  // 설정에 따라 사용할 이동 방향 목록
+        Vector2Int[] Directions  // 설정에 따라 사용할 이동 방향 목록
+        {
+            get { return moveDiagonally ? AllEight : Orthogonal; }
+        }
 
         public bool ResolveEnemyTurn()  // 모든 적을 한 번씩 움직이는 함수 -> 적이 킹 칸에 도달했다면 true 반환
         {
@@ -111,10 +117,36 @@ namespace Promotion.Gameplay
             }
         }
 
-        int DistanceAt(Coord c) => _grid.IsInside(c) ? _dist[c.x, c.y] : Unreachable; // 칸의 킹까지 거리를 돌려주는 함수(보드 밖이면 갈 수 없음)
+        int DistanceAt(Coord c) // 칸의 킹까지 거리를 돌려주는 함수(보드 밖이면 갈 수 없음)
+        {
+            return _grid.IsInside(c) ? _dist[c.x, c.y] : Unreachable;
+        }
 
-        bool StepEnemy(Piece enemy, int order)  // 적 하나를 킹 쪽으로 한 칸 움직이는 함수 -> 킹 칸에 들어갔다면 true 반환
+        enum StepResult { Stopped, Moved, Captured, ReachedKing }  // 한 걸음의 결과
+
+        bool StepEnemy(Piece enemy, int order)  // 적 하나를 킹 쪽으로 움직이는 함수 -> 킹 칸에 들어갔다면 true 반환
         // order는 이번 턴에 몇 번째로 움직이는 적인지 -> 이동 연출에 시차를 줌
+        // -> 한 턴에 걷는 칸 수(PieceDefinition.enemyStepsPerTurn)만큼 한 칸씩 나눠 걸음 (중갑병 2칸)
+        // -> 아군을 잡았거나, 막혔거나, 킹에 닿으면 그 자리에서 멈춤
+        {
+            int steps = Mathf.Max(1, enemy.Def.enemyStepsPerTurn);
+            var from = enemy.Coord; // 연출용: 이번 걸음의 출발 칸
+            for (int k = 0; k < steps; k++)
+            {
+                var result = StepOnce(enemy, order, k, from);
+                if (result == StepResult.ReachedKing)
+                    return true;
+                if (result != StepResult.Moved) // 잡았거나 막혔다면 이번 턴은 여기서 끝
+                    return false;
+                from = enemy.Coord;
+            }
+            return false;
+        }
+
+        StepResult StepOnce(Piece enemy, int order, int stepIndex, Coord from)
+        // 적을 킹 쪽으로 한 칸 움직이는 함수
+        // stepIndex: 이번 턴의 몇 번째 걸음인지 (0 = 첫 걸음) -> 두 번째 걸음부터는 빈 칸·킹 칸으로만 감 (잡기는 첫 걸음에서만)
+        // from: 이번 걸음의 출발 칸 (연출용)
         {
             var best = Coord.Invalid;   // 이동할 가장 좋은 칸(아직 없음)
             int bestDistance = DistanceAt(enemy.Coord); // 지금 칸의 거리 -> 이보다 가까운 칸만 후보가 됨
@@ -137,28 +169,32 @@ namespace Promotion.Gameplay
                 bestDistance = distance;
             }
 
-            if (!best.IsValid)  // 만약 다가갈 칸이 없다면(갇힌 상태) -> 옆에 있는 아군 기물을 공격하거나, 없으면 그냥 대기
+            if (!best.IsValid)  // 만약 다가갈 칸이 없다면(갇힌 상태) -> 첫 걸음이라면 옆에 있는 아군 기물을 공격하거나, 없으면 그냥 대기
             {
-                AttackAdjacentPlayerPiece(enemy);
-                return false;
+                if (stepIndex == 0)
+                    AttackAdjacentPlayerPiece(enemy);
+                return StepResult.Stopped;
             }
 
             var target = _state.GetPiece(best); // 이동할 칸에 있는 기물
             if (target != null && target.Team == Team.Player)   // 만약 이동할 칸에 아군 기물이 있다면
             {
-                if (target.IsObjective) // 그 기물이 킹이라면 -> 킹 칸으로 들어가고 true 반환(플레이어 패배)
+                if (target.IsObjective) // 그 기물이 킹이라면 -> 킹 칸으로 들어가고 패배
                 {
-                    StepInto(enemy, best, order);
-                    return true;
+                    StepInto(enemy, best, order, stepIndex, from);
+                    return StepResult.ReachedKing;
                 }
+
+                if (stepIndex > 0)  // 두 번째 걸음부터는 잡지 않고 그 앞에서 멈춤 -> 한 턴에 연달아 잡는 일이 없게 함
+                    return StepResult.Stopped;
 
                 _combat.CaptureInto(enemy, target, best);
                 // 킹이 아니라면 잡고 그 칸을 차지함 -> 잡기와 이동을 하나의 동작으로 처리
-                return false;
+                return StepResult.Captured;
             }
 
-            StepInto(enemy, best, order);   // 빈 칸이라면 그냥 한 칸 이동
-            return false;
+            StepInto(enemy, best, order, stepIndex, from);   // 빈 칸이라면 그냥 한 칸 이동
+            return StepResult.Moved;
         }
 
         void AttackAdjacentPlayerPiece(Piece enemy) // 갇힌 적이 바로 옆의 아군 기물 하나를 제자리에서 공격하는 함수
@@ -179,13 +215,14 @@ namespace Promotion.Gameplay
             }
         }
 
-        void StepInto(Piece enemy, Coord destination, int order)    // 적을 목적지 칸으로 옮기는 함수
+        void StepInto(Piece enemy, Coord destination, int order, int stepIndex, Coord from)    // 적을 목적지 칸으로 옮기는 함수
+        // stepIndex·from: 두 번째 걸음이라면 첫 걸음 연출이 끝난 뒤 그 칸에서 이어서 움직이도록 함
         {
             _state.Move(enemy, destination);    // 보드 데이터에서 옮기고
 
             var view = _registry.GetView(enemy);
-            if (view != null)   // 화면 오브젝트가 있다면 미끄러지듯 이동하는 연출(order만큼 늦게 시작)
-                Fx.StepTo(view.transform, _grid.CoordToWorld(destination), order);
+            if (view != null)   // 화면 오브젝트가 있다면 미끄러지듯 이동하는 연출(order만큼 늦게 시작, 두 번째 걸음은 첫 걸음 뒤에)
+                Fx.StepTo(view.transform, _grid.CoordToWorld(from), _grid.CoordToWorld(destination), order, stepIndex);
         }
     }
 }

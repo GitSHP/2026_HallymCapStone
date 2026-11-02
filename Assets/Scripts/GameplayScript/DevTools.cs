@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using Promotion.Core;
 using Promotion.Data;
@@ -25,6 +26,8 @@ namespace Promotion.Gameplay
 
         readonly List<Piece> _scratch = new();  // 적 목록을 담을 때 재사용하는 임시 리스트
         bool _visible;  // 현재 패널이 펼쳐져 있는지 여부
+        static bool _pendingFinalVictory;   // 최종전으로 이동한 뒤 바로 승리 화면을 띄워야 하는지 여부 -> 씬을 다시 불러와도 남도록 static
+
         string _lastAction = "";    // 마지막으로 실행한 기능의 결과 메시지 -> 패널 아래에 표시
 
         void Awake()    // 오브젝트가 생성될 때 한 번 실행 -> 같은 오브젝트(Board)의 컴포넌트를 찾아 둠
@@ -36,6 +39,17 @@ namespace Promotion.Gameplay
             _registry = GetComponent<PieceRegistry>();
             _state = GetComponent<BoardState>();
             _grid = GetComponent<BoardGrid>();
+        }
+
+        IEnumerator Start()   // 최종전 승리 화면 요청을 받고 씬을 다시 불러온 경우 -> 보드가 준비된 뒤 승리를 띄움
+        {
+            if (!_pendingFinalVictory)
+                yield break;
+
+            _pendingFinalVictory = false;
+            yield return null;  // StageDirector는 자신의 Start 한 프레임 뒤에 스테이지를 적용함 -> 두 프레임 기다림
+            yield return null;
+            ShowFinalVictory();
         }
 
         void Update()   // 매 프레임 단축키 입력을 확인해서 해당 기능을 실행
@@ -55,6 +69,13 @@ namespace Promotion.Gameplay
             if (keyboard.f9Key.wasPressedThisFrame) AutoDeployKing();   // F9: 킹 자동 배치 후 시작
             if (keyboard.f10Key.wasPressedThisFrame) Restart(); // F10: 스테이지 재시작
             if (keyboard.f11Key.wasPressedThisFrame) JumpToFinal(); // F11: 최종전으로 이동
+            if (keyboard.f12Key.wasPressedThisFrame) ResetGuides(); // F12: 기물 가이드 본 기록 초기화
+
+            bool shift = keyboard.shiftKey.isPressed;   // Shift를 누른 채로 숫자 3/4 -> 결과 화면 확인용
+            if (shift && keyboard.digit3Key.wasPressedThisFrame) ShowFinalVictory();  // Shift+3: 최종전 승리 화면
+            if (shift && keyboard.digit4Key.wasPressedThisFrame) ShowGameOver();  // Shift+4: 게임오버 화면
+            if (shift && keyboard.digit5Key.wasPressedThisFrame) ToggleFire();  // Shift+5: 아군 기물 불꽃 켜기/끄기
+            if (shift && keyboard.digit6Key.wasPressedThisFrame) JumpToStage3();  // Shift+6: 3스테이지로 바로 이동 (중갑병 등장 확인용)
         }
 
         void OpenShop() // 강제로 승리시켜 상점을 여는 함수 -> 승리가 선언되면 ShopLauncher가 알아서 상점을 염
@@ -75,6 +96,49 @@ namespace Promotion.Gameplay
         {
             RunState.Instance.AddGold(amount);
             _lastAction = "+" + amount + " gold (now " + RunState.Instance.Gold + ")";
+        }
+
+        void ToggleFire()   // 보드 위 아군 기물(킹 제외) 전체에 누적 킬 불꽃을 켜고 끄는 함수 -> 불꽃 연출 확인용
+        {
+            var tracker = GetComponent<KillStreakTracker>();
+            if (tracker == null)
+            {
+                _lastAction = "KillStreakTracker not found";
+                return;
+            }
+            _lastAction = tracker.DebugToggleAll() ? "Fire ON" : "Fire OFF";
+        }
+
+        void ShowGameOver()  // 게임오버(패배, 런 종료) 화면을 바로 띄우는 함수 -> 최종전이라면 체크메이트 당한 패배로 표시
+        {
+            _director.DebugFinish(TurnPhase.Defeat, _director.IsChessDuel ? "체크메이트" : "");
+            _lastAction = "Game over shown";
+        }
+
+        void ShowFinalVictory()  // 최종전 승리(체크메이트, 런 클리어) 화면을 바로 띄우는 함수
+        // -> 지금 최종전이 아니라면 최종전으로 이동한 뒤 씬이 준비되면 띄움 (Start 참고)
+        {
+            if (_director.IsChessDuel)  // 이미 최종전이라면 바로 체크메이트 승리로 끝냄
+            {
+                _director.DebugFinish(TurnPhase.Victory, "체크메이트");
+                _lastAction = "Final victory shown";
+                return;
+            }
+
+            if (finalStage == null)
+            {
+                _lastAction = "No final stage assigned on DevTools";
+                return;
+            }
+
+            _pendingFinalVictory = true;    // 다시 불러온 씬에서 승리를 띄우도록 표시해 두고
+            JumpToFinal();  // 최종전으로 이동
+        }
+
+        void ResetGuides()  // 기물 가이드를 본 기록을 지워 다음 소환 때 다시 뜨게 하는 함수
+        {
+            Promotion.Tutorial.PieceGuideDirector.ResetSeen();  // 이번 런 기록과 영구 기록을 모두 지움
+            _lastAction = "Piece guides reset";
         }
 
         void RefillAp() // 이번 턴의 AP를 최대치로 다시 채우는 함수
@@ -173,7 +237,21 @@ namespace Promotion.Gameplay
             Restart();  // 씬을 다시 불러옴 -> StageDirector가 시작할 때 최종전을 읽어 감
         }
 
-        static void Restart() => SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);   // 현재 씬을 처음부터 다시 불러오는 함수
+        void JumpToStage3() // 런 진행을 3스테이지로 맞추고 전투를 처음부터 다시 시작하는 함수 -> 3스테이지부터 나오는 적(중갑병)과 난이도 상승 확인용
+        // -> 클리어 수(StageIndex)를 2로 올림 (보유 기물·골드는 그대로). 이미 3스테이지 이상이라면 그대로 다시 시작
+        {
+            var run = RunState.Instance;
+            if (_director.IsChessDuel)  // 최종전이라면 일반 전투로 돌아가야 하므로 스테이지 선택을 비움 -> 씬에 놓인 기본 스테이지로 시작
+                run.CurrentStage = null;
+            while (run.StageIndex < 2)
+                run.AdvanceStage();
+            Restart();
+        }
+
+        static void Restart()   // 현재 씬을 처음부터 다시 불러오는 함수
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
 
         void OnGUI()    // 화면에 IMGUI 패널을 그릴 때 발생하는 이벤트(매 프레임 여러 번 호출됨)
         {
@@ -184,7 +262,7 @@ namespace Promotion.Gameplay
             }
 
             const float width = 330f;   // 패널 너비
-            GUILayout.BeginArea(new Rect(10f, 10f, width, 370f), GUI.skin.box);   // 왼쪽 위에 상자 모양 패널 영역 시작
+            GUILayout.BeginArea(new Rect(10f, 10f, width, 445f), GUI.skin.box);   // 왼쪽 위에 상자 모양 패널 영역 시작
 
             GUILayout.Label("DEV TOOLS   (F1 to hide)");
             GUILayout.Label(Status());  // 현재 상태 요약 표시
@@ -202,6 +280,11 @@ namespace Promotion.Gameplay
             if (GUILayout.Button("F9  Auto-place king and start")) AutoDeployKing();
             if (GUILayout.Button("F10 Restart stage")) Restart();
             if (GUILayout.Button("F11 Jump to final duel")) JumpToFinal();
+            if (GUILayout.Button("F12 Reset piece guides")) ResetGuides();
+            if (GUILayout.Button("Shift+3  Show final victory")) ShowFinalVictory();
+            if (GUILayout.Button("Shift+4  Show game over")) ShowGameOver();
+            if (GUILayout.Button("Shift+5  Toggle piece fire")) ToggleFire();
+            if (GUILayout.Button("Shift+6  Jump to stage 3")) JumpToStage3();
 
             if (!string.IsNullOrEmpty(_lastAction)) // 마지막 실행 결과가 있다면 패널 아래에 표시
             {
@@ -223,6 +306,7 @@ namespace Promotion.Gameplay
                    + "\nwaves " + _director.WavesSent + "/" + _director.TotalWaves
                    + "   enemies " + _director.EnemiesOnBoard
                    + "   gold " + RunState.Instance.Gold
+                   + "\nstage " + (RunState.Instance.StageIndex + 1) + "   extra enemies +" + _director.ExtraEnemies
                    + "\nking placed: " + _director.KingPlaced
                    + (_director.IsChessDuel ? "   duel moves " + _director.DuelMovesPlayed : "");
         }

@@ -15,7 +15,10 @@ namespace Promotion.UI
     {
         public event Action Clicked;  // 버튼이 클릭됐을 때 실행할 함수들을 등록하는 이벤트 -> 상점·타이틀 화면 등에서 구독함
 
-        public RectTransform Rect => (RectTransform)transform;  // 이 버튼의 RectTransform을 바로 꺼내 쓰기 위한 속성
+        public RectTransform Rect  // 이 버튼의 RectTransform을 바로 꺼내 쓰기 위한 속성
+        {
+            get { return (RectTransform)transform; }
+        }
 
         [SerializeField] Image _face;  // 버튼 바탕 이미지 (색이 바뀌는 부분)
         [SerializeField] Image _icon;  // 버튼 안의 아이콘 이미지 (없어도 됨)
@@ -27,7 +30,10 @@ namespace Promotion.UI
         bool _hovered;  // 현재 마우스가 버튼 위에 올라와 있는지 여부
         bool _interactable = true;  // 지금 버튼을 누를 수 있는 상태인지 여부
 
-        void Awake() => RememberHome();  // 시작할 때 버튼의 원래 위치를 기억해 둠
+        void Awake()  // 시작할 때 버튼의 원래 위치를 기억해 둠
+        {
+            RememberHome();
+        }
 
         void RememberHome()  // 버튼의 원래 위치를 한 번만 기억하는 함수
         {

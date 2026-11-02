@@ -30,7 +30,10 @@ namespace Promotion.Gameplay
             _camera.orthographic = true;    // 2D 게임이므로 원근감 없는 직교 카메라로 설정
         }
 
-        void Start() => Fit();  // 첫 프레임에 화면을 한 번 맞춤
+        void Start()  // 첫 프레임에 화면을 한 번 맞춤
+        {
+            Fit();
+        }
 
         void Update()   // 매 프레임 실행
         {

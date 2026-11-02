@@ -295,8 +295,11 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
         itemFullWarningUI.SetActive(false);
     }
 
-    public bool HasArtifact(ItemData _artifact) => run.Owns(_artifact);
+    public bool HasArtifact(ItemData _artifact)
     // 같은 아티팩트를 이미 가지고 있는지 확인하는 함수 -> 장부(RunState)에서 확인
+    {
+        return run.Owns(_artifact);
+    }
 
     public void CloseArtifactDuplicateWarning()  // 중복 알림창의 닫기 버튼에 연결하는 함수
     {

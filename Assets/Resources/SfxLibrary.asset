@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4dec196910ea9a4b8751672cab890a0, type: 3}
+  m_Name: SfxLibrary
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Feel.SfxLibrary
+  masterVolume: 1
+  entries:
+  - id: 0
+    clips:
+    - {fileID: 8300000, guid: c73fb71682e03a044b51d2fcc159c697, type: 3}
+    - {fileID: 8300000, guid: 770b5b27261a1c44d9295d4b7e163ba4, type: 3}
+    - {fileID: 8300000, guid: 49864c91c01317a4b8da2afe5d1143f0, type: 3}
+    - {fileID: 8300000, guid: 405806bbf66df7646aa0f1b6afac06b2, type: 3}
+    - {fileID: 8300000, guid: 76c55eb11f25770499e6c1330502fd2f, type: 3}
+    volume: 0.6
+    pitch: {x: 0.95, y: 1.08}
+  - id: 1
+    clips:
+    - {fileID: 8300000, guid: 6f5d4a6e838543d47b72e767a4cf290a, type: 3}
+    - {fileID: 8300000, guid: 535837907868ac64faaea673dc8196ff, type: 3}
+    - {fileID: 8300000, guid: ef2d178196b64cf469c46241fdb08757, type: 3}
+    - {fileID: 8300000, guid: 8f8b0f8df41050e4d806197a9528320d, type: 3}
+    - {fileID: 8300000, guid: 5f9ec87db297a064888e386ab853c7d4, type: 3}
+    volume: 0.9
+    pitch: {x: 0.92, y: 1.02}
+  - id: 2
+    clips:
+    - {fileID: 8300000, guid: 8b16865e30f1d91409207f62e48d2d60, type: 3}
+    - {fileID: 8300000, guid: 8802947ea12f6c14fa3fd9438b79af65, type: 3}
+    - {fileID: 8300000, guid: a95d6382da999844aa34ee15f1510c3b, type: 3}
+    - {fileID: 8300000, guid: 6c58f47685c4e4d4eb21a3918354e266, type: 3}
+    - {fileID: 8300000, guid: 28660b1dc8534334ca2761969ced6472, type: 3}
+    volume: 0.5
+    pitch: {x: 1.15, y: 1.25}
+  - id: 3
+    clips:
+    - {fileID: 8300000, guid: 88acef595f5c9184ab27be32fa1a1ac5, type: 3}
+    - {fileID: 8300000, guid: d249a3966672b3243b429e6b61e1b3ff, type: 3}
+    - {fileID: 8300000, guid: 5cc60a71b92c0b643b08458ddc8138f9, type: 3}
+    - {fileID: 8300000, guid: 77035efb2df8ae14ebe1862a6cc24f61, type: 3}
+    - {fileID: 8300000, guid: 7fadc15ea044ed442977ec7146c7d56d, type: 3}
+    volume: 0.75
+    pitch: {x: 0.95, y: 1.08}
+  - id: 4
+    clips:
+    - {fileID: 8300000, guid: 9e456ff248ae4ec4f9d93345d1c771cf, type: 3}
+    - {fileID: 8300000, guid: b31e252fd97ef6f47a0d7b539aa5004c, type: 3}
+    - {fileID: 8300000, guid: b14435c5c9dbb844ea3d50b6fd257377, type: 3}
+    - {fileID: 8300000, guid: 557343685ec929443bc2a78e9373fb04, type: 3}
+    - {fileID: 8300000, guid: fa51104b8c676cb46a5e11ce66456d04, type: 3}
+    volume: 0.8
+    pitch: {x: 0.85, y: 0.95}

@@ -104,15 +104,18 @@ namespace Promotion.Core
             return Decide(scored, SoftPick(scored, profile.temperature, rng), AIDecisionKind.Considered);
         }
 
-        static AIDecision Decide(List<Scored> scored, int index, AIDecisionKind kind) => new AIDecision
+        static AIDecision Decide(List<Scored> scored, int index, AIDecisionKind kind)
         // 고른 후보(index)와 이유(kind)로 최종 결과를 만드는 함수
         {
-            move = scored[index].move,   // 둘 수
-            kind = kind,   // 고른 이유
-            rank = index,   // 점수 순위 (정렬된 상태이므로 인덱스가 곧 순위)
-            score = scored[index].score,   // 고른 수의 점수
-            bestScore = scored[0].score   // 최선의 수 점수
-        };
+            return new AIDecision
+            {
+                move = scored[index].move,   // 둘 수
+                kind = kind,   // 고른 이유
+                rank = index,   // 점수 순위 (정렬된 상태이므로 인덱스가 곧 순위)
+                score = scored[index].score,   // 고른 수의 점수
+                bestScore = scored[0].score   // 최선의 수 점수
+            };
+        }
 
         static float Search(SearchBoard board, Team toMove, Team aiSide, int depth, float alpha, float beta,
             int ply, PieceDefinition promotion)

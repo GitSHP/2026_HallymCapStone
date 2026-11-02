@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c5b411a292542443b559f4098418b53, type: 3}
+  m_Name: PieceGuideCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Tutorial.PieceGuideCatalog
+  guides:
+  - {fileID: 11400000, guid: 0da7a2e1d5a0c7448ae749be875e51c7, type: 2}
+  - {fileID: 11400000, guid: b613ceff764b4584cb114244d65e864a, type: 2}
+  - {fileID: 11400000, guid: 5fdeee87781d69a42bc0072562211463, type: 2}
+  - {fileID: 11400000, guid: cf409eb0205cb634cabb24c2236c1afa, type: 2}
+  - {fileID: 11400000, guid: 3101ea6195958e34b93676711b54b2e1, type: 2}
+  - {fileID: 11400000, guid: b25c5ead71f71634ea2d954316347073, type: 2}
+  - {fileID: 11400000, guid: bafb83676b679b84eae31eb2edea6768, type: 2}

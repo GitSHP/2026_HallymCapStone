@@ -14,7 +14,12 @@ namespace Promotion.Core
 
         public bool HasMoved { get; set; }   // 한 번이라도 움직였는지 여부 -> "첫 수에만 가능한 이동"(폰 2칸 전진 등) 판정에 사용
 
-        public bool IsObjective => Def.isObjective;   // 지켜야 하는 핵심 기물(킹)인지 여부 -> 킹은 잡히지 않고, 적이 그 칸에 들어오면 패배
+        public int Kills { get; set; }   // 이 기물이 이번 스테이지에서 잡은 적의 누적 수 -> 기준 수 이상이면 불꽃이 붙음 (KillStreakTracker가 관리)
+
+        public bool IsObjective   // 지켜야 하는 핵심 기물(킹)인지 여부 -> 킹은 잡히지 않고, 적이 그 칸에 들어오면 패배
+        {
+            get { return Def.isObjective; }
+        }
 
         public Piece(PieceDefinition def, Team team, Coord coord)   // 기물 데이터·진영·위치를 받아 새 기물을 만드는 생성자
         {

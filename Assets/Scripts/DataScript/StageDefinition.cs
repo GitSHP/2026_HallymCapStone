@@ -24,6 +24,12 @@ namespace Promotion.Data
         public int spawnOnTurn = 1; // 몇 번째 턴에 등장하는지 -> 그 턴이 끝날 때 적이 판 위로 나타남
         public PieceDefinition enemy;   // 등장할 적 기물의 종류
         public int count = 3;   // 한 번에 등장하는 적의 수
+
+        [Tooltip("이 웨이브에 함께 섞여 나오는 다른 적이다(예: 중갑병). 비우면 없다.")]
+        public PieceDefinition mixedEnemy;  // 함께 섞여 나오는 적의 종류
+        [Min(0)] public int mixedCount = 1; // 섞여 나오는 적의 수 (난이도 상승으로 늘어나지 않음)
+        [Tooltip("섞여 나오는 적이 이 스테이지부터 등장한다(1부터 셈).")]
+        [Min(1)] public int mixedFromStage = 3; // 몇 번째 스테이지부터 섞여 나오는지
     }
 
     [CreateAssetMenu(menuName = "Promotion/Stage Definition", fileName = "Stage")]
@@ -55,6 +61,22 @@ namespace Promotion.Data
         [Tooltip("적이 등장하는 줄 수로, 위쪽 가장자리부터 센다.")]
         public int spawnRows = 2;   // 판 위쪽에서부터 적이 나타날 수 있는 줄 수
 
+        [Header("난이도 상승 (런 진행에 따라)")]
+        [Tooltip("스테이지를 이만큼 클리어할 때마다 모든 웨이브의 적 수가 늘어난다. 0이면 늘지 않는다.")]
+        [Min(0)] public int extraEnemyEveryStages = 2;  // 몇 스테이지마다 적이 늘어나는지 (2 = 1·2스테이지 기본, 3·4스테이지 +1, 5·6스테이지 +2 ...)
+        [Tooltip("한 번 늘어날 때 웨이브마다 추가되는 적 수.")]
+        [Min(0)] public int extraEnemyPerStep = 1;  // 한 단계 오를 때 웨이브마다 더해지는 적 수
+        [Tooltip("웨이브마다 더해질 수 있는 적 수의 최대치.")]
+        [Min(0)] public int maxExtraEnemies = 3;    // 아무리 진행해도 웨이브당 이 수 이상은 더하지 않음 -> 소환 칸이 넘치거나 난이도가 폭주하지 않게
+
+        public int ExtraEnemiesAt(int clearedStages)    // 지금까지 클리어한 스테이지 수에 따라 웨이브마다 더할 적 수를 돌려주는 함수
+        // clearedStages: RunState.StageIndex (0이면 첫 스테이지)
+        {
+            if (extraEnemyEveryStages <= 0 || clearedStages <= 0)
+                return 0;
+            return Mathf.Min(maxExtraEnemies, clearedStages / extraEnemyEveryStages * extraEnemyPerStep);
+        }
+
         [Header("규칙")]
         [Tooltip("적이 킹을 향해 대각선으로도 이동할 수 있다.")]
         public bool enemiesMoveDiagonally = true;   // true면 적이 킹에게 다가갈 때 대각선 칸도 사용함 -> 더 빨리 접근함
@@ -71,6 +93,9 @@ namespace Promotion.Data
         public PieceDefinition[] promotionChoices = Array.Empty<PieceDefinition>(); // 프로모션 때 선택할 수 있는 기물 목록 (보통 퀸, 룩, 비숍, 나이트)
         public AIProfile aiProfile; // 최종전 상대 AI의 난이도 설정
 
-        public bool IsChessDuel => mode == StageMode.ChessDuel; // 이 스테이지가 최종전 체스 대결인지 확인하는 속성
+        public bool IsChessDuel // 이 스테이지가 최종전 체스 대결인지 확인하는 속성
+        {
+            get { return mode == StageMode.ChessDuel; }
+        }
     }
 }

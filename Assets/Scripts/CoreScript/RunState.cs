@@ -39,19 +39,30 @@ namespace Promotion.Core
         readonly List<PieceDefinition> _deck = new();   // 현재 플레이어가 보유한 기물 목록 (상점에서 사면 늘어남)
         readonly List<ItemData> _artifacts = new();   // 현재 플레이어가 보유한 유물(아티팩트) 목록 -> 상점에서 구매하면 여기에 쌓임
 
+        readonly HashSet<PieceDefinition> _seenGuides = new();   // 이번 런에서 이미 설명(기물 가이드)을 본 기물 목록 -> 새 런이 시작되면 비워져 다시 보여 줌
+
         bool _initialised;   // 초기화를 이미 했는지 여부 -> 중복 초기화로 골드·덱이 다시 채워지는 것을 방지
 
         public int Gold { get; private set; }   // 현재 보유 골드 (바꿀 때는 AddGold/TrySpend를 통해서만)
         public int StageIndex { get; private set; }   // 지금까지 몇 번째 스테이지까지 진행했는지
 
-        public IReadOnlyList<PieceDefinition> Deck => _deck;   // 보유 기물 목록을 읽기 전용으로 공개
-        public IReadOnlyList<ItemData> Artifacts => _artifacts;   // 보유 유물 목록을 읽기 전용으로 공개
+        public IReadOnlyList<PieceDefinition> Deck   // 보유 기물 목록을 읽기 전용으로 공개
+        {
+            get { return _deck; }
+        }
+        public IReadOnlyList<ItemData> Artifacts   // 보유 유물 목록을 읽기 전용으로 공개
+        {
+            get { return _artifacts; }
+        }
 
         public MapData Map { get; set; }   // 이번 런의 맵 데이터 -> 맵 씬이 처음 열릴 때 생성됨
 
         public List<int> MapPath { get; } = new();   // 지금까지 들어간 맵 노드 번호를 순서대로 담은 목록 -> 마지막 값이 현재 위치
 
-        public int CurrentMapNode => MapPath.Count > 0 ? MapPath[MapPath.Count - 1] : -1;   // 플레이어가 현재 서 있는 맵 노드 번호 (아직 출발 전이면 -1)
+        public int CurrentMapNode   // 플레이어가 현재 서 있는 맵 노드 번호 (아직 출발 전이면 -1)
+        {
+            get { return MapPath.Count > 0 ? MapPath[MapPath.Count - 1] : -1; }
+        }
 
         public StageDefinition CurrentStage { get; set; }   // 맵에서 선택해 들어온 전투 스테이지 정보 -> 전투 씬을 직접 열었을 때는 null
 
@@ -95,7 +106,10 @@ namespace Promotion.Core
             GoldChanged?.Invoke(previous, Gold);   // 골드 변경 이벤트를 보내 UI 등에 알림
         }
 
-        public bool CanAfford(int cost) => Gold >= cost;   // 그 가격을 낼 수 있는지 확인하는 함수
+        public bool CanAfford(int cost)   // 그 가격을 낼 수 있는지 확인하는 함수
+        {
+            return Gold >= cost;
+        }
 
         public bool TrySpend(int cost)   // 골드를 지불하는 함수 -> 성공하면 true
         // -> 가격 전체를 낼 수 있을 때만 지불하므로 일부만 빠져나가는 일은 없음
@@ -150,9 +164,29 @@ namespace Promotion.Core
         }
 
         public bool Owns(ItemData artifact)   // 그 유물을 이미 가지고 있는지 확인하는 함수 -> 중복 구매 방지에 사용
-            => artifact != null && _artifacts.Contains(artifact);
+        {
+            return artifact != null && _artifacts.Contains(artifact);
+        }
 
-        public void AdvanceStage() => StageIndex++;   // 스테이지를 하나 클리어했을 때 진행 번호를 1 올리는 함수
+        public bool MarkGuideSeen(PieceDefinition piece)   // 그 기물의 가이드를 본 것으로 기록하는 함수 -> 이번 런에서 처음이면 true
+        {
+            return piece != null && _seenGuides.Add(piece);   // HashSet.Add는 이미 들어 있으면 false를 돌려줌
+        }
+
+        public bool HasSeenGuide(PieceDefinition piece)   // 이번 런에서 그 기물의 가이드를 이미 봤는지 확인하는 함수
+        {
+            return piece != null && _seenGuides.Contains(piece);
+        }
+
+        public void ClearSeenGuides()   // 가이드를 본 기록을 모두 지우는 함수 (개발자 도구 테스트용)
+        {
+            _seenGuides.Clear();
+        }
+
+        public void AdvanceStage()   // 스테이지를 하나 클리어했을 때 진행 번호를 1 올리는 함수
+        {
+            StageIndex++;
+        }
 
         public void ResetRun()   // 현재 런을 버리고 새 런을 시작하는 함수
         // -> 씬을 다시 불러오지 않아도 모든 진행 정보가 깨끗하게 초기화됨
@@ -163,6 +197,7 @@ namespace Promotion.Core
             Map = null;   // 맵을 버려 다음에 새 맵이 생성되게 하고
             MapPath.Clear();   // 지나온 경로도 비우고
             CurrentStage = null;   // 선택된 스테이지도 비운 뒤
+            _seenGuides.Clear();   // 기물 가이드를 본 기록도 지워 새 런에서 다시 보여 주게 하고
             Initialise();   // 시작 골드·덱을 다시 채움
             InventoryChanged?.Invoke();   // 인벤토리도 새 런 기준으로 다시 그리도록 알림
             GoldChanged?.Invoke(Gold, Gold);   // 골드 UI가 새 값으로 갱신되도록 이벤트를 보냄

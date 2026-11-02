@@ -218,9 +218,15 @@ namespace Promotion.UI
 
         const int Samples = 2;  // 픽셀 하나를 가로·세로 몇 번씩 나눠 검사할지 -> 2x2 = 4번 검사해서 테두리를 부드럽게(안티에일리어싱) 만듦
 
-        static Vector2 V(float x, float y) => new Vector2(x, y);  // 좌표를 짧게 쓰기 위한 도우미 함수
+        static Vector2 V(float x, float y)  // 좌표를 짧게 쓰기 위한 도우미 함수
+        {
+            return new Vector2(x, y);
+        }
 
-        static void Circle(float[] buffer, float cx, float cy, float r) => Circle(buffer, false, cx, cy, r);  // 원을 칠하는 함수 (지우기 없음)
+        static void Circle(float[] buffer, float cx, float cy, float r)  // 원을 칠하는 함수 (지우기 없음)
+        {
+            Circle(buffer, false, cx, cy, r);
+        }
 
         static void Circle(float[] buffer, bool erase, float cx, float cy, float r)  // 원을 칠하거나(erase=false) 지우는(erase=true) 함수
         {
@@ -233,7 +239,9 @@ namespace Promotion.UI
         }
 
         static void Ring(float[] buffer, float cx, float cy, float outer, float inner)  // 고리(도넛) 모양을 칠하는 함수
-            => Ring(buffer, false, cx, cy, outer, inner);
+        {
+            Ring(buffer, false, cx, cy, outer, inner);
+        }
 
         static void Ring(float[] buffer, bool erase, float cx, float cy, float outer, float inner)  // 고리 모양을 칠하거나 지우는 함수
         {
@@ -247,15 +255,24 @@ namespace Promotion.UI
         }
 
         static void Rect(float[] buffer, float x0, float y0, float x1, float y1)  // 사각형을 칠하는 함수
-            => Rect(buffer, false, x0, y0, x1, y1);
+        {
+            Rect(buffer, false, x0, y0, x1, y1);
+        }
 
         static void Rect(float[] buffer, bool erase, float x0, float y0, float x1, float y1)  // 사각형을 칠하거나 지우는 함수 (왼쪽 아래 x0,y0 ~ 오른쪽 위 x1,y1)
-            => Paint(buffer, erase, p => p.x >= x0 && p.x <= x1 && p.y >= y0 && p.y <= y1);
+        {
+            Paint(buffer, erase, p => p.x >= x0 && p.x <= x1 && p.y >= y0 && p.y <= y1);
+        }
 
-        static void Poly(float[] buffer, params Vector2[] points) => Poly(buffer, false, points);  // 다각형을 칠하는 함수
+        static void Poly(float[] buffer, params Vector2[] points)  // 다각형을 칠하는 함수
+        {
+            Poly(buffer, false, points);
+        }
 
         static void Poly(float[] buffer, bool erase, params Vector2[] points)  // 다각형을 칠하거나 지우는 함수
-            => Paint(buffer, erase, p => Inside(points, p));
+        {
+            Paint(buffer, erase, p => Inside(points, p));
+        }
 
         static bool Inside(Vector2[] points, Vector2 p)  // 점 p가 다각형 안에 있는지 검사하는 함수
         // -> 점에서 오른쪽으로 선을 그었을 때 다각형 변과 홀수 번 만나면 안쪽, 짝수 번이면 바깥쪽

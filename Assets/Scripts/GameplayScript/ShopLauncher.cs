@@ -30,11 +30,20 @@ namespace Promotion.Gameplay
         TurnManager _turn;  // 턴 단계가 바뀌는 것을 구독할 컴포넌트
         bool _opened;   // 이미 상점을 열었는지 여부 -> 한 스테이지에서 두 번 열리지 않게 함
 
-        void Awake() => _turn = GetComponent<TurnManager>();    // 오브젝트가 생성될 때 한 번 실행 -> TurnManager를 찾아 둠
+        void Awake()    // 오브젝트가 생성될 때 한 번 실행 -> TurnManager를 찾아 둠
+        {
+            _turn = GetComponent<TurnManager>();
+        }
 
-        void OnEnable() => _turn.PhaseChanged += OnPhaseChanged;    // 컴포넌트가 켜질 때 턴 단계 변경 이벤트를 구독
+        void OnEnable()    // 컴포넌트가 켜질 때 턴 단계 변경 이벤트를 구독
+        {
+            _turn.PhaseChanged += OnPhaseChanged;
+        }
 
-        void OnDisable() => _turn.PhaseChanged -= OnPhaseChanged;   // 컴포넌트가 꺼질 때 구독 해제
+        void OnDisable()   // 컴포넌트가 꺼질 때 구독 해제
+        {
+            _turn.PhaseChanged -= OnPhaseChanged;
+        }
 
         void OnPhaseChanged(TurnPhase phase)    // 턴 단계가 바뀔 때 발생하는 이벤트 -> 승리라면 상점을 열 준비를 함
         {

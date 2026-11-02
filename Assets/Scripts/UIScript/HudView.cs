@@ -1,4 +1,5 @@
 using Promotion.Core;
+using Promotion.Feel;
 using Promotion.Gameplay;
 using TMPro;
 using UnityEngine;
@@ -41,6 +42,12 @@ namespace Promotion.UI
         [SerializeField] RectTransform _promotionPanel;  // 폰 승격 시 기물을 고르는 선택창
         [SerializeField] RectTransform _promotionRow;  // 승격 선택 버튼들이 들어가는 줄
         [SerializeField] Button _choiceButtonPrefab;  // 승격 선택 버튼 프리팹 -> 선택지 수만큼 복제
+
+        [Header("최종전 AP 잠김 연출")]
+        [Tooltip("최종전 대화가 끝나기 전까지 AP 패널에 보여 줄 평소 AP 값이다. 잠기는 순간 '사용 불가'로 바뀐다.")]
+        [SerializeField] int _duelIntroAp = 5;  // 잠기기 전 AP 패널에 보여 줄 평소 AP (일반 스테이지의 턴당 AP)
+
+        bool _holdApUnlocked;  // true면 최종전이어도 AP 패널을 아직 평소 모습으로 그림 -> 대화가 끝나고 잠김 연출이 끝나면 false
 
         void Start()  // 시작할 때 필요한 오브젝트를 찾고, 버튼과 이벤트를 연결하는 함수
         {
@@ -99,10 +106,25 @@ namespace Promotion.UI
         }
 
         // 각 이벤트는 넘겨받는 값이 달라서 함수 모양을 맞춰 주기만 하고, 실제로는 모두 Refresh로 HUD 전체를 다시 그림
-        void OnPhaseChanged(TurnPhase phase) => Refresh();  // 단계가 바뀌었을 때
-        void OnApChanged(int current, int max) => Refresh();  // AP가 바뀌었을 때
-        void OnTurnChanged(int turn) => Refresh();  // 턴이 바뀌었을 때
-        void OnCheckDeclared(Team side) => Refresh();  // 체크가 선언됐을 때
+        void OnPhaseChanged(TurnPhase phase)  // 단계가 바뀌었을 때
+        {
+            Refresh();
+        }
+
+        void OnApChanged(int current, int max)  // AP가 바뀌었을 때
+        {
+            Refresh();
+        }
+
+        void OnTurnChanged(int turn)  // 턴이 바뀌었을 때
+        {
+            Refresh();
+        }
+
+        void OnCheckDeclared(Team side)  // 체크가 선언됐을 때
+        {
+            Refresh();
+        }
 
         static void EnsureEventSystem()  // UI 클릭을 받을 EventSystem을 준비하는 함수
         {
@@ -227,16 +249,52 @@ namespace Promotion.UI
 
         }
 
+        void DrawApUnlocked()  // AP 패널을 평소(일반 스테이지) 모습으로 그리는 함수
+        {
+            _apPanel.color = Panel;
+            _ap.fontSize = 34f;
+            _ap.text = "AP  " + _duelIntroAp + " / " + _duelIntroAp;
+        }
+
+        void DrawApLocked() // AP 패널을 최종전 잠김 모습(붉은 패널 + "AP 사용 불가 / 봉인됨")으로 그리는 함수
+        {
+            _apPanel.color = ApLockedPanel;
+            _ap.fontSize = 24f;
+            _ap.text = "AP 사용 불가\n<size=80%>봉인됨</size>";
+        }
+
+        public void HoldDuelApUnlocked()  // 최종전 대화가 시작될 때 AP 패널을 잠기기 전 모습으로 되돌려 두는 함수 (DuelStoryDirector가 호출)
+        // -> 대화가 끝나고 체스판이 드러난 뒤 PlayDuelApLock으로 '잠기는 순간'을 보여 주기 위함
+        {
+            _holdApUnlocked = true;
+            if (_turn != null && _director.IsChessDuel)
+                DrawApUnlocked();
+        }
+
+        public void PlayDuelApLock()  // AP 패널이 '철컥' 흔들리며 붉게 잠기는 연출을 재생하는 함수 (DuelStoryDirector가 대화를 마친 뒤 호출)
+        {
+            if (!_holdApUnlocked)   // 이미 잠긴 모습이라면 할 일이 없음
+                return;
+
+            DrawApUnlocked();
+            Fx.ApLock(_apPanel.rectTransform, _apPanel, ApLockedPanel, () =>    // 잠기는 순간(패널이 흔들리기 시작할 때)
+            {
+                _holdApUnlocked = false;
+                DrawApLocked(); // 글자를 "AP 사용 불가"로 바꾸고
+                Sfx.Play(SfxId.Lock);   // 쇠가 맞물리는 소리
+            });
+        }
+
         void RefreshDuel()  // 최종전(체스 결투)용 HUD를 그리는 함수
         // -> 한 턴에 한 수만 두므로 AP는 사용 불가로 표시하고, 상태 줄에는 수 진행·체크 여부·AI 상태를 보여 줌
         {
             var phase = _turn.Phase;  // 현재 단계
             bool over = _turn.IsOver;  // 결투가 끝났는지 여부
 
-            // AP 패널을 붉게 바꾸고 "AP 사용 불가"로 표시
-            _apPanel.color = ApLockedPanel;
-            _ap.fontSize = 24f;
-            _ap.text = "AP 사용 불가\n<size=80%>체스 결투 - 한 턴에 한 수</size>";
+            if (_holdApUnlocked)  // 잠김 연출 전이라면 -> AP 패널을 평소 모습으로 둠 (대화가 끝나면 PlayDuelApLock이 잠금)
+                DrawApUnlocked();
+            else  // AP 패널을 붉게 바꾸고 "AP 사용 불가"로 표시
+                DrawApLocked();
 
             _status.color = _director.InCheck == Team.Player && !over ? CheckInk : Ink;  // 내 킹이 체크 상태라면 상태 줄을 빨간 글자로
             if (phase == TurnPhase.Deploy)  // 만약 배치 단계라면 -> 킹을 놓았는지에 따라 안내 문구 표시

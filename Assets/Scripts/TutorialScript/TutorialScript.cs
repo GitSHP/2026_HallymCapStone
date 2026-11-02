@@ -10,7 +10,24 @@ namespace Promotion.Tutorial
         KingPlaced,    // 플레이어가 킹을 보드에 놓을 때까지 기다림
         StageStarted,  // 플레이어가 시작 버튼을 눌러 1턴이 시작될 때까지 기다림
         PieceSummoned, // 킹 외의 기물이 하나 이상 소환될 때까지 기다림
-        Victory        // 스테이지에서 승리할 때까지 기다림
+        Victory,       // 스테이지에서 승리할 때까지 기다림
+        ShopPurchased, // 상점에서 상품을 하나 이상 살 때까지 기다림 (상점 단계 전용)
+        ShopClosed,    // 상점의 확인 버튼을 눌러 상점을 닫을 때까지 기다림 (상점 단계 전용)
+        MapNodeChosen  // 지도에서 갈 곳(노드)을 고를 때까지 기다림 (지도 단계 전용)
+        // 주의: 값은 에셋에 숫자로 저장되므로 중간에 끼워 넣지 말고 항상 맨 뒤에 추가할 것
+    }
+
+    public enum TutorialFocus // 이 단계에서 말풍선이 가리키며 강조할 화면 요소
+    {
+        None,          // 강조 없음 -> 말풍선을 화면 가운데에 띄움
+        ShopWallet,    // 상점의 보유 골드 표시
+        ShopArtifacts, // 상점의 유물 줄
+        ShopPieces,    // 상점의 기물 줄
+        ShopConfirm,   // 상점의 확인(다음) 버튼
+        MapStatus,     // 지도 위쪽의 층·골드 표시
+        MapChoices,    // 지도에서 지금 갈 수 있는 노드들
+        MapBoss        // 지도 맨 위의 보스 노드
+        // 주의: 값은 에셋에 숫자로 저장되므로 항상 맨 뒤에 추가할 것
     }
 
     public enum TutorialAction // 단계가 시작될 때 튜토리얼이 보드에 가하는 동작
@@ -41,6 +58,9 @@ namespace Promotion.Tutorial
         [Tooltip("스토리 장면용으로, 이 대사가 떠 있는 동안 보드를 불투명한 배경 뒤에 숨긴다. " +
                  "이 옵션이 꺼진 첫 대사에서 가림막이 걷힌다. 대화 줄에서만 쓴다.")]
         public bool coverBoard; // 이 대사 동안 보드를 가림막으로 가릴지 여부
+
+        [Tooltip("상점·지도 단계에서 말풍선이 가리킬 화면 요소다. 전투 단계에서는 쓰지 않는다.")]
+        public TutorialFocus focus = TutorialFocus.None; // 이 단계에서 강조할 화면 요소 (상점·지도 단계 전용)
     }
 
     [CreateAssetMenu(menuName = "Promotion/Tutorial Script", fileName = "TutorialScript")]
@@ -70,5 +90,16 @@ namespace Promotion.Tutorial
         [Min(1f)] public float charactersPerSecond = 40f; // 대사 타이핑 효과의 속도 (초당 글자 수)
 
         public TutorialStep[] steps = Array.Empty<TutorialStep>(); // 튜토리얼 단계 목록 -> 위에서부터 순서대로 진행됨
+
+        [Header("상점 단계 (전투 승리 뒤)")]
+        [Tooltip("튜토리얼 상점에 진열할 상품 목록이다. 비워 두면 상점 단계를 건너뛰고 바로 지도로 간다.")]
+        public ShopPool shopPool; // 튜토리얼 상점 상품 목록 -> 고정 진열(fixedOrder)로 만들면 매번 같은 상품이 나옴
+        [Tooltip("전투 승리 보상으로 상점을 열기 직전에 주는 골드다.")]
+        [Min(0)] public int shopReward = 6; // 상점을 열기 전에 지급하는 보상 골드
+        public TutorialStep[] shopSteps = Array.Empty<TutorialStep>(); // 상점이 열린 뒤 진행할 단계 목록
+
+        [Header("지도 단계 (상점 뒤, 지도 씬)")]
+        [Tooltip("지도 씬에서 진행할 단계다. 비워 두면 지도에서는 아무 안내도 하지 않는다.")]
+        public TutorialStep[] mapSteps = Array.Empty<TutorialStep>(); // 지도 씬에서 진행할 단계 목록
     }
 }

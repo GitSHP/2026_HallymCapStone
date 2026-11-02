@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e41d9406b4d991b4f8bb6cbf37388e1f, type: 3}
   m_Name: Stage_01
   m_EditorClassIdentifier: Assembly-CSharp::Promotion.Data.StageDefinition
+  mode: 0
+  boardArt: {fileID: 0}
   apPerTurn: 5
   deployRows: 3
   kingDefinition: {fileID: 11400000, guid: 4673ccbc3890e1143b1bce35a79076e4, type: 2}
@@ -20,11 +22,29 @@ MonoBehaviour:
   - spawnOnTurn: 2
     enemy: {fileID: 11400000, guid: 9a27053adb279ae4ca9ef6b909d2b154, type: 2}
     count: 3
+    mixedEnemy: {fileID: 11400000, guid: 49515688913d10542b4e1d0e82fa22b0, type: 2}
+    mixedCount: 1
+    mixedFromStage: 3
   - spawnOnTurn: 4
     enemy: {fileID: 11400000, guid: 9a27053adb279ae4ca9ef6b909d2b154, type: 2}
     count: 4
+    mixedEnemy: {fileID: 11400000, guid: 49515688913d10542b4e1d0e82fa22b0, type: 2}
+    mixedCount: 1
+    mixedFromStage: 3
   - spawnOnTurn: 6
     enemy: {fileID: 11400000, guid: 9a27053adb279ae4ca9ef6b909d2b154, type: 2}
     count: 5
+    mixedEnemy: {fileID: 11400000, guid: 49515688913d10542b4e1d0e82fa22b0, type: 2}
+    mixedCount: 1
+    mixedFromStage: 3
   spawnRows: 2
+  extraEnemyEveryStages: 2
+  extraEnemyPerStep: 1
+  maxExtraEnemies: 3
   enemiesMoveDiagonally: 1
+  enemyLayout: []
+  freePawn: {fileID: 0}
+  maxFreePawns: 8
+  moveLimit: 100
+  promotionChoices: []
+  aiProfile: {fileID: 0}

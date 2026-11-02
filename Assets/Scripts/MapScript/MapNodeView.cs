@@ -18,6 +18,9 @@ namespace Promotion.Map
         [Tooltip("아직 도달하지 않은 노드를 흐리게 한다.")]
         public CanvasGroup group; // 노드 전체의 투명도를 한 번에 조절하기 위한 그룹 -> 아직 못 가는 노드를 흐리게 표시
 
-        public RectTransform Rect => (RectTransform)transform; // 이 노드의 RectTransform (UI 위치·크기 조절용)
+        public RectTransform Rect // 이 노드의 RectTransform (UI 위치·크기 조절용)
+        {
+            get { return (RectTransform)transform; }
+        }
     }
 }

@@ -16,7 +16,10 @@ namespace Promotion.Gameplay
         public int Ap { get; private set; } // 현재 남은 AP
         public int MaxAp { get; private set; } = 5; // 한 턴에 받는 최대 AP
 
-        public bool IsOver => Phase == TurnPhase.Victory || Phase == TurnPhase.Defeat;  // 스테이지가 끝났는지(승리 또는 패배) 여부
+        public bool IsOver  // 스테이지가 끝났는지(승리 또는 패배) 여부
+        {
+            get { return Phase == TurnPhase.Victory || Phase == TurnPhase.Defeat; }
+        }
 
         public bool ApDisabled { get; private set; }    // true면 AP 비용을 무시하고 "한 턴에 한 수"로만 계산(체스 대결용)
 
@@ -67,7 +70,9 @@ namespace Promotion.Gameplay
         }
 
         public bool CanAfford(int cost) // 지금 cost만큼의 행동을 할 수 있는지 검사하는 함수
-            => Phase == TurnPhase.PlayerTurn && (ApDisabled ? Ap > 0 : cost <= Ap);
+        {
+            return Phase == TurnPhase.PlayerTurn && (ApDisabled ? Ap > 0 : cost <= Ap);
+        }
         // 플레이어 턴이어야 하고, 체스 대결이면 남은 수가 있는지, 아니면 AP가 충분한지 확인
 
         public bool TrySpend(int cost)  // AP를 소모해 보는 함수 -> 소모했으면 true, 부족하면 false

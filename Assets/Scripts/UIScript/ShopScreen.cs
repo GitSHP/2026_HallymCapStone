@@ -24,6 +24,7 @@ namespace Promotion.UI
         [SerializeField] RectTransform _walletChip;  // 보유 골드 표시 영역 -> 골드가 바뀌거나 부족할 때 흔드는 연출 대상
         [SerializeField] TextMeshProUGUI _walletLabel;  // 보유 골드 숫자를 표시하는 텍스트 UI
         [SerializeField] UiButton _confirmButton;  // 상점을 닫고 다음으로 넘어가는 확인 버튼
+        [SerializeField] UiButton _rerollButton;  // 골드를 내고 진열 상품을 다시 뽑는 새로고침 버튼
         [SerializeField] GameObject _artifactEmptyHint;  // 진열할 유물이 하나도 없을 때 보여 주는 안내 문구
         [SerializeField] ShopCard _cardPrefab;  // 상품 카드 한 장의 프리팹 -> 상품 수만큼 복제해서 사용
 
@@ -42,8 +43,15 @@ namespace Promotion.UI
         readonly List<PieceDefinition> _pieceOffer = new();  // 이번에 뽑힌 기물 상품 목록
 
         bool _closing;  // 닫히는 연출이 진행 중인지 여부 -> 닫히는 동안 구매·중복 닫기를 막음
+        ShopPool _pool;  // 이번에 연 상점의 상품 후보 목록 -> 새로고침할 때 다시 뽑는 데 사용
+        int _rerollCount;  // 이번 상점에서 새로고침한 횟수 -> 횟수가 늘수록 새로고침 비용이 오름
 
-        void Awake() => _confirmButton.Clicked += Close;  // 시작할 때 확인 버튼을 누르면 Close 함수가 실행되도록 연결
+        void Awake()  // 시작할 때 확인 버튼을 누르면 Close 함수가 실행되도록 연결
+        {
+            _confirmButton.Clicked += Close;
+            if (_rerollButton != null)
+                _rerollButton.Clicked += Reroll;  // 새로고침 버튼을 누르면 Reroll 함수가 실행되도록 연결
+        }
 
         public void Open(ShopPool pool, string headline, Action onConfirm)  // 상점 화면을 여는 함수
         // pool: 상품 후보 목록 / headline: 안내 문구 / onConfirm: 상점이 닫힌 뒤 실행할 함수
@@ -56,13 +64,17 @@ namespace Promotion.UI
             _onConfirm = onConfirm;
             _closing = false;
             _run = RunState.Instance;  // 현재 판의 진행 정보를 가져옴
+            _pool = pool;
+            _rerollCount = 0;  // 새로고침 비용은 상점을 열 때마다 처음 비용으로 돌아감
             gameObject.SetActive(true);  // 상점 화면을 켬
 
             InputGate.Push();  // 상점이 떠 있는 동안 뒤쪽 체스판 조작(드래그 등)을 막음
 
+            _confirmButton.SetInteractable(true);  // 확인 버튼은 항상 누를 수 있는 상태로 시작 -> 이전 튜토리얼이 막아 둔 상태가 남지 않게
             _subtitle.text = headline;  // 안내 문구 표시
             _walletLabel.text = _run.Gold.ToString();  // 현재 보유 골드 표시
             BuildOffers(pool);  // 상품을 뽑아 카드로 진열
+            RefreshRerollButton();  // 새로고침 버튼의 비용 표시
 
             _run.GoldChanged += OnGoldChanged;  // 골드가 바뀔 때마다 골드 표시를 갱신하도록 구독
             RefreshAffordability();  // 카드마다 살 수 있는지 표시
@@ -164,6 +176,40 @@ namespace Promotion.UI
             RefreshAffordability();  // 골드가 줄었으므로 나머지 카드들이 아직 살 수 있는지 다시 표시
         }
 
+        void Reroll()  // 새로고침 버튼을 눌렀을 때 골드를 내고 진열 상품을 전부 다시 뽑는 함수
+        // -> 이미 산 카드도 포함해 두 줄 모두 새로 뽑음. 비용은 같은 상점에서 누를 때마다 rerollCostStep만큼 오름
+        {
+            if (_closing || _pool == null)  // 만약 상점이 닫히는 중이거나 상품 목록이 없다면 -> 무시
+                return;
+
+            int cost = _pool.RerollCostAt(_rerollCount);
+            if (!_run.TrySpend(cost))  // 골드 차감을 시도하고 -> 만약 골드가 부족해서 실패했다면
+            {
+                UiFx.Deny(_rerollButton.Rect);  // 버튼과 골드 표시를 흔들어 골드가 부족함을 알림
+                UiFx.Deny(_walletChip);
+                return;
+            }
+
+            _rerollCount++;
+            BuildOffers(_pool);  // 이전 카드를 지우고 새로 뽑아 진열
+            RefreshAffordability();
+            RefreshRerollButton();
+            for (int i = 0; i < _cards.Count; i++)
+                _cards[i].PlayIn(i);  // 새 카드들이 순서대로 올라오며 등장
+        }
+
+        void RefreshRerollButton()  // 새로고침 버튼의 비용 글자를 갱신하는 함수 -> 고정 진열 상점(튜토리얼)에서는 버튼을 숨김
+        // -> 고정 진열은 다시 뽑아도 같은 상품이 나오므로 새로고침이 의미가 없음
+        {
+            if (_rerollButton == null)
+                return;
+
+            bool available = _pool != null && !_pool.fixedOrder;
+            _rerollButton.gameObject.SetActive(available);
+            if (available)
+                _rerollButton.SetCaption("새로고침 " + _pool.RerollCostAt(_rerollCount) + "G");
+        }
+
         void OnGoldChanged(int previous, int current)  // 골드가 바뀌었을 때 실행되는 함수 (RunState.GoldChanged 이벤트)
         {
             UiFx.CountTo(_walletLabel, previous, current);  // 골드 숫자가 이전 값에서 새 값으로 차르륵 바뀌는 연출
@@ -185,6 +231,45 @@ namespace Promotion.UI
                 _cards[i].PlayIn(i);  // 카드들이 순서대로 한 장씩 올라오며 등장
 
             _confirmButton.PlayIn(_cards.Count);  // 확인 버튼은 마지막 카드 다음 순서로 등장
+            if (_rerollButton != null && _rerollButton.gameObject.activeSelf)
+                _rerollButton.PlayIn(_cards.Count);  // 새로고침 버튼도 확인 버튼과 함께 등장
+        }
+
+        // ---------- 튜토리얼이 상점의 각 부분을 가리킬 때 쓰는 함수 ----------
+        // -> 튜토리얼은 이 함수들로 위치만 받아 가고, 상점은 튜토리얼이 있는지조차 모름
+
+        public RectTransform WalletRect  // 보유 골드 표시 영역
+        {
+            get { return _walletChip; }
+        }
+
+        public RectTransform ConfirmRect  // 상점을 닫는 확인 버튼 영역
+        {
+            get { return _confirmButton.Rect; }
+        }
+
+        public void GetArtifactRow(List<RectTransform> results)  // 유물 줄의 카드들을 results에 담아 주는 함수
+        // -> 진열된 유물이 하나도 없으면 그 자리의 "유물 없음" 안내 문구를 대신 담음
+        {
+            results.Clear();
+            foreach (var card in _artifactOf.Keys)  // 유물 카드를 모두 담고
+                results.Add(card.Rect);
+
+            if (results.Count == 0 && _artifactEmptyHint != null)  // 만약 유물 카드가 없다면
+                results.Add((RectTransform)_artifactEmptyHint.transform);  // 안내 문구 자리를 대신 가리킴
+        }
+
+        public void GetPieceRow(List<RectTransform> results)  // 기물 줄의 카드들을 results에 담아 주는 함수
+        {
+            results.Clear();
+            foreach (var card in _pieceOf.Keys)
+                results.Add(card.Rect);
+        }
+
+        public void SetConfirmInteractable(bool interactable)  // 확인 버튼을 누를 수 있게/없게 하는 함수
+        // -> 튜토리얼이 "구매해 보세요" 단계에서 상점이 먼저 닫혀 버리지 않도록 잠깐 막는 데 사용
+        {
+            _confirmButton.SetInteractable(interactable);
         }
 
         void Close()  // 상점을 닫는 함수 (확인 버튼을 눌렀을 때 실행)
@@ -220,7 +305,10 @@ namespace Promotion.UI
             ClearCards();  // 진열된 카드 모두 삭제
         }
 
-        void OnDestroy() => Release();  // 상점 오브젝트가 파괴될 때(씬 이동 등)도 정리 함수를 실행 -> 입력이 막힌 채 남지 않도록
+        void OnDestroy()  // 상점 오브젝트가 파괴될 때(씬 이동 등)도 정리 함수를 실행 -> 입력이 막힌 채 남지 않도록
+        {
+            Release();
+        }
 
         static void EnsureEventSystem()  // 씬에 EventSystem이 없으면 새로 만드는 함수 -> UI 버튼 클릭을 받으려면 꼭 필요함
         {

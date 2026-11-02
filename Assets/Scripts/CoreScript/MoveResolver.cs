@@ -20,11 +20,19 @@ namespace Promotion.Core
     // -> 상태를 저장하지 않고, 결과 리스트도 호출한 쪽이 넘겨주므로 호출할 때마다 메모리를 새로 쓰지 않음
     {
         public static void GetLegalMoves(IBoardView state, Piece piece, List<MoveOption> results)
+        // 기물의 행마법이 닿는 모든 칸을 results에 담는 함수 (잡기가 막힌 칸은 따로 알 필요가 없을 때)
+        {
+            GetLegalMoves(state, piece, results, null);
+        }
+
+        public static void GetLegalMoves(IBoardView state, Piece piece, List<MoveOption> results, List<Coord> blocked)
         // 기물의 행마법이 닿는 모든 칸을 results에 담는 함수
+        // blocked: 행마법으로는 닿지만 상대가 이 기물에 면역이라 잡을 수 없는 칸을 담을 목록 (예: 폰 -> 중갑병). 필요 없으면 null
         // -> 일반 스테이지에서는 이 결과가 곧 이동 가능 칸이고,
         //    최종전 체스 대결에서는 ChessRules가 한 번 더 걸러 자기 킹이 공격받는 수를 제외함
         {
             results.Clear();   // 이전 결과를 비움
+            blocked?.Clear();
             if (piece == null || piece.Def.patterns == null)   // 만약 기물이 없거나 행마법이 하나도 없다면 갈 곳이 없음
                 return;
 
@@ -67,7 +75,17 @@ namespace Promotion.Core
                         // 여기까지 왔다면 무언가에 막힌 것 -> 잡을 수 있으면 잡고, 어느 쪽이든 여기서 멈춤
                         if (occupant.Team != piece.Team && pattern.canCapture && !occupant.IsObjective)
                         // 만약 상대 기물이고 + 잡기 가능한 패턴이고 + 그 기물이 킹이 아니라면 -> 잡기 후보로 추가 (킹은 잡히지 않는 규칙)
-                            AddUnique(results, new MoveOption(cursor, true));
+                        {
+                            if (occupant.Def.IsImmuneTo(piece.Def))   // 단, 상대가 이 기물에 면역이라면(중갑병 <- 폰) 잡기 후보가 아니라 '막힌 칸'으로 기록
+                            {
+                                if (blocked != null && !blocked.Contains(cursor))
+                                    blocked.Add(cursor);
+                            }
+                            else
+                            {
+                                AddUnique(results, new MoveOption(cursor, true));
+                            }
+                        }
 
                         break;   // 기물을 뛰어넘을 수는 없으므로 이 방향 탐색 종료
                     }

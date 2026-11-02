@@ -173,6 +173,9 @@ namespace Promotion.Map
             return pool[rng.Next(pool.Length)]; // 목록 중 하나를 무작위로 돌려줌
         }
 
-        static float Signed(System.Random rng) => (float)(rng.NextDouble() * 2.0 - 1.0); // -1 ~ 1 사이의 무작위 실수를 돌려주는 함수 (노드 흔들림 오프셋용)
+        static float Signed(System.Random rng) // -1 ~ 1 사이의 무작위 실수를 돌려주는 함수 (노드 흔들림 오프셋용)
+        {
+            return (float)(rng.NextDouble() * 2.0 - 1.0);
+        }
     }
 }

@@ -25,19 +25,28 @@ namespace Promotion.Gameplay
         public bool summonDuringBattle = true;  // true면 전투 중 AP를 써서 소환 가능(일반 스테이지용)
 
         public event Action DeckChanged;    // 덱 내용이나 선택한 카드가 바뀔 때 발생하는 이벤트 -> HUD의 카드 목록이 갱신됨
+        public event Action<PieceDefinition> PieceDeployed;    // 기물 하나를 보드에 놓을 때마다(킹·임시 기물 포함) 발생하는 이벤트 -> 기물 가이드가 처음 소환된 기물의 설명을 띄움
         public event Action OwnedPieceDeployed;   // 인벤토리의 보유 기물을 보드에 소환했을 때 발생하는 이벤트 -> 인벤토리가 남은 개수를 다시 그림
 
         readonly List<PieceDefinition> _deck = new();   // 현재 손에 있는 카드(기물 종류) 목록
         readonly List<bool> _unlimited = new(); // 같은 순서로 각 카드가 무제한(써도 안 사라짐)인지 저장하는 목록
 
-        public IReadOnlyList<PieceDefinition> Deck => _deck;    // 외부(HUD)에서 덱을 읽기만 할 수 있게 열어 둔 속성
+        public IReadOnlyList<PieceDefinition> Deck    // 외부(HUD)에서 덱을 읽기만 할 수 있게 열어 둔 속성
+        {
+            get { return _deck; }
+        }
         public int SelectedIndex { get; private set; } = -1;    // 현재 선택한 카드의 순번(-1이면 선택 안 함)
 
         public PieceDefinition SelectedOwned { get; private set; }   // 인벤토리에서 고른 보유 기물(없으면 null) -> 덱 카드 선택과 동시에 쓰이지 않음
 
-        public PieceDefinition Selected =>
-            SelectedOwned != null ? SelectedOwned
-            : SelectedIndex >= 0 && SelectedIndex < _deck.Count ? _deck[SelectedIndex] : null;
+        public PieceDefinition Selected
+        {
+            get
+            {
+                return SelectedOwned != null ? SelectedOwned
+                    : SelectedIndex >= 0 && SelectedIndex < _deck.Count ? _deck[SelectedIndex] : null;
+            }
+        }
         // 현재 선택한 기물 종류 -> 인벤토리에서 고른 보유 기물이 있으면 그것, 아니면 덱에서 고른 카드(둘 다 없으면 null)
 
         BoardGrid _grid;    // 칸 좌표 변환과 칸 강조 표시용
@@ -47,7 +56,10 @@ namespace Promotion.Gameplay
         DragController _drag;   // 기물 드래그 중인지 확인용 -> 드래그 중에는 소환하지 않음
         TurnManager _turn;  // 현재 단계와 AP를 확인/소모하는 컴포넌트
 
-        void Awake() => Resolve();  // 오브젝트가 생성될 때 한 번 실행 -> 필요한 컴포넌트를 찾아 둠
+        void Awake()  // 오브젝트가 생성될 때 한 번 실행 -> 필요한 컴포넌트를 찾아 둠
+        {
+            Resolve();
+        }
 
         void Resolve()  // 같은 오브젝트에 붙어 있는 컴포넌트를 찾아 변수에 저장하는 함수 -> 이미 찾은 것은 건너뜀
         {
@@ -59,7 +71,10 @@ namespace Promotion.Gameplay
             if (_turn == null) _turn = GetComponent<TurnManager>();
         }
 
-        public bool IsUnlimited(int index) => index >= 0 && index < _unlimited.Count && _unlimited[index];
+        public bool IsUnlimited(int index)
+        {
+            return index >= 0 && index < _unlimited.Count && _unlimited[index];
+        }
         // index번째 카드가 무제한 카드(써도 사라지지 않음)인지 확인하는 함수
 
         public void LoadDeck(IEnumerable<PieceDefinition> definitions)  // 스테이지 시작 시 덱을 새로 채우는 함수
@@ -179,7 +194,10 @@ namespace Promotion.Gameplay
                    && _state.IsEmpty(coord);    // 비어 있는 칸이어야 함
         }
 
-        public bool CanDeployAt(Coord coord) => CanDeploy(Selected, coord); // 현재 선택한 카드를 이 칸에 놓을 수 있는지 검사하는 함수
+        public bool CanDeployAt(Coord coord) // 현재 선택한 카드를 이 칸에 놓을 수 있는지 검사하는 함수
+        {
+            return CanDeploy(Selected, coord);
+        }
 
         void Update()   // 매 프레임 실행 -> 카드를 선택한 상태에서 칸을 클릭하면 그 칸에 기물을 놓음
         {
@@ -234,6 +252,7 @@ namespace Promotion.Gameplay
             DeckChanged?.Invoke();  // HUD에 덱이 바뀌었음을 알림
             if (owned)
                 OwnedPieceDeployed?.Invoke();   // 보유 기물을 소환했다면 인벤토리에도 알림 -> 남은 개수가 하나 줄어 보임
+            PieceDeployed?.Invoke(def); // 어떤 기물이 소환됐는지 알림 -> 기물 가이드가 처음 보는 기물인지 확인함
             return true;
         }
 

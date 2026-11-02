@@ -37,7 +37,10 @@ namespace Promotion.Map
         public int columns; // 한 층의 가로 칸 수
         public List<MapNode> nodes = new(); // 지도의 모든 노드 목록 -> 노드 번호는 이 리스트의 인덱스
 
-        public int BossFloor => floors - 1; // 보스 노드가 있는 층 번호 (맨 위층)
+        public int BossFloor // 보스 노드가 있는 층 번호 (맨 위층)
+        {
+            get { return floors - 1; }
+        }
 
         public void GetSelectable(int current, List<int> results)
         // 현재 노드(current)에서 플레이어가 다음으로 갈 수 있는 노드 번호들을 results에 담아 주는 함수

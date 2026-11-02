@@ -105,14 +105,17 @@ namespace Promotion.Gameplay
                 SetHighlight(hovered ? TileHighlight.Hover : TileHighlight.None);
         }
 
-        static Color TintFor(TileHighlight highlight) => highlight switch   // 강조 표시 종류에 맞는 색을 돌려주는 함수
+        static Color TintFor(TileHighlight highlight)   // 강조 표시 종류에 맞는 색을 돌려주는 함수
         {
-            TileHighlight.Hover => HoverTint,
-            TileHighlight.Selected => SelectedTint,
-            TileHighlight.Move => MoveTint,
-            TileHighlight.Attack => AttackTint,
-            TileHighlight.Blocked => BlockedTint,
-            _ => Color.clear
-        };
+            switch (highlight)
+            {
+                case TileHighlight.Hover: return HoverTint;
+                case TileHighlight.Selected: return SelectedTint;
+                case TileHighlight.Move: return MoveTint;
+                case TileHighlight.Attack: return AttackTint;
+                case TileHighlight.Blocked: return BlockedTint;
+                default: return Color.clear;
+            }
+        }
     }
 }

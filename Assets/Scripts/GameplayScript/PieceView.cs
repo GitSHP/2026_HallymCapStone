@@ -16,6 +16,9 @@ namespace Promotion.Gameplay
         SpriteRenderer _body;   // 기물 그림을 그리는 컴포넌트
         TextMeshPro _label; // 그림이 없을 때 대신 보여 줄 글자(예: ♞)
         Color _bodyColor;   // 기물의 기본 색 -> 피격 번쩍임 후 이 색으로 돌아감
+        FireAura _aura; // 누적 킬로 붙은 불꽃 입자 묶음 -> 처음 불이 붙을 때 만들고, 꺼져도 지우지 않고 다음 점화에 다시 씀
+        FireAura _idleAura; // 처음부터 늘 두르고 있는 오라 (중갑병의 보라·검정 오라) -> 연속 킬 불꽃(_aura)과 따로 관리
+        bool _burning;  // 불을 붙이라는 명령을 받은 상태인지 여부 -> 점화 연출을 기다리는 동안에도 true (같은 점화가 두 번 겹치지 않게)
 
         public void Init(Piece piece, BoardGrid grid)   // 기물 데이터를 받아 그림, 색, 크기, 위치를 설정하는 함수 -> 생성 직후 한 번 호출
         {
@@ -56,19 +59,114 @@ namespace Promotion.Gameplay
             BaseScale = hasArt ? 1f : 0.82f;    // 그림이 있으면 원래 크기, 임시 원이면 칸보다 조금 작게
             transform.localScale = Vector3.one * BaseScale;
             SnapToCoord();  // 기물이 있는 칸 위치로 이동
+
+            if (piece.Def.idleAura != null) // 늘 두르는 오라가 지정된 기물이라면(중갑병) 나오자마자 조용히 타오르게 함
+            {
+                var prefab = piece.Def.idleAura.GetComponent<FireAura>();
+                if (prefab != null)
+                {
+                    _idleAura = Instantiate(prefab, transform);
+                    _idleAura.transform.localPosition = Vector3.zero;
+                    _idleAura.SetSortingOrder(_body.sortingOrder);
+                    _idleAura.PlayIdle();
+                }
+            }
+        }
+
+        public Sprite Art   // 보드 위에서 그리고 있는 기물 그림 -> 처치 하이라이트에 같은 그림을 띄울 때 사용
+        {
+            get { return _body != null ? _body.sprite : null; }
+        }
+
+        public Color ArtColor   // 기물 그림의 기본 색 (피격 번쩍임·불빛 깜빡임 중이어도 원래 색)
+        {
+            get { return _bodyColor; }
         }
 
         public float BaseScale { get; private set; } = 0.82f;   // 기물의 기본 크기 -> 연출이 끝나면 이 크기로 돌아옴
 
         public void SnapToCoord()   // 연출 없이 기물이 있는 칸 위치로 바로 옮기는 함수
-            => transform.position = _grid.CoordToWorld(Piece.Coord);
+        {
+            transform.position = _grid.CoordToWorld(Piece.Coord);
+        }
 
         public void SetSortingBoost(bool lifted)    // 드래그 중에는 다른 기물보다 위에 그려지도록 그리기 순서를 올리고 내리는 함수
-            => _body.sortingOrder = lifted ? PieceSortingOrder + 20 : PieceSortingOrder;
+        {
+            _body.sortingOrder = lifted ? PieceSortingOrder + 20 : PieceSortingOrder;
+            if (_aura != null)  // 불이 붙어 있다면 불꽃 층도 몸체를 따라 올리고 내림 -> 드래그 중에도 불꽃은 몸체 뒤, 불티는 앞
+                _aura.SetSortingOrder(_body.sortingOrder);
+            if (_idleAura != null)
+                _idleAura.SetSortingOrder(_body.sortingOrder);
+        }
 
-        public void Flash() => Fx.HitFlash(_body, _bodyColor);  // 맞았을 때 번쩍이며 흔들리는 연출을 재생하는 함수
+        public void SetSortingBehind()  // 잡힌 기물을 다른 기물보다 아래에 그리도록 순서를 내리는 함수
+        // -> 사라지는 연출 동안 잡은 기물(가해자)이 그 위를 덮어 '찍어 누르는' 것처럼 보이게 함
+        {
+            _body.sortingOrder = PieceSortingOrder - 5;
+            if (_label != null)
+                _label.GetComponent<MeshRenderer>().sortingOrder = PieceSortingOrder - 4;
+            if (_aura != null)
+                _aura.SetSortingOrder(_body.sortingOrder);
+            if (_idleAura != null)
+                _idleAura.SetSortingOrder(_body.sortingOrder);
+        }
+
+        public void PlayBlocked()   // 잡기를 막아 냈을 때(중갑병 <- 폰) 몸체가 '팅' 하고 흔들리는 연출을 재생하는 함수
+        {
+            Fx.Blocked(transform);
+        }
+
+        public bool Burning // 지금 기물에 불이 타고 있는지 여부
+        {
+            get { return _burning; }
+        }
+
+        public void SetBurning(bool on, FireAura prefab, Transform boardRoot)
+        // 누적 킬 불꽃을 켜고 끄는 함수 -> KillStreakTracker가 스테이지 누적 킬 수에 따라 호출함
+        // on: true면 불을 붙이고, false면 끔
+        // prefab: 처음 불이 붙을 때 복제할 FireAura 프리팹 (KillStreakTracker 인스펙터에 연결됨)
+        // boardRoot: 점화 순간 흔들 체스판 (Board 오브젝트)
+        {
+            if (on == Burning)  // 이미 그 상태라면 아무것도 하지 않음 -> 불붙은 기물이 또 잡아도 점화 연출이 반복되지 않음
+                return;
+
+            if (!on)    // 끄는 경우 -> 입자 방출을 멈추고 몸체 색을 되돌림
+            {
+                _burning = false;
+                if (_aura != null)
+                    _aura.Extinguish();
+                Fx.FireGlowStop(_body, _bodyColor);
+                return;
+            }
+
+            if (_aura == null)  // 처음 불이 붙는다면 불꽃 입자 묶음을 만들어 기물 자식으로 붙임 -> 기물을 따라 움직이고, 기물이 사라지면 함께 사라짐
+            {
+                if (prefab == null)
+                    return;
+                _aura = Instantiate(prefab, transform);
+                _aura.transform.localPosition = Vector3.zero;
+            }
+            _aura.SetSortingOrder(_body.sortingOrder);
+            _burning = true;
+
+            var aura = _aura;
+            Fx.FireIgnite(transform, boardRoot, BaseScale, () =>    // 잡기 연출이 끝나면 점화 (기다리는 사이 기물이 잡히면 취소됨)
+            {
+                if (!_burning)  // 기다리는 사이 다시 꺼졌다면 점화하지 않음
+                    return;
+                aura.Ignite();
+                Fx.FireGlow(_body);
+            });
+        }
+
+        public void Flash()  // 맞았을 때 번쩍이며 흔들리는 연출을 재생하는 함수
+        {
+            Fx.HitFlash(_body, _bodyColor);
+        }
 
         public void PlayDeath() // 잡혔을 때 사라지는 연출을 재생하고, 끝나면 오브젝트를 파괴하는 함수
-            => Fx.Die(transform, () => Destroy(gameObject));
+        {
+            Fx.Die(transform, () => Destroy(gameObject));
+        }
     }
 }

@@ -23,7 +23,10 @@ namespace Promotion.Data
         [Tooltip("카드에 표시할 한두 줄 설명. 비워 두면 설명 없이 이름과 그림만 나온다.")]
         [TextArea(2, 3)] public string blurb = "";  // 상점 카드에 보여 줄 짧은 설명 문구
 
-        public bool IsValid => item != null && weight > 0f; // 상점에 올릴 수 있는 매물인지 (아이템이 있고 가중치가 0보다 커야 함)
+        public bool IsValid // 상점에 올릴 수 있는 매물인지 (아이템이 있고 가중치가 0보다 커야 함)
+        {
+            get { return item != null && weight > 0f; }
+        }
     }
 
     [CreateAssetMenu(menuName = "Promotion/Shop Pool", fileName = "ShopPool")]
@@ -33,6 +36,21 @@ namespace Promotion.Data
         [Header("진열 칸 수")]
         [Min(1)] public int artifactSlots = 3;  // 상점 윗줄에 진열할 유물 칸 수
         [Min(1)] public int pieceSlots = 3; // 상점 아랫줄에 진열할 기물 칸 수
+
+        [Header("진열 방식")]
+        [Tooltip("켜면 무작위로 뽑지 않고 목록에 넣은 순서 그대로 진열한다. 튜토리얼처럼 매번 같은 상품을 보여 줘야 할 때 쓴다.")]
+        public bool fixedOrder; // true면 목록 순서대로 진열 (가중치·무작위 무시), false면 가중치에 따라 무작위로 뽑음
+
+        [Header("새로고침")]
+        [Tooltip("새로고침 첫 비용(골드). 0이면 무료.")]
+        [Min(0)] public int rerollCost = 2; // 상점 진열을 다시 뽑는 비용
+        [Tooltip("같은 상점에서 새로고침할 때마다 비용이 이만큼 오른다. 상점을 다시 열면 처음 비용으로 돌아간다.")]
+        [Min(0)] public int rerollCostStep = 1; // 새로고침 비용 증가량 -> 무한 새로고침으로 원하는 상품만 골라 사는 것을 막음
+
+        public int RerollCostAt(int rerollCount)    // 이번 상점에서 rerollCount번 새로고침한 뒤의 다음 새로고침 비용을 돌려주는 함수
+        {
+            return rerollCost + rerollCostStep * rerollCount;
+        }
 
         [Header("유물 매물 (아이템 담당 영역)")]
         [Tooltip("상점 윗줄에 나올 유물들. ItemData 에셋과 그 가격을 짝지어 넣는다.")]
@@ -94,7 +112,7 @@ namespace Promotion.Data
 
             for (int slot = 0; slot < artifactSlots && Candidates.Count > 0; slot++)    // 진열 칸이 다 차거나 후보가 바닥날 때까지 반복
             {
-                int picked = PickWeighted(i => artifactOffers[i].weight);   // 가중치에 따라 후보 하나를 고르고
+                int picked = fixedOrder ? 0 : PickWeighted(i => artifactOffers[i].weight);   // 고정 진열이면 남은 후보 중 맨 앞을, 아니면 가중치에 따라 후보 하나를 고르고
                 results.Add(artifactOffers[Candidates[picked]]);    // 결과에 추가한 뒤
                 Candidates.RemoveAt(picked);    // 뽑은 것은 후보에서 뺌 -> 한 화면에 같은 유물이 두 장 뜨지 않게 함
             }
@@ -113,7 +131,7 @@ namespace Promotion.Data
 
             for (int slot = 0; slot < pieceSlots && Candidates.Count > 0; slot++)   // 진열 칸 수만큼 반복
             {
-                int picked = PickWeighted(i => pieces[i].shopWeight);   // 가중치에 따라 하나를 골라
+                int picked = fixedOrder ? slot % Candidates.Count : PickWeighted(i => pieces[i].shopWeight);   // 고정 진열이면 목록 순서대로 (칸이 더 많으면 처음부터 반복), 아니면 가중치에 따라 하나를 골라
                 results.Add(pieces[Candidates[picked]]);    // 결과에 추가함 -> 후보에서 빼지 않으므로 같은 기물이 여러 번 나올 수 있음 (폰 두 개 구매도 합리적인 선택)
             }
         }

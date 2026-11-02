@@ -57,7 +57,9 @@ namespace Promotion.UI
         }
 
         public static Image Icon(string name, Transform parent, IconId id, Color color)  // 아이콘 종류(IconId)로 아이콘 이미지를 만드는 함수
-            => Icon(name, parent, UiSprites.Get(id), color);  // IconId에 맞는 스프라이트를 찾아 위의 Icon 함수에 넘김
+        {
+            return Icon(name, parent, UiSprites.Get(id), color);  // IconId에 맞는 스프라이트를 찾아 위의 Icon 함수에 넘김
+        }
 
         public static CanvasGroup Group(GameObject go)  // 오브젝트의 CanvasGroup을 가져오는 함수 -> 없으면 새로 붙여서 돌려줌
         // -> CanvasGroup은 자식 UI 전체의 투명도를 한 번에 조절할 때 사용 (페이드 연출용)

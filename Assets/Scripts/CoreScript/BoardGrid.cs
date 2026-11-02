@@ -35,7 +35,10 @@ namespace Promotion.Core
         SpriteRenderer _art;   // 보드 그림을 그리는 렌더러
         Coord _hoveredCoord = Coord.Invalid;   // 현재 마우스가 올라가 있는 칸 (없으면 Invalid)
 
-        public bool IsBuilt => _tiles != null;   // 타일이 이미 만들어졌는지 여부
+        public bool IsBuilt   // 타일이 이미 만들어졌는지 여부
+        {
+            get { return _tiles != null; }
+        }
 
         void Awake()   // 오브젝트가 생성될 때 한 번 실행
         {
@@ -161,7 +164,10 @@ namespace Promotion.Core
                 Fx.PopIn(_tiles[x, y].transform, x + y);   // x+y를 순서 값으로 넘김 -> 왼쪽 아래 모서리에서 대각선 물결처럼 퍼져나감
         }
 
-        public bool IsInside(Coord c) => c.x >= 0 && c.x < width && c.y >= 0 && c.y < height;   // 좌표가 보드 안쪽 칸인지 확인하는 함수
+        public bool IsInside(Coord c)   // 좌표가 보드 안쪽 칸인지 확인하는 함수
+        {
+            return c.x >= 0 && c.x < width && c.y >= 0 && c.y < height;
+        }
 
         Vector3 CoordToLocal(Coord c)   // 칸 좌표를 보드 기준 로컬 위치로 바꾸는 함수
         {
@@ -170,7 +176,10 @@ namespace Promotion.Core
             return new Vector3(originX + c.x * tileSize, originY + c.y * tileSize, 0f);   // 시작점에서 칸 수 × 칸 크기만큼 떨어진 위치
         }
 
-        public Vector3 CoordToWorld(Coord c) => transform.TransformPoint(CoordToLocal(c));   // 칸 좌표를 월드 위치로 바꾸는 함수 (기물을 칸 위에 놓을 때 사용)
+        public Vector3 CoordToWorld(Coord c)   // 칸 좌표를 월드 위치로 바꾸는 함수 (기물을 칸 위에 놓을 때 사용)
+        {
+            return transform.TransformPoint(CoordToLocal(c));
+        }
 
         public Coord WorldToCoord(Vector3 world)   // 월드 위치(예: 마우스 위치)가 어느 칸인지 계산하는 함수 -> 보드 밖이면 Invalid
         {
@@ -185,7 +194,10 @@ namespace Promotion.Core
             return IsInside(coord) ? coord : Coord.Invalid;   // 보드 안쪽이면 그 칸을, 아니면 Invalid를 돌려줌
         }
 
-        public TileView GetTile(Coord c) => IsInside(c) ? _tiles[c.x, c.y] : null;   // 칸 좌표의 타일을 돌려주는 함수 (보드 밖이면 null)
+        public TileView GetTile(Coord c)   // 칸 좌표의 타일을 돌려주는 함수 (보드 밖이면 null)
+        {
+            return IsInside(c) ? _tiles[c.x, c.y] : null;
+        }
 
         public void ClearHighlights()   // 모든 칸의 하이라이트(이동 가능·잡기 표시)를 지우는 함수
         {

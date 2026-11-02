@@ -27,7 +27,9 @@ namespace Promotion.Gameplay
         }
 
         public PieceView GetView(Piece piece)   // 기물 데이터에 해당하는 화면 오브젝트를 찾아 주는 함수(없으면 null)
-            => piece != null && _views.TryGetValue(piece, out var view) ? view : null;
+        {
+            return piece != null && _views.TryGetValue(piece, out var view) ? view : null;
+        }
 
         public PieceView Spawn(PieceDefinition def, Team team, Coord coord) // 기물을 보드 데이터에 놓고 화면 오브젝트도 만드는 함수 -> 만든 오브젝트를 반환
         {

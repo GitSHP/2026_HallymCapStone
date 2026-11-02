@@ -128,6 +128,60 @@ namespace Promotion.Feel
         public float titleLogoBreatheScale = 1.04f; // 연출이 끝난 뒤 킹 로고가 계속 커졌다 작아지는 배율
         public float titleLogoBreatheDuration = 1.8f;   // 숨쉬기 한 번(커졌다 작아짐)의 시간
 
+        [Header("기물 가이드")]
+        [Tooltip("기물 가이드 창이 커지며 나타나는 시간.")]
+        public float guideOpenDuration = 0.28f; // 가이드 창이 살짝 작은 크기에서 원래 크기로 커지는 시간
+        [Tooltip("가이드 창이 시작하는 크기 비율.")]
+        public float guideOpenScale = 0.9f; // 가이드 창이 나타날 때 시작하는 크기(원래 크기의 90%) -> 0에서 시작하지 않음
+        [Tooltip("소환 연출이 끝나길 기다렸다가 가이드를 띄우기까지의 시간(실제 시간).")]
+        public float guideShowDelay = 0.45f;    // 기물이 칸에 내려앉는 것을 보여 준 뒤 가이드를 띄우기 위한 대기 시간
+
+        [Header("누적 킬 불꽃")]
+        [Tooltip("한 스테이지에서 이 수만큼 잡으면 기물에 불이 붙는다.")]
+        [Min(1)] public int killStreakThreshold = 3;    // 불이 붙는 스테이지 누적 킬 수
+        [Tooltip("잡기 연출(돌진·착지)이 끝나길 기다렸다가 점화하기까지의 시간.")]
+        public float fireIgniteDelay = 0.3f;    // 잡자마자 터뜨리면 착지 연출과 겹치므로 잠깐 기다렸다가 점화함
+        public Vector3 fireIgnitePunch = new Vector3(0.3f, 0.3f, 0f);   // 점화 순간 기물이 '화르륵' 커졌다 돌아오는 세기
+        public float fireIgnitePunchDuration = 0.35f;   // 점화 펀치가 이어지는 시간
+        [Tooltip("점화 순간 보드 흔들림 세기 배율. 1이면 기물 착지 흔들림과 같다.")]
+        public float fireIgniteShake = 0.6f;    // 점화 순간 체스판이 흔들리는 세기 배율 (약하게)
+        public Color fireGlowColor = new Color(1f, 0.62f, 0.3f, 1f);    // 불붙은 기물 몸체가 깜빡이며 물드는 주황빛
+        public float fireGlowPeriod = 0.5f; // 몸체가 주황빛으로 물들었다 돌아오는 데 걸리는 시간(편도)
+        public float fireGlowFadeOut = 0.25f;   // 불이 꺼질 때 몸체가 원래 색으로 돌아오는 시간
+
+        [Header("처치 배너")]
+        [Tooltip("잡기 동작이 끝나 타격 이펙트가 터진 뒤, 처치 배너가 뜨기까지 기다리는 시간(실제 시간).")]
+        public float calloutAfterBurstDelay = 0.35f;    // 이펙트를 먼저 보여 주고 배너를 띄우기 위한 대기 시간
+        [Tooltip("배너가 자리보다 이만큼 아래에서 치고 올라온다(픽셀).")]
+        public float calloutEnterRise = 90f;    // 등장할 때 올라오는 거리(픽셀, 1920x1080 기준)
+        [Tooltip("배너가 이 배율에서 원래 크기로 줄어들며 자리 잡는다.")]
+        public float calloutPopScale = 1.25f;   // 등장 시작 크기 배율 (0에서 시작하지 않음)
+        public float calloutPopDuration = 0.28f;    // 치고 올라와 자리 잡는 데 걸리는 시간
+        public float calloutHold = 0.9f;    // 자리 잡은 뒤 그대로 보여 주는 시간
+        public float calloutFadeDuration = 0.35f;   // 사라지는 시간
+        public float calloutExitRise = 30f; // 사라지면서 위로 떠오르는 거리(픽셀)
+        public Color calloutFirstColor = Color.white;   // 첫 처치("처치!") 글자 색
+        public Color calloutChainColor = new Color(1f, 0.62f, 0.2f, 1f);    // 두 번째 이후("연속처치!") 글자 색
+        public Color calloutFireColor = new Color(1f, 0.85f, 0.25f, 1f);    // 불이 붙는 킬 수 이상일 때 글자 색 (금색)
+        [Tooltip("불이 붙는 킬 수 이상일 때 배너 크기 배율.")]
+        public float calloutFireScale = 1.12f;  // 불붙은 기물의 처치 배너는 조금 더 크게
+
+        [Header("최종전 AP 잠김")]
+        [Tooltip("최종전 대화가 끝나 체스판이 드러난 뒤 AP 패널이 잠기기까지 기다리는 시간.")]
+        public float apLockDelay = 0.45f;   // 잠기기 전 대기 시간
+        public float apLockDuration = 0.45f;    // 번쩍임·흔들림이 이어지는 시간
+        public Color apLockFlashColor = new Color(1f, 0.32f, 0.25f, 1f);   // 잠기는 순간 패널이 번쩍이는 밝은 붉은색
+        public Vector3 apLockPunch = new Vector3(0.12f, 0.12f, 0f);    // 잠기는 순간 패널이 툭 커지는 정도
+        public Vector3 apLockShake = new Vector3(12f, 0f, 0f);  // 잠기는 순간 패널이 좌우로 덜컹 흔들리는 세기(픽셀)
+
+        [Header("잡기 막힘 (중갑병)")]
+        public Vector3 blockedShake = new Vector3(0.12f, 0f, 0f);   // 잡기를 막아 낸 기물이 좌우로 흔들리는 세기(월드 단위)
+        public float blockedShakeDuration = 0.3f;   // 흔들림 시간
+        public float blockedPopIn = 0.18f;  // "막힘!" 글자가 튀어나오는 시간
+        public float blockedHold = 0.45f;   // "막힘!" 글자를 보여 주는 시간
+        public float blockedFade = 0.3f;    // "막힘!" 글자가 사라지는 시간
+        public float blockedRise = 0.35f;   // 사라지면서 떠오르는 높이(월드 단위)
+
         [Header("전역")]
         public float hitStopDuration = 0.08f;   // 타격 순간 시간이 거의 멈추는 '히트 스톱'의 길이 -> 타격감을 줌
     }

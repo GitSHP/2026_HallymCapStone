@@ -26,9 +26,15 @@ namespace Promotion.UI
         public static readonly Color Deny = new Color(0.976f, 0.400f, 0.400f, 1f);  // 거절·경고 색 (빨강)
         public static readonly Color Disabled = new Color(0.192f, 0.239f, 0.333f, 1f);  // 누를 수 없는 버튼 색
 
-        public static Color Well(Color accent) => new Color(accent.r, accent.g, accent.b, 0.13f);  // 강조색을 아주 옅게(투명도 13%) 만든 배경 색을 돌려주는 함수
+        public static Color Well(Color accent)  // 강조색을 아주 옅게(투명도 13%) 만든 배경 색을 돌려주는 함수
+        {
+            return new Color(accent.r, accent.g, accent.b, 0.13f);
+        }
 
-        public static Color Glyph(Color accent) => Color.Lerp(accent, Color.white, 0.25f);  // 강조색을 흰색 쪽으로 25% 밝게 만든 아이콘 색을 돌려주는 함수
+        public static Color Glyph(Color accent)  // 강조색을 흰색 쪽으로 25% 밝게 만든 아이콘 색을 돌려주는 함수
+        {
+            return Color.Lerp(accent, Color.white, 0.25f);
+        }
 
         // -----화면 기준 해상도-----
         public const float ReferenceWidth = 1920f;  // CanvasScaler 기준 가로 해상도

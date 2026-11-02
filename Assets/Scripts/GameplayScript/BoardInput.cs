@@ -18,9 +18,20 @@ namespace Promotion.Gameplay
         InputAction _pointAction;   // 포인터 위치를 읽는 입력 액션(새 Input System)
         InputAction _pressAction;   // 클릭/터치 누름을 읽는 입력 액션
 
-        public bool PressedThisFrame => _pressAction != null && _pressAction.WasPressedThisFrame();    // 이번 프레임에 눌렀는지 여부 -> 드래그 시작에 사용
-        public bool ReleasedThisFrame => _pressAction != null && _pressAction.WasReleasedThisFrame();  // 이번 프레임에 뗐는지 여부 -> 드래그 끝에 사용
-        public bool IsPressed => _pressAction != null && _pressAction.IsPressed();  // 지금 누르고 있는지 여부
+        public bool PressedThisFrame    // 이번 프레임에 눌렀는지 여부 -> 드래그 시작에 사용
+        {
+            get { return _pressAction != null && _pressAction.WasPressedThisFrame(); }
+        }
+
+        public bool ReleasedThisFrame  // 이번 프레임에 뗐는지 여부 -> 드래그 끝에 사용
+        {
+            get { return _pressAction != null && _pressAction.WasReleasedThisFrame(); }
+        }
+
+        public bool IsPressed  // 지금 누르고 있는지 여부
+        {
+            get { return _pressAction != null && _pressAction.IsPressed(); }
+        }
 
         void Awake()    // 오브젝트가 생성될 때 한 번 실행
         {

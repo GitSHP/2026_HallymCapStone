@@ -40,5 +40,23 @@ namespace Promotion.Data
         [Min(0f)] public float aiValue = 1f;    // 체스 AI가 판세를 계산할 때 쓰는 이 기물의 점수
         [Tooltip("맨 끝 랭크에 도달하면 다른 기물로 바뀐다(폰).")]
         public bool canPromote; // true면 상대편 끝 줄에 도착했을 때 프로모션(다른 기물로 승격) 가능
+
+        [Header("디펜스 적 전용")]
+        [Tooltip("적으로 나왔을 때 한 턴에 걷는 칸 수다. 한 칸씩 나눠 걸으며, 첫 걸음에 아군을 잡으면 그 자리에서 멈춘다.")]
+        [Min(1)] public int enemyStepsPerTurn = 1;  // 적일 때 한 턴에 다가오는 칸 수 (중갑병 2)
+        [Tooltip("이 기물을 잡을 수 없는 기물들이다. 이 기물로 잡으려 하면 '막힘!'이 뜨고 되돌아간다.")]
+        public PieceDefinition[] captureImmuneTo = new PieceDefinition[0];   // 이 기물을 잡지 못하는 기물 목록 (중갑병: 폰)
+        [Tooltip("이 기물에 늘 붙어 있는 오라 이펙트 프리팹(FireAura)이다. 비우면 없다.")]
+        public GameObject idleAura; // 보드에 나오는 순간부터 계속 타오르는 오라 (중갑병: 보라·검정 오라)
+
+        public bool IsImmuneTo(PieceDefinition attacker)    // attacker가 이 기물을 잡을 수 없는지 확인하는 함수
+        {
+            if (attacker == null || captureImmuneTo == null)
+                return false;
+            foreach (var def in captureImmuneTo)
+                if (def == attacker)
+                    return true;
+            return false;
+        }
     }
 }

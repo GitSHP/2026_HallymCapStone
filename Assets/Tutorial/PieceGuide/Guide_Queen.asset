@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 37c380eac55a82a45898c9f029dff8c2, type: 3}
+  m_Name: Guide_Queen
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Tutorial.PieceGuideData
+  piece: {fileID: 11400000, guid: d78b5575554df5742a56e92de4d2e10f, type: 2}
+  pages:
+  - "\uD038\uC740 \uAC00\uB85C, \uC138\uB85C, \uB300\uAC01\uC120\uC758 \uC5EC\uB35F
+    \uBC29\uD5A5\uC73C\uB85C \uB9C9\uD790 \uB54C\uAE4C\uC9C0 \uC6D0\uD558\uB294 \uB9CC\uD07C
+    \uC6C0\uC9C1\uC785\uB2C8\uB2E4."
+  - "\uB8E9\uACFC \uBE44\uC20D\uC758 \uC6C0\uC9C1\uC784\uC744 \uD569\uCE5C \uAC00\uC7A5
+    \uAC15\uD55C \uAE30\uBB3C\uC785\uB2C8\uB2E4. \uADF8\uB9CC\uD07C \uC18C\uD658
+    \uBE44\uC6A9\uB3C4 \uAC00\uC7A5 \uBE44\uC309\uB2C8\uB2E4."
+  - "\uC704\uAE09\uD560 \uB54C \uBA40\uB9AC \uC788\uB294 \uC801\uC744 \uB2E8\uC228\uC5D0
+    \uC7A1\uC544 \uD0B9\uC744 \uC9C0\uCF1C \uBCF4\uC138\uC694."

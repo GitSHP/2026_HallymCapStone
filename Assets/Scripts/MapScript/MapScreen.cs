@@ -51,9 +51,13 @@ namespace Promotion.Map
         RunState _run; // 런 전체 진행 정보 (지도, 현재 노드, 지나온 길, 골드 등)
 
         readonly List<int> _selectable = new(); // 지금 선택할 수 있는 노드 번호 목록
+        readonly Dictionary<int, RectTransform> _nodeViews = new(); // 노드 번호 → 화면에 그려진 그 노드의 UI -> 튜토리얼이 노드를 가리킬 때 사용
         bool _leaving; // 전투 씬으로 넘어가는 중인지 여부 -> true면 더 이상 노드를 누를 수 없음 (중복 클릭 방지)
 
-        MapData Map => _run.Map; // 현재 런의 지도 (짧게 쓰기 위한 속성)
+        MapData Map // 현재 런의 지도 (짧게 쓰기 위한 속성)
+        {
+            get { return _run.Map; }
+        }
 
         void Start() // 지도 씬이 시작될 때 지도를 준비하고 화면을 그리는 함수
         {
@@ -88,6 +92,7 @@ namespace Promotion.Map
         {
             for (int i = _content.childCount - 1; i >= 0; i--) // 이전에 그린 노드와 연결선을 모두 삭제하고 (뒤에서부터 지움)
                 Destroy(_content.GetChild(i).gameObject);
+            _nodeViews.Clear(); // 노드 UI 기록도 비움
 
             Map.GetSelectable(_run.CurrentMapNode, _selectable); // 현재 위치에서 갈 수 있는 노드 목록을 새로 구함
 
@@ -177,6 +182,7 @@ namespace Promotion.Map
 
             var view = Instantiate(_nodePrefab, _content); // 노드 프리팹을 복제해서 생성하고
             view.name = "Node_" + index; // 하이어라키에서 알아보기 쉽게 이름을 붙이고
+            _nodeViews[index] = view.Rect; // 몇 번 노드의 UI인지 기록해 둠
             view.Rect.anchoredPosition = PositionOf(node); // 계산한 위치에 놓음
             view.Rect.localScale = Vector3.one * (size / nodeSize); // 프리팹은 nodeSize 크기로 그려짐 -> 보스는 같은 노드를 배율만큼 키운 것
 
@@ -251,6 +257,45 @@ namespace Promotion.Map
             SceneManager.LoadScene(sceneName); // 전투 씬을 불러옴
         }
 
+        // ---------- 튜토리얼이 지도의 각 부분을 가리킬 때 쓰는 함수 ----------
+        // -> 튜토리얼은 이 함수들로 위치만 받아 가고, 지도는 튜토리얼이 있는지조차 모름
+
+        public RectTransform StatusRect // 위쪽의 층·골드 표시 영역
+        {
+            get { return _status.rectTransform; }
+        }
+
+        public void GetSelectableNodes(List<RectTransform> results) // 지금 고를 수 있는 노드들의 UI를 results에 담아 주는 함수
+        {
+            results.Clear();
+            foreach (int index in _selectable)
+                if (_nodeViews.TryGetValue(index, out var view))
+                    results.Add(view);
+        }
+
+        public RectTransform BossNode // 보스 노드의 UI (지도에 보스가 없으면 null)
+        {
+            get
+            {
+                for (int i = 0; i < Map.nodes.Count; i++)
+                    if (Map.nodes[i].type == MapNodeType.Boss && _nodeViews.TryGetValue(i, out var view))
+                        return view;
+                return null;
+            }
+        }
+
+        public void ShowBoss() // 지도를 맨 위(보스)까지 스크롤하는 함수
+        {
+            _scroll.verticalNormalizedPosition = 1f;
+            SyncBackground(); // 배경도 스크롤 위치에 맞춤
+        }
+
+        public void ShowCurrent() // 지도를 현재 위치가 잘 보이는 곳으로 되돌리는 함수
+        {
+            ScrollToCurrent();
+            SyncBackground();
+        }
+
         void StartNewRun() // 새 런 버튼을 눌렀을 때 런을 초기화하고 새 지도로 다시 시작하는 함수
         {
             _run.ResetRun(); // 런 정보(지도, 지나온 길, 골드 등)를 초기화하고
@@ -259,20 +304,29 @@ namespace Promotion.Map
             Redraw(); // 새 지도를 그림
         }
 
-        public static IconId IconOf(MapNodeType type) => type switch // 노드 종류에 맞는 아이콘을 돌려주는 함수
+        public static IconId IconOf(MapNodeType type) // 노드 종류에 맞는 아이콘을 돌려주는 함수
         {
-            MapNodeType.Shop => IconId.Bag,   // 상점 = 가방
-            MapNodeType.Boss => IconId.Crown, // 보스 = 왕관
-            _ => IconId.Sword                 // 그 외(전투) = 칼
-        };
+            switch (type)
+            {
+                case MapNodeType.Shop: return IconId.Bag;   // 상점 = 가방
+                case MapNodeType.Boss: return IconId.Crown; // 보스 = 왕관
+                default: return IconId.Sword;               // 그 외(전투) = 칼
+            }
+        }
 
-        public static Color AccentOf(MapNodeType type) => type switch // 노드 종류에 맞는 강조 색을 돌려주는 함수
+        public static Color AccentOf(MapNodeType type) // 노드 종류에 맞는 강조 색을 돌려주는 함수
         {
-            MapNodeType.Shop => UiTheme.Gold,           // 상점 = 금색
-            MapNodeType.Boss => UiTheme.ArtifactAccent, // 보스 = 유물 강조 색
-            _ => UiTheme.Deny                           // 그 외(전투) = 빨강
-        };
+            switch (type)
+            {
+                case MapNodeType.Shop: return UiTheme.Gold;           // 상점 = 금색
+                case MapNodeType.Boss: return UiTheme.ArtifactAccent; // 보스 = 유물 강조 색
+                default: return UiTheme.Deny;                         // 그 외(전투) = 빨강
+            }
+        }
 
-        static Color WithAlpha(Color color, float alpha) => new Color(color.r, color.g, color.b, alpha); // 색은 그대로 두고 투명도만 바꾼 색을 돌려주는 함수
+        static Color WithAlpha(Color color, float alpha) // 색은 그대로 두고 투명도만 바꾼 색을 돌려주는 함수
+        {
+            return new Color(color.r, color.g, color.b, alpha);
+        }
     }
 }

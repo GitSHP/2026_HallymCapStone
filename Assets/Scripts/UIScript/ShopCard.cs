@@ -19,7 +19,10 @@ namespace Promotion.UI
         public int Cost { get; private set; }  // 이 카드의 가격(골드)
         public bool Sold { get; private set; }  // 이미 구매(또는 보유)되어 더 이상 살 수 없는 카드인지 여부
         public bool Affordable { get; private set; } = true;  // 현재 보유 골드로 살 수 있는지 여부
-        public RectTransform Rect => (RectTransform)transform;  // 이 카드의 RectTransform을 바로 꺼내 쓰기 위한 속성
+        public RectTransform Rect  // 이 카드의 RectTransform을 바로 꺼내 쓰기 위한 속성
+        {
+            get { return (RectTransform)transform; }
+        }
 
         [SerializeField] CanvasGroup _group;  // 카드 전체의 투명도를 조절할 때 사용할 변수 (등장 연출용)
         [SerializeField] Image _face;  // 카드 바탕 이미지
@@ -98,7 +101,10 @@ namespace Promotion.UI
             UiFx.HoverOut(Rect, _home);  // 떠올라 있던 카드를 원래 위치로 내림
         }
 
-        public void PlayIn(int index) => UiFx.CardIn(Rect, _group, index);  // 카드 등장 연출 함수 -> index 순서대로 차례차례 나타남
+        public void PlayIn(int index)  // 카드 등장 연출 함수 -> index 순서대로 차례차례 나타남
+        {
+            UiFx.CardIn(Rect, _group, index);
+        }
 
         public void PlayDeny()  // 구매할 수 없을 때(골드 부족) 거절 연출을 재생하는 함수
         {

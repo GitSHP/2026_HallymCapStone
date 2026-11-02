@@ -32,20 +32,33 @@ namespace Promotion.Gameplay
 
         public event Action PromotionRequested; // 플레이어의 폰이 끝 줄에 도달해 무엇으로 바뀔지(프로모션) 골라야 할 때 발생하는 이벤트
 
-        public bool IsChessDuel => stage != null && stage.IsChessDuel;  // 지금 스테이지가 체스 대결(최종전)인지 여부
+        public bool IsChessDuel  // 지금 스테이지가 체스 대결(최종전)인지 여부
+        {
+            get { return stage != null && stage.IsChessDuel; }
+        }
         public int DuelMovesPlayed { get; private set; }    // 체스 대결에서 플레이어가 지금까지 둔 수의 개수 -> 수 제한 판정에 사용
         public Team? InCheck { get; private set; }  // 체스 대결에서 현재 체크 상태인 진영(없으면 null)
         public bool AIThinking { get; private set; }    // 상대(컴퓨터)가 수를 고민하는 중인지 여부 -> HUD에 "생각 중" 표시용
         public string OutcomeReason { get; private set; } = "";    // 스테이지가 끝난 이유(체크메이트, 스테일메이트, 수 제한 초과) -> 일반 스테이지에서는 비어 있음
         public bool AwaitingPromotion { get; private set; } // 플레이어가 프로모션할 기물을 고르길 기다리는 중인지 여부
-        public IReadOnlyList<PieceDefinition> PromotionChoices =>
-            stage != null && stage.promotionChoices != null ? stage.promotionChoices : Array.Empty<PieceDefinition>();
+        public IReadOnlyList<PieceDefinition> PromotionChoices
+        {
+            get { return stage != null && stage.promotionChoices != null ? stage.promotionChoices : Array.Empty<PieceDefinition>(); }
+        }
         // 프로모션 때 고를 수 있는 기물 목록(퀸, 룩 등) -> 스테이지 데이터에 없으면 빈 목록
 
         PieceDefinition _promotionPick; // 플레이어가 프로모션 선택창에서 고른 기물(고르기 전에는 null)
 
         public int WavesSent { get; private set; }  // 지금까지 소환한 웨이브(적 무리)의 개수
-        public int TotalWaves => stage != null && stage.waves != null ? stage.waves.Length : 0;    // 이번 스테이지의 전체 웨이브 개수
+        public int ExtraEnemies // 런 진행에 따라 이번 스테이지의 웨이브마다 더해지는 적 수 (난이도 상승)
+        {
+            get { return stage != null && RunState.Instance != null ? stage.ExtraEnemiesAt(RunState.Instance.StageIndex) : 0; }
+        }
+
+        public int TotalWaves    // 이번 스테이지의 전체 웨이브 개수
+        {
+            get { return stage != null && stage.waves != null ? stage.waves.Length : 0; }
+        }
         public int EnemiesOnBoard { get; private set; } // 현재 보드 위에 남아 있는 적의 수
 
         TurnManager _turn;  // 턴 단계와 AP(행동력)를 관리하는 컴포넌트
@@ -64,9 +77,15 @@ namespace Promotion.Gameplay
         readonly List<Piece> _scratch = new();  // 적 수를 셀 때 재사용하는 임시 리스트 -> 매번 새 리스트를 만들지 않으려고
         bool _resolving;    // 적 턴이나 상대의 응수를 처리하는 중인지 여부 -> 처리 중에는 턴 종료 요청 등을 무시함
 
-        public TurnManager Turn => _turn;   // 외부(HUD 등)에서 턴 정보를 읽을 수 있게 열어 둔 속성
+        public TurnManager Turn   // 외부(HUD 등)에서 턴 정보를 읽을 수 있게 열어 둔 속성
+        {
+            get { return _turn; }
+        }
 
-        void Awake() => Resolve();  // 오브젝트가 생성될 때 한 번 실행 -> 필요한 컴포넌트를 찾아 둠
+        void Awake()  // 오브젝트가 생성될 때 한 번 실행 -> 필요한 컴포넌트를 찾아 둠
+        {
+            Resolve();
+        }
 
         void Resolve()  // 같은 오브젝트에 붙어 있는 컴포넌트들을 찾아서 변수에 저장하는 함수 -> 이미 찾은 것은 건너뜀
         {
@@ -127,7 +146,10 @@ namespace Promotion.Gameplay
             _deploy.deployRows = stage.deployRows;  // 아군 기물을 놓을 수 있는 아래쪽 줄 수 설정
         }
 
-        public bool KingPlaced => _state.FindObjective(Team.Player) != null;    // 보드 위에 플레이어 킹이 놓여 있는지 여부 -> 킹이 없으면 스테이지를 시작할 수 없음
+        public bool KingPlaced    // 보드 위에 플레이어 킹이 놓여 있는지 여부 -> 킹이 없으면 스테이지를 시작할 수 없음
+        {
+            get { return _state.FindObjective(Team.Player) != null; }
+        }
 
         public void BeginStage()    // 스테이지를 처음 상태(배치 단계)로 시작하는 함수 -> 재시작할 때도 사용
         {
@@ -194,7 +216,7 @@ namespace Promotion.Gameplay
             while (WavesSent < TotalWaves && stage.waves[WavesSent].spawnOnTurn <= _turn.Turn)
             // 아직 안 나온 웨이브 중 등장 턴이 지금 턴 이하인 것을 모두 소환 -> 누구든 움직이기 전에 등장함
             {
-                _spawner.Spawn(stage.waves[WavesSent]); // 웨이브의 적들을 보드 위쪽에 소환하고
+                _spawner.Spawn(stage.waves[WavesSent], ExtraEnemies, RunState.Instance.StageIndex + 1); // 웨이브의 적들을 보드 위쪽에 소환하고 (런 진행에 따라 적이 더 나옴)
                 WavesSent++;    // 소환한 웨이브 수 +1
                 RefreshEnemyCount();
                 StateChanged?.Invoke();
@@ -223,6 +245,13 @@ namespace Promotion.Gameplay
 
             _turn.BeginPlayerTurn();    // 승패가 안 났다면 다음 플레이어 턴 시작(턴 수 +1, AP 다시 지급)
             StateChanged?.Invoke();
+        }
+
+        public void DebugFinish(TurnPhase outcome, string reason)  // 개발자 도구에서 스테이지를 원하는 결과로 즉시 끝내는 함수
+        // -> 실제 판정과 같은 Finish를 거치므로 끝난 이유(체크메이트 등)까지 HUD에 그대로 표시됨
+        {
+            StopAllCoroutines();    // 진행 중인 적 턴/응수 처리를 멈춤 -> 처리 도중 결과를 덮어쓰지 못하게
+            Finish(outcome, reason);
         }
 
         void Finish(TurnPhase outcome, string reason = "")  // 스테이지를 승리 또는 패배로 끝내는 함수 -> reason에는 끝난 이유를 넣음
@@ -413,14 +442,16 @@ namespace Promotion.Gameplay
         }
 
         PieceDefinition FirstPromotionChoice()  // 프로모션 선택지 중 첫 번째 기물을 돌려주는 함수(없으면 null)
-            => stage.promotionChoices != null && stage.promotionChoices.Length > 0 ? stage.promotionChoices[0] : null;
+        {
+            return stage.promotionChoices != null && stage.promotionChoices.Length > 0 ? stage.promotionChoices[0] : null;
+        }
 
         public bool SpawnNextWaveNow()  // 다음 웨이브를 등장 턴을 기다리지 않고 바로 소환하는 함수 -> DevTools(F7)에서 사용
         {
             if (WavesSent >= TotalWaves)    // 남은 웨이브가 없다면 false 반환
                 return false;
 
-            _spawner.Spawn(stage.waves[WavesSent]); // 다음 웨이브를 소환하고
+            _spawner.Spawn(stage.waves[WavesSent], ExtraEnemies, RunState.Instance.StageIndex + 1); // 다음 웨이브를 소환하고
             WavesSent++;    // 소환한 웨이브 수 +1
             RefreshEnemyCount();
             StateChanged?.Invoke();

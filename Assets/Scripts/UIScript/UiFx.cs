@@ -8,7 +8,10 @@ namespace Promotion.UI
     public static class UiFx  // UI 전용 연출(트윈) 함수 모음 -> UI 스크립트는 PrimeTween을 직접 쓰지 않고 이 함수들을 호출함
     // -> 연출 시간·세기 같은 수치는 TweenPresets 에셋에 있어서 인스펙터에서 조정 가능
     {
-        static Feel.TweenPresets P => Feel.Fx.P;  // 연출 수치가 들어 있는 TweenPresets 에셋을 짧게 부르기 위한 속성
+        static Feel.TweenPresets P  // 연출 수치가 들어 있는 TweenPresets 에셋을 짧게 부르기 위한 속성
+        {
+            get { return Feel.Fx.P; }
+        }
 
         public static Tween BackdropIn(CanvasGroup group, float targetAlpha = 1f)  // 어두운 배경을 서서히 나타나게 하는 함수
         {
@@ -17,7 +20,9 @@ namespace Promotion.UI
         }
 
         public static Tween BackdropOut(CanvasGroup group)  // 어두운 배경을 서서히 사라지게 하는 함수
-            => Tween.Alpha(group, 0f, P.uiBackdropFade, Ease.InQuad);
+        {
+            return Tween.Alpha(group, 0f, P.uiBackdropFade, Ease.InQuad);
+        }
 
         public static Sequence PanelIn(RectTransform panel, CanvasGroup group)  // 패널(창)이 커지면서 나타나는 연출 함수
         {
@@ -66,26 +71,36 @@ namespace Promotion.UI
         }
 
         public static void Press(Transform target)  // 눌렀을 때 작아지는 연출 함수
-            => Tween.Scale(target, Vector3.one * P.uiPressScale, P.uiPressDuration, Ease.OutQuad);
+        {
+            Tween.Scale(target, Vector3.one * P.uiPressScale, P.uiPressDuration, Ease.OutQuad);
+        }
 
         public static void Release(Transform target, bool hovered)  // 뗐을 때 크기를 되돌리는 연출 함수
-            => Tween.Scale(target, Vector3.one * (hovered ? P.uiHoverScale : 1f),
+        {
+            Tween.Scale(target, Vector3.one * (hovered ? P.uiHoverScale : 1f),
                 P.uiPressDuration, Ease.OutQuad);  // 마우스가 아직 위에 있으면 떠오른 크기, 아니면 원래 크기로
+        }
 
         public static void Punch(Transform target)  // 클릭했을 때 톡 튀는(크기가 출렁이는) 연출 함수
-            => Tween.PunchScale(target, new ShakeSettings(
+        {
+            Tween.PunchScale(target, new ShakeSettings(
                 P.uiPunchStrength, P.uiPunchDuration, P.uiPunchFrequency));
+        }
 
         public static void Deny(Transform target)  // 거절 연출 함수 -> 좌우로 흔들어서 "할 수 없음"을 알림 (예: 골드 부족)
-            => Tween.ShakeLocalPosition(target, new ShakeSettings(
+        {
+            Tween.ShakeLocalPosition(target, new ShakeSettings(
                 P.uiDenyShake, P.uiDenyDuration, P.uiDenyFrequency));
+        }
 
         public static Tween CountTo(TMP_Text label, int from, int to, string format = "{0}")  // 숫자가 from에서 to까지 차르륵 바뀌는 연출 함수 (골드 표시 등)
-            => Tween.Custom(from, to, P.uiCountDuration, value =>  // 시간에 따라 from → to 사이 값을 계속 받아서
+        {
+            return Tween.Custom(from, to, P.uiCountDuration, value =>  // 시간에 따라 from → to 사이 값을 계속 받아서
             {
                 if (label != null)  // 텍스트 UI가 아직 남아 있다면 (화면이 닫혀 사라졌을 수 있음)
                     label.text = string.Format(format, Mathf.RoundToInt(value));  // 정수로 반올림해서 형식에 맞춰 표시
             }, Ease.OutQuad);
+        }
 
         public static Tween FlashColor(TMP_Text label, Color flash, Color back)  // 글자 색을 잠깐 번쩍 바꿨다가 원래 색으로 돌리는 연출 함수
         {

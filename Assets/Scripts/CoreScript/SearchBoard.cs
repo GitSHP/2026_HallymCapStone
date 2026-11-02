@@ -23,7 +23,10 @@ namespace Promotion.Core
 
         public int Width { get; }   // 보드 가로 칸 수
         public int Height { get; }   // 보드 세로 칸 수
-        public IReadOnlyList<Piece> AllPieces => _pieces;   // 기물 목록을 읽기 전용으로 공개
+        public IReadOnlyList<Piece> AllPieces   // 기물 목록을 읽기 전용으로 공개
+        {
+            get { return _pieces; }
+        }
 
         public SearchBoard(int width, int height)   // 주어진 크기의 빈 보드를 만드는 생성자
         {
@@ -51,12 +54,21 @@ namespace Promotion.Core
             return piece;
         }
 
-        public bool IsInside(Coord c) => c.x >= 0 && c.y >= 0 && c.x < Width && c.y < Height;   // 좌표가 보드 안쪽인지 확인하는 함수
+        public bool IsInside(Coord c)   // 좌표가 보드 안쪽인지 확인하는 함수
+        {
+            return c.x >= 0 && c.y >= 0 && c.x < Width && c.y < Height;
+        }
 
-        public Piece GetPiece(Coord c) => IsInside(c) ? _grid[c.x, c.y] : null;   // 그 칸의 기물을 돌려주는 함수 (보드 밖이면 null)
+        public Piece GetPiece(Coord c)   // 그 칸의 기물을 돌려주는 함수 (보드 밖이면 null)
+        {
+            return IsInside(c) ? _grid[c.x, c.y] : null;
+        }
 
-        public Piece Mirror(Piece original) => original == null ? null : GetPiece(original.Coord);
+        public Piece Mirror(Piece original)
         // 실제 보드의 기물과 같은 칸에 있는 복사 보드의 기물을 찾는 함수 -> 원본 기물과 복사본 기물을 연결할 때 사용
+        {
+            return original == null ? null : GetPiece(original.Coord);
+        }
 
         public Piece FindKing(Team team)   // 그 진영의 킹을 찾는 함수 -> 없으면 null
         {
