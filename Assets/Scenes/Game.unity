@@ -4210,7 +4210,6 @@ GameObject:
   - component: {fileID: 1641209541}
   - component: {fileID: 1641209540}
   - component: {fileID: 1641209539}
-  - component: {fileID: 1641209538}
   - component: {fileID: 1641209547}
   - component: {fileID: 1641209546}
   - component: {fileID: 1641209545}
@@ -4278,28 +4277,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1641209538
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1641209534}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cfcdfcbc260ace540a2933b3c9c080ae, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Gameplay.DebugStageSetup
-  placements:
-  - definition: {fileID: 11400000, guid: 9a27053adb279ae4ca9ef6b909d2b154, type: 2}
-    team: 1
-    coord: {x: 3, y: 4}
-  - definition: {fileID: 11400000, guid: 9a27053adb279ae4ca9ef6b909d2b154, type: 2}
-    team: 1
-    coord: {x: 1, y: 5}
-  - definition: {fileID: 11400000, guid: 9a27053adb279ae4ca9ef6b909d2b154, type: 2}
-    team: 1
-    coord: {x: 6, y: 3}
 --- !u!114 &1641209539
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4354,7 +4331,6 @@ MonoBehaviour:
   phaseDelay: 0.35
   enemyResolveDelay: 0.5
   duelSettleDelay: 0.35
-  logAIDecisions: 0
 --- !u!114 &1641209543
 MonoBehaviour:
   m_ObjectHideFlags: 0

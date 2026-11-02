@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Promotion.Core
 {
-    public enum AIDecisionKind   // AI가 그 수를 고른 이유 -> 난이도를 조정할 때 로그로 확인하기 위함
+    public enum AIDecisionKind   // AI가 그 수를 고른 이유
     {
         Mate,   // 체크메이트(승리) 수를 찾아서 둠
         Opening,   // 게임 초반이라 무난한 시작 수(중앙 폰 전진, 기물 꺼내기)를 둠

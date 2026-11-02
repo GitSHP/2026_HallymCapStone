@@ -85,11 +85,9 @@ namespace Promotion.Gameplay
             var run = RunState.Instance;
             run.AdvanceStage(); // 스테이지 번호를 다음으로 올림
 
-            if (string.IsNullOrWhiteSpace(nextSceneName))   // 다음 씬 이름이 비어 있다면 이동하지 않고 현재 상태만 로그로 남김
+            if (string.IsNullOrWhiteSpace(nextSceneName))   // 다음 씬 이름이 비어 있다면 설정 실수이므로 경고만 남기고 이동하지 않음
             {
-                Debug.Log($"[ShopLauncher] Shop confirmed → stage {run.StageIndex + 1}. " +
-                          $"Gold {run.Gold}, deck {run.Deck.Count}, artifacts {run.Artifacts.Count}. " +
-                          "Set nextSceneName once the stage-select scene exists.");
+                Debug.LogWarning("[ShopLauncher] nextSceneName is empty - staying in this scene.");
                 return;
             }
 

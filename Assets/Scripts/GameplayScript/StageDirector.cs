@@ -13,7 +13,7 @@ namespace Promotion.Gameplay
     // 일반 스테이지: 마지막 웨이브까지 다 나온 뒤 적이 전멸하면 승리, 적이 킹 칸에 들어오면 패배
     // 체스 대결(최종전): 적 킹을 체크메이트하면 승리, 그 밖의 종료(내가 체크메이트, 스테일메이트, 수 제한 초과)는 패배
     {
-        [Tooltip("비워 두면 DebugStageSetup의 배치에서 스테이지를 만들어 낸다.")]
+        [Tooltip("이 씬을 직접 열었을 때 쓰는 스테이지다. 맵에서 들어오면 맵이 고른 스테이지로 바뀐다.")]
         public StageDefinition stage;   // 현재 진행할 스테이지 데이터(웨이브, AP, 배치 줄 수 등이 들어있는 에셋)
 
         [Header("진행 속도")]
@@ -23,8 +23,6 @@ namespace Promotion.Gameplay
         [Header("체스 대결")]
         [Tooltip("수를 둔 뒤 규칙을 판정하기 전의 대기 시간. 수가 놓이는 장면이 보이게 한다.")]
         public float duelSettleDelay = 0.35f;   // 체스 대결에서 수를 둔 뒤 판정 전까지 기다리는 시간(초)
-        [Tooltip("난이도 조정을 위해 AI의 모든 선택을 콘솔에 기록한다.")]
-        public bool logAIDecisions; // 체크하면 상대(컴퓨터)가 고른 수를 매번 콘솔에 출력함 -> 난이도 조정용
 
         public event Action StateChanged;   // 턴, 단계, 적 수 등 스테이지 상태가 바뀔 때 발생하는 이벤트 -> HUD가 화면을 갱신함
 
@@ -67,7 +65,6 @@ namespace Promotion.Gameplay
         EnemyMover _mover;  // 적 턴에 적들을 킹 쪽으로 한 칸씩 움직이는 컴포넌트
         CombatResolver _combat; // 잡기(상대 기물이 있는 칸으로 들어가 차지하기)를 처리하는 컴포넌트
         DeployController _deploy;   // 배치 단계와 전투 중 기물 소환을 담당하는 컴포넌트
-        DebugStageSetup _debugSetup;    // 테스트용 시작 배치 정보(스테이지 에셋이 없을 때 대신 사용)
         PieceRegistry _registry;    // 기물 데이터(Piece)와 화면 오브젝트(PieceView)를 짝지어 관리하는 컴포넌트
         DragController _drag;   // 플레이어가 기물을 드래그해서 움직이는 것을 처리하는 컴포넌트
         BoardGrid _grid;    // 격자 좌표 <-> 월드 좌표 변환을 담당하는 컴포넌트
@@ -95,7 +92,6 @@ namespace Promotion.Gameplay
             if (_mover == null) _mover = GetComponent<EnemyMover>();
             if (_combat == null) _combat = GetComponent<CombatResolver>();
             if (_deploy == null) _deploy = GetComponent<DeployController>();
-            if (_debugSetup == null) _debugSetup = GetComponent<DebugStageSetup>();
             if (_registry == null) _registry = GetComponent<PieceRegistry>();
             if (_drag == null) _drag = GetComponent<DragController>();
             if (_grid == null) _grid = GetComponent<BoardGrid>();
@@ -105,14 +101,17 @@ namespace Promotion.Gameplay
         {
             Resolve();  // 필요한 컴포넌트를 다시 한 번 확인
 
-            yield return null;  // 한 프레임 기다림 -> 다른 컴포넌트(DebugStageSetup 등)가 시작 보드를 먼저 배치하도록
+            yield return null;  // 한 프레임 기다림 -> 다른 컴포넌트의 Start가 먼저 끝나도록
 
             var chosen = RunState.Instance.CurrentStage;    // 맵 화면에서 고르고 들어온 스테이지를 가져옴
             if (chosen != null) // 만약 맵에서 고른 스테이지가 있다면 그 스테이지를 사용
                 stage = chosen; // -> 이 씬을 직접 열었다면 인스펙터에 지정된 스테이지를 그대로 씀
 
-            if (stage == null)  // 스테이지 데이터가 아예 없다면 테스트용 시작 배치에서 스테이지를 만들어 냄
-                stage = BuildStageFromOpeningBoard();
+            if (stage == null)  // 스테이지 데이터가 아예 없다면 진행할 수 없음
+            {
+                Debug.LogError("[StageDirector] No StageDefinition assigned.");
+                yield break;
+            }
 
             ApplyStageSettings();   // 스테이지 설정값을 각 컴포넌트에 적용하고
             BeginStage();   // 배치 단계부터 스테이지를 시작함
@@ -158,8 +157,7 @@ namespace Promotion.Gameplay
             InCheck = null;
             OutcomeReason = "";
 
-            if (stage.IsChessDuel)  // 만약 체스 대결이라면 적 기물들을 정해진 칸에 미리 배치
-                SetUpDuelBoard();
+            SetUpOpeningBoard();    // 보드를 비우고 스테이지에 정해진 시작 적을 배치 (일반 스테이지의 시작 적, 최종전의 흑 진영)
 
             _turn.ResetForStage();  // 턴을 배치 단계로 되돌리고
             _deploy.LoadDeck(BuildDeployDeck());    // 이번 스테이지에서 쓸 수 있는 기물 목록(덱)을 만들어 넘겨줌
@@ -265,7 +263,7 @@ namespace Promotion.Gameplay
 
         // ---------- 체스 대결(최종전) ----------
 
-        void SetUpDuelBoard()   // 체스 대결용 보드를 준비하는 함수 -> 보드를 비우고 적 군대만 정해진 칸에 배치함
+        void SetUpOpeningBoard()   // 스테이지 시작 보드를 준비하는 함수 -> 보드를 비우고 적만 정해진 칸에 배치함
         {
             _registry.RemoveAll();  // 보드 위의 모든 기물 제거
 
@@ -320,11 +318,6 @@ namespace Promotion.Gameplay
             var snapshot = SearchBoard.CopyOf(_state);  // 실제 보드를 복사한 계산용 보드 -> 수를 시험해 봐도 실제 보드는 바뀌지 않음
             var decision = ChessAI.ChooseMove(snapshot, Team.Enemy, profile, _rng,
                 DuelMovesPlayed - 1, FirstPromotionChoice());   // 상대가 둘 수를 고름(몇 번째 수인지, 프로모션 시 바꿀 기물도 함께 넘김)
-
-            if (logAIDecisions) // 기록 옵션이 켜져 있다면 고른 수와 점수를 콘솔에 출력
-                Debug.Log($"[ChessAI] move {DuelMovesPlayed}: {decision.move.piece?.Def.itemName} " +
-                          $"{decision.move.piece?.Coord}->{decision.move.to}  {decision.kind}, rank {decision.rank}, " +
-                          $"score {decision.score:0.00} (best {decision.bestScore:0.00})");
 
             yield return new WaitForSecondsRealtime(profile.minThinkSeconds);
             // 수는 즉시 정해지지만 고민하는 것처럼 보이도록 최소 시간만큼 기다림
@@ -462,45 +455,6 @@ namespace Promotion.Gameplay
         {
             _state.GetPiecesOf(Team.Enemy, _scratch);   // 적 기물을 모두 임시 리스트에 담고
             EnemiesOnBoard = _scratch.Count;    // 그 개수를 저장
-        }
-
-        StageDefinition BuildStageFromOpeningBoard()    // 스테이지 에셋이 없을 때 테스트용 시작 배치(DebugStageSetup)로 스테이지를 만드는 함수
-        // 아군 기물은 덱이 되고, 적 종류는 웨이브가 됨 -> 제대로 구성하려면 실제 스테이지 에셋을 지정해야 함
-        {
-            var built = ScriptableObject.CreateInstance<StageDefinition>(); // 빈 스테이지 데이터를 코드로 생성하고 기본값을 넣음
-            built.name = "Stage (derived)";
-            built.apPerTurn = 5;    // 턴당 AP 5
-            built.deployRows = 3;   // 아래 3줄에 배치 가능
-            built.spawnRows = 2;    // 위 2줄에서 적 등장
-
-            var deck = new List<PieceDefinition>(); // 아군 기물 목록
-            PieceDefinition enemy = null;   // 웨이브로 쓸 적 종류
-
-            if (_debugSetup != null && _debugSetup.placements != null)  // 테스트용 배치 정보가 있다면
-            {
-                foreach (var placement in _debugSetup.placements)   // 배치 항목을 하나씩 확인
-                {
-                    if (placement == null || placement.definition == null)  // 비어 있는 항목은 건너뜀
-                        continue;
-
-                    if (placement.team == Team.Enemy)   // 적이라면 처음 나온 적 종류를 웨이브용으로 기억
-                        enemy ??= placement.definition;
-                    else if (!placement.definition.isObjective) // 킹이 아닌 아군 기물이라면 덱에 추가
-                        deck.Add(placement.definition);
-                }
-            }
-
-            built.startingDeck = deck.ToArray();    // 모은 아군 기물을 기본 덱으로 설정
-            built.waves = enemy == null
-                ? Array.Empty<WaveDefinition>() // 적 종류가 없다면 웨이브 없음
-                : new[] // 적 종류가 있다면 2, 4, 6턴에 3, 4, 5마리씩 나오는 웨이브 3개를 만듦
-                {
-                    new WaveDefinition { spawnOnTurn = 2, enemy = enemy, count = 3 },
-                    new WaveDefinition { spawnOnTurn = 4, enemy = enemy, count = 4 },
-                    new WaveDefinition { spawnOnTurn = 6, enemy = enemy, count = 5 }
-                };
-
-            return built;
         }
     }
 }

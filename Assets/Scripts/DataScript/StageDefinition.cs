@@ -10,7 +10,7 @@ namespace Promotion.Data
     }
 
     [Serializable]
-    public class PiecePlacement // 스테이지 시작 시 특정 칸에 서 있는 기물 하나의 정보 (최종전 적 배치에 사용)
+    public class PiecePlacement // 스테이지 시작 시 특정 칸에 서 있는 기물 하나의 정보 (시작 적 배치에 사용)
     {
         public PieceDefinition piece;   // 놓을 기물의 종류
         [Tooltip("x = 파일(0 = a), y = 랭크(0 = 플레이어 쪽 맨 뒷줄).")]
@@ -55,6 +55,9 @@ namespace Promotion.Data
 
         [Tooltip("플레이어가 킹 외에 가지고 들어가는 기물이다.")]
         public PieceDefinition[] startingDeck = Array.Empty<PieceDefinition>(); // 킹 외에 전투 중 AP로 소환할 수 있는 기물 목록
+        
+        [Tooltip("스테이지 시작 때 보드에 서 있는 적과 그 위치다. 일반 스테이지의 시작 적, 최종전의 흑 진영.")]
+        public PiecePlacement[] enemyLayout = Array.Empty<PiecePlacement>();    // 시작할 때 미리 놓이는 적 기물들의 배치
 
         [Header("웨이브")]
         public WaveDefinition[] waves = Array.Empty<WaveDefinition>();  // 이 스테이지에서 몰려오는 적 웨이브 목록
@@ -82,8 +85,6 @@ namespace Promotion.Data
         public bool enemiesMoveDiagonally = true;   // true면 적이 킹에게 다가갈 때 대각선 칸도 사용함 -> 더 빨리 접근함
 
         [Header("체스 대결")]
-        [Tooltip("적(흑) 진영의 기물과 그 위치다.")]
-        public PiecePlacement[] enemyLayout = Array.Empty<PiecePlacement>();    // 최종전에서 적(흑) 기물들의 시작 배치
         [Tooltip("배치 단계에서 런 동안 모은 기물과 별도로 무료로 지급하는 폰이다.")]
         public PieceDefinition freePawn;    // 최종전 배치 단계에서 무료로 주는 폰의 종류
         [Min(0)] public int maxFreePawns = 8;   // 무료 폰을 최대 몇 개까지 줄지

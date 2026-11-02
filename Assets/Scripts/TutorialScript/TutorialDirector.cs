@@ -42,10 +42,6 @@ namespace Promotion.Tutorial
 
             RunState.Instance.CurrentStage = _script.stage; // 이번 전투를 튜토리얼 스테이지로 지정함 -> Awake는 어떤 Start보다 먼저 실행되므로 전투가 튜토리얼 스테이지로 시작됨
 
-            var debugSetup = FindAnyObjectByType<DebugStageSetup>(); // 디버그용 시작 배치가 씬에 있다면
-            if (debugSetup != null)
-                debugSetup.enabled = false; // 꺼서 튜토리얼 보드에 끼어들지 않게 함
-
             var shop = FindAnyObjectByType<ShopLauncher>(); // 승리 후 상점을 여는 컴포넌트가 있다면
             if (shop != null)
                 shop.enabled = false; // 꺼 둠 -> 튜토리얼에서 승리하면 상점이 아니라 다음 씬(지도)으로 감
