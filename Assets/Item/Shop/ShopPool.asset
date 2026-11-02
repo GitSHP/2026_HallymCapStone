@@ -30,6 +30,11 @@ MonoBehaviour:
     weight: 1
     unique: 1
     blurb: "\uC774\uD0C8\uB9AC\uC548 \uAC8C\uC784 \uC544\uD2F0\uD329\uD2B8"
+  - item: {fileID: 11400000, guid: 34eeca2a61c714c40b590154790678cb, type: 2}
+    cost: 1
+    weight: 1
+    unique: 1
+    blurb: "\uC2A4\uCF5C\uB77C\uC2A4 \uBA54\uC774\uD2B8 \uC544\uD2F0\uD329\uD2B8"
   pieces:
   - {fileID: 11400000, guid: f67a518ee14ae324484f9ab773792fbc, type: 2}
   - {fileID: 11400000, guid: 1c48c9228ef6cc14d96083af0e1804a1, type: 2}
