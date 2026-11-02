@@ -40,6 +40,7 @@ namespace Promotion.Gameplay
             LoseFromInventory(target);  // 잡히는 것이 확정된 순간 인벤토리 장부부터 정리 -> 연출이 중간에 끊겨도 장부는 정확함
             Captured?.Invoke(attacker, target); // 잡기가 확정됐음을 알림
 
+            // GameEventManager 스크립트에게 attacker가 target을 공격해 잡았다는 이벤트가 발생했다는 것을 알려줌
             var attackerView = _registry.GetView(attacker); // 공격자의 화면 오브젝트
             var targetView = _registry.GetView(target); // 대상의 화면 오브젝트
 
@@ -98,6 +99,8 @@ namespace Promotion.Gameplay
                     CaptureFinished?.Invoke(target, victimWorld);
                 });
             // 공격자가 대상에게 달려들어 부딪히고 목적지에 자리 잡는 연출 -> 부딪히는 순간 대상을 제거, 착지하는 순간 끝을 알림
+            GameEventManager.RaisePieceCaptured(attacker, target);
+            // GameEventManager 에게 attacker 가 target 을 잡았다는 것을 알려줌
 
             return true;
         }
