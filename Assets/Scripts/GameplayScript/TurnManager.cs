@@ -61,6 +61,8 @@ namespace Promotion.Gameplay
             TurnChanged?.Invoke(Turn);
             ApChanged?.Invoke(Ap, MaxAp);
             SetPhase(TurnPhase.PlayerTurn);
+            GameEventManager.RaisePlayerTurnStarted(Turn);  
+            // GameEventManager 스크립트에게 플레이어 턴 시작 이벤트가 발생했음을 알림
         }
 
         public void RefillAp()  // AP를 최대치로 다시 채우는 함수(DevTools F6용)
@@ -83,6 +85,28 @@ namespace Promotion.Gameplay
             Ap -= ApDisabled ? 1 : cost;    // 체스 대결이면 1(한 수), 아니면 비용만큼 차감
             ApChanged?.Invoke(Ap, MaxAp);   // AP가 바뀌었음을 알림 -> HUD의 AP 바 갱신
             return true;
+        }
+
+        public void GainAp(int amount)  // 아티팩트 등 외부 효과로 AP를 늘려줄 때 사용할 함수
+        {
+            if (amount <= 0)    // amout로 들어오는 양이 0보다 작거나 같으면 추가할 ap가 없으므로 함수 탈출
+            {
+                return;
+            }
+            if (Phase != TurnPhase.PlayerTurn)  // 플레이어 턴이 아닐 때 받은 AP는 다음 턴 시작 시 어차피 초기화되므로 무시
+            {
+                return;
+            }
+            if (ApDisabled) // 체스 결투(보스 스테이지 - 한 턴에 한 수) 중에는 AP를 사용하지 않으므로 함수 탈출
+            {
+                return;
+            }
+
+            Ap = Ap + amount;   // 현재 Ap에 amout의 양만큼 ap 증가
+            if (ApChanged != null)  // HUD의 AP 표시가 갱신되도록 AP가 바뀌었음을 알림
+            {
+                ApChanged.Invoke(Ap, MaxAp);
+            }
         }
     }
 }
