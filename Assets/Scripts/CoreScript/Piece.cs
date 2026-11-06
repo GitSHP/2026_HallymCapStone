@@ -16,6 +16,9 @@ namespace Promotion.Core
 
         public int Kills { get; set; }   // 이 기물이 이번 스테이지에서 잡은 적의 누적 수 -> 기준 수 이상이면 불꽃이 붙음 (KillStreakTracker가 관리)
 
+        public bool Promoted { get; set; }   // 이번 스테이지에서 폰이 프로모션해서 생긴 기물인지 여부
+        // -> 디펜스 스테이지에서 승리할 때까지 살아남으면 PromotionKeeper가 인벤토리에 영구히 넣어 줌
+
         public bool IsObjective   // 지켜야 하는 핵심 기물(킹)인지 여부 -> 킹은 잡히지 않고, 적이 그 칸에 들어오면 패배
         {
             get { return Def.isObjective; }

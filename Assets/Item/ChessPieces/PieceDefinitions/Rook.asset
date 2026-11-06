@@ -39,3 +39,7 @@ MonoBehaviour:
   enemySprite: {fileID: 1807970035, guid: b60a7a02e80929949960283b107ffcf0, type: 3}
   aiValue: 5
   canPromote: 0
+  canCastle: 1
+  enemyStepsPerTurn: 1
+  captureImmuneTo: []
+  idleAura: {fileID: 0}

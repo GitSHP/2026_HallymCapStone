@@ -13,7 +13,8 @@ namespace Promotion.Gameplay
         Selected,   // 집어 든 기물의 출발 칸(노란색)
         Move,   // 이동/배치할 수 있는 칸(초록색)
         Attack, // 잡기를 할 수 있는 칸(빨간색)
-        Blocked // 막힌 칸(회색)
+        Blocked,    // 막힌 칸(회색)
+        Castle  // 캐슬링으로 자리를 바꿀 수 있는 아군 칸(파란색)
     }
 
     public class TileView : MonoBehaviour   // 보드의 칸 하나를 화면에 그리고 강조 표시를 보여 주는 클래스
@@ -36,6 +37,7 @@ namespace Promotion.Gameplay
         static readonly Color MoveTint = new Color(0.35f, 1f, 0.45f, 0.45f);   // 이동 가능 표시 색(초록색)
         static readonly Color AttackTint = new Color(1f, 0.3f, 0.3f, 0.55f);   // 잡기 가능 표시 색(빨간색)
         static readonly Color BlockedTint = new Color(0.4f, 0.4f, 0.45f, 0.45f);   // 막힘 표시 색(회색)
+        static readonly Color CastleTint = new Color(0.35f, 0.65f, 1f, 0.55f);   // 캐슬링 표시 색(파란색)
 
         public void Init(Coord coord, Color baseColor, int sortingOrder)    // 칸의 좌표, 색, 그리기 순서를 설정하는 함수 -> 보드를 만들 때 한 번 호출
         {
@@ -114,6 +116,7 @@ namespace Promotion.Gameplay
                 case TileHighlight.Move: return MoveTint;
                 case TileHighlight.Attack: return AttackTint;
                 case TileHighlight.Blocked: return BlockedTint;
+                case TileHighlight.Castle: return CastleTint;
                 default: return Color.clear;
             }
         }

@@ -40,6 +40,8 @@ namespace Promotion.Data
         [Min(0f)] public float aiValue = 1f;    // 체스 AI가 판세를 계산할 때 쓰는 이 기물의 점수
         [Tooltip("맨 끝 랭크에 도달하면 다른 기물로 바뀐다(폰).")]
         public bool canPromote; // true면 상대편 끝 줄에 도착했을 때 프로모션(다른 기물로 승격) 가능
+        [Tooltip("디펜스 스테이지에서 같은 가로줄의 킹과 자리를 맞바꿀(캐슬링) 수 있다(룩). 둘 사이가 비어 있어야 하고 스테이지마다 한 번.")]
+        public bool canCastle;  // true면 킹과 캐슬링할 수 있는 기물 (룩)
 
         [Header("디펜스 적 전용")]
         [Tooltip("적으로 나왔을 때 한 턴에 걷는 칸 수다. 한 칸씩 나눠 걸으며, 첫 걸음에 아군을 잡으면 그 자리에서 멈춘다.")]

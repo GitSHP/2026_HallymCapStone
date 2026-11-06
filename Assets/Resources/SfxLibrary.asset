@@ -59,3 +59,12 @@ MonoBehaviour:
     - {fileID: 8300000, guid: fa51104b8c676cb46a5e11ce66456d04, type: 3}
     volume: 0.8
     pitch: {x: 0.85, y: 0.95}
+  - id: 5
+    clips:
+    - {fileID: 8300000, guid: 30ba7cc998c81484ba382c4d6bba0bb9, type: 3}
+    - {fileID: 8300000, guid: da0031e710cd71547859216000ef27ae, type: 3}
+    - {fileID: 8300000, guid: b0e6f527a328e15408d9d6eef1b3da8c, type: 3}
+    - {fileID: 8300000, guid: 2ed090d6915c05f48a0338d1557c42bc, type: 3}
+    - {fileID: 8300000, guid: 54d645c65aae34b468181144fcddc13d, type: 3}
+    volume: 0.6
+    pitch: {x: 1.05, y: 1.15}

@@ -16,6 +16,7 @@ namespace Promotion.Gameplay
         public bool chessLegality;  // true면 실제 체스 규칙으로 갈 수 있는 칸을 계산(체스 대결용)
 
         public event System.Action<Piece, Piece> CaptureBlocked;    // 잡을 수 없는 상대(면역)에게 기물을 놓았을 때 발생하는 이벤트 -> (놓은 기물, 막은 상대). '막힘!' 표시가 구독함
+        public event System.Action<Piece, Piece> Castled;   // 캐슬링 연출이 착지했을 때 발생하는 이벤트 -> (킹, 룩). 이펙트는 CastlingEffectView가 담당
         public event System.Action<Piece, Coord> MoveCommitted; // 드래그로 이동이 확정됐을 때 발생하는 이벤트 -> 움직인 기물과 도착 칸을 넘겨줌
 
         BoardGrid _grid;    // 칸 좌표 변환과 칸 강조 표시용
@@ -107,6 +108,7 @@ namespace Promotion.Gameplay
             else    // 일반 스테이지라면 기물의 행마법만으로 갈 수 있는 칸을 계산
             {
                 MoveResolver.GetLegalMoves(_state, piece, _options, _blocked);
+                AddCastleOptions(piece);    // 킹이나 룩이라면 캐슬링 칸도 후보에 더함
             }
             ShowOptions();  // 갈 수 있는 칸을 강조 표시
 
@@ -157,6 +159,12 @@ namespace Promotion.Gameplay
 
             MoveResolver.IsLegalTarget(_options, target, out var option);   // 놓은 칸의 이동 정보(잡기인지 등)를 가져옴
 
+            if (option.isCastle)    // 캐슬링이라면 두 기물의 자리를 맞바꾸고 종료
+            {
+                PerformCastle(view, target);
+                return;
+            }
+
             if (_turn != null && !_turn.TrySpend(piece.Def.moveApCost))
             // 이동 AP를 소모 -> 부족하다면 원래 자리로 되돌림
             {
@@ -178,6 +186,77 @@ namespace Promotion.Gameplay
             _state.Move(piece, target); // 보드 데이터에서 기물을 옮기고
             Fx.Drop(view.transform, _grid.CoordToWorld(target), transform, view.BaseScale); // 새 칸에 내려놓는 연출
             MoveCommitted?.Invoke(piece, target);   // 이동이 확정됐음을 알림
+        }
+
+        void AddCastleOptions(Piece piece)  // 집은 기물이 킹이나 룩이라면 캐슬링으로 자리를 바꿀 수 있는 아군 칸을 후보에 더하는 함수
+        // 조건: 같은 가로줄에 있는 킹-룩 짝, 둘 사이 칸이 모두 비어 있음, 이번 스테이지에서 아직 캐슬링을 쓰지 않음, 킹의 이동 AP를 낼 수 있음
+        {
+            if (_turn == null || _turn.CastledThisStage)    // 이번 스테이지에서 이미 썼다면 후보 없음
+                return;
+
+            bool isKing = piece.IsObjective;
+            if (!isKing && !piece.Def.canCastle)    // 킹도 룩도 아니라면 해당 없음
+                return;
+
+            var king = isKing ? piece : _state.FindObjective(piece.Team);
+            if (king == null || !_turn.CanAfford(king.Def.moveApCost))  // 킹이 없거나 킹 이동 AP가 모자라면 불가
+                return;
+
+            for (int x = 0; x < _state.Width; x++)  // 같은 가로줄의 칸을 모두 확인
+            {
+                var other = _state.GetPiece(new Coord(x, piece.Coord.y));
+                if (other == null || other == piece || other.Team != piece.Team)
+                    continue;
+
+                bool pair = isKing ? other.Def.canCastle : other == king;   // 킹을 집었다면 룩을, 룩을 집었다면 킹을 찾음
+                if (!pair || !RowClearBetween(piece.Coord, other.Coord))
+                    continue;
+
+                _options.Add(new MoveOption(other.Coord, false) { isCastle = true });
+            }
+        }
+
+        bool RowClearBetween(Coord a, Coord b)  // 같은 가로줄의 두 칸 사이가 모두 비어 있는지 확인하는 함수
+        {
+            int step = b.x > a.x ? 1 : -1;
+            for (int x = a.x + step; x != b.x; x += step)
+            {
+                if (_state.GetPiece(new Coord(x, a.y)) != null)
+                    return false;
+            }
+            return true;
+        }
+
+        void PerformCastle(PieceView view, Coord target)    // 집은 기물과 target 칸의 기물(킹-룩)의 자리를 맞바꾸는 함수 -> 킹의 이동 AP를 씀
+        {
+            var piece = view.Piece;
+            var partner = _state.GetPiece(target);
+            var king = piece.IsObjective ? piece : partner;
+
+            if (partner == null || !_turn.TrySpend(king.Def.moveApCost))    // AP를 낼 수 없다면 원래 자리로 되돌림
+            {
+                Fx.Drop(view.transform, _grid.CoordToWorld(_dragOrigin), transform, view.BaseScale);
+                return;
+            }
+
+            _state.Swap(piece, partner);    // 보드 데이터에서 두 기물의 자리를 바꾸고
+            _turn.MarkCastled();    // 이번 스테이지에서는 더 쓸 수 없게 기록
+
+            var rook = piece == king ? partner : piece;
+            var partnerView = _registry.GetView(partner);
+            if (partnerView != null)    // 두 기물이 동시에 서로의 칸으로 건너가고, 착지하는 순간 이펙트를 알림
+            {
+                Fx.CastleSwap(view.transform, _grid.CoordToWorld(piece.Coord), view.BaseScale,
+                    partnerView.transform, _grid.CoordToWorld(partner.Coord), partnerView.BaseScale,
+                    transform, () => Castled?.Invoke(king, rook));
+            }
+            else    // 상대 오브젝트가 없다면 집은 기물만 내려놓음
+            {
+                Fx.Drop(view.transform, _grid.CoordToWorld(piece.Coord), transform, view.BaseScale);
+                Castled?.Invoke(king, rook);
+            }
+
+            MoveCommitted?.Invoke(piece, piece.Coord);
         }
 
         bool KillOutright(Piece victim) // CombatResolver 없이 대상을 바로 제거하는 함수 -> 제거했으면 true
@@ -213,8 +292,10 @@ namespace Promotion.Gameplay
                 if (tile == null)
                     continue;
 
-                tile.SetHighlight(_options[i].isCapture ? TileHighlight.Attack : TileHighlight.Move, i);
-                // 잡기 칸은 공격 색, 빈 칸은 이동 색으로 표시(i번째 순서만큼 늦게 켜짐)
+                var highlight = _options[i].isCastle ? TileHighlight.Castle
+                    : _options[i].isCapture ? TileHighlight.Attack : TileHighlight.Move;
+                tile.SetHighlight(highlight, i);
+                // 캐슬링 칸은 파란색, 잡기 칸은 공격 색, 빈 칸은 이동 색으로 표시(i번째 순서만큼 늦게 켜짐)
             }
         }
     }

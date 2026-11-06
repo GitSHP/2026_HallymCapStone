@@ -195,6 +195,16 @@ MonoBehaviour:
     storyFrame: {fileID: 0}
     coverBoard: 0
     focus: 3
+  - text: "\uCC38, \uB8E9\uC744 \uB370\uB824\uAC00\uBA74 \uD0B9\uACFC \uC790\uB9AC\uB97C
+      \uBC14\uAFB8\uB294 '\uCE90\uC2AC\uB9C1'\uB3C4 \uC4F8 \uC218 \uC788\uC5B4\uC694.\n\uC2A4\uD14C\uC774\uC9C0\uB9C8\uB2E4
+      \uD55C \uBC88\uBFD0\uC774\uB2C8, \uC704\uAE09\uD560 \uB54C \uB5A0\uC62C\uB824
+      \uBCF4\uC138\uC694!"
+    wait: 0
+    action: 0
+    portrait: {fileID: 0}
+    storyFrame: {fileID: 0}
+    coverBoard: 0
+    focus: 3
   - text: "\uB9C8\uC74C\uC5D0 \uB4DC\uB294 \uAE30\uBB3C\uC744 \uD558\uB098 \uB20C\uB7EC\uC11C
       \uC0AC \uBCF4\uC138\uC694."
     wait: 5

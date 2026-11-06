@@ -182,6 +182,11 @@ namespace Promotion.Feel
         public float blockedFade = 0.3f;    // "막힘!" 글자가 사라지는 시간
         public float blockedRise = 0.35f;   // 사라지면서 떠오르는 높이(월드 단위)
 
+        [Header("캐슬링")]
+        public float castleSwapDuration = 0.2f; // 킹과 룩이 서로의 칸으로 휙 건너가는 시간
+        public float castleHopScale = 1.18f;    // 건너가는 동안 살짝 커지는 배율 (뛰어오르는 느낌)
+        public float castleShake = 1.4f;    // 착지 순간 체스판 흔들림 세기 배율 (1 = 일반 착지)
+
         [Header("전역")]
         public float hitStopDuration = 0.08f;   // 타격 순간 시간이 거의 멈추는 '히트 스톱'의 길이 -> 타격감을 줌
     }

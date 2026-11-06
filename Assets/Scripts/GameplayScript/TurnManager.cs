@@ -23,6 +23,18 @@ namespace Promotion.Gameplay
 
         public bool ApDisabled { get; private set; }    // true면 AP 비용을 무시하고 "한 턴에 한 수"로만 계산(체스 대결용)
 
+        public bool CastledThisStage { get; private set; }  // 이번 스테이지에서 캐슬링을 이미 썼는지 여부 -> 스테이지마다 한 번만 가능
+
+        public void MarkCastled()   // 캐슬링을 썼다고 기록하는 함수 (DragController가 캐슬링을 실행한 뒤 호출)
+        {
+            CastledThisStage = true;
+        }
+
+        public void ResetCastling() // 캐슬링 사용 기록을 지우는 함수 (DevTools 캐슬링 테스트용)
+        {
+            CastledThisStage = false;
+        }
+
         public void Configure(int apPerTurn)    // 일반 스테이지용 설정 -> 한 턴에 받는 AP를 정하는 함수
         {
             ApDisabled = false;
@@ -39,6 +51,7 @@ namespace Promotion.Gameplay
         {
             Turn = 0;
             Ap = 0;
+            CastledThisStage = false;   // 새 스테이지에서는 캐슬링을 다시 쓸 수 있음
             Phase = TurnPhase.Deploy;
             PhaseChanged?.Invoke(Phase);    // 바뀐 정보를 모두 알림 -> HUD가 처음 상태로 갱신됨
             TurnChanged?.Invoke(Turn);

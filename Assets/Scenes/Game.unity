@@ -4988,6 +4988,8 @@ GameObject:
   - component: {fileID: 1641209552}
   - component: {fileID: 1641209553}
   - component: {fileID: 1641209554}
+  - component: {fileID: 1641209555}
+  - component: {fileID: 1641209556}
   m_Layer: 0
   m_Name: Board
   m_TagString: Untagged
@@ -5263,6 +5265,33 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Promotion.Gameplay.CaptureBlockedView
   _popupPrefab: {fileID: 6670477948495630386, guid: 69f784f041c700e429fd841b65609bf4, type: 3}
   _offsetY: 0.55
+--- !u!114 &1641209555
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1641209534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1af37aba6a080a4eaf0c6e70073b5a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Gameplay.PromotionKeeper
+--- !u!114 &1641209556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1641209534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eadeddd1ffc490a45966d7b1243dd538, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Gameplay.CastlingEffectView
+  _burstPrefab: {fileID: 232602586891157604, guid: fa4053dea0f5de543b7b80afae1d545f, type: 3}
+  _popupPrefab: {fileID: 7269252503486452256, guid: 46a06a6aba7cd7e4694304b20b59596e, type: 3}
+  _offsetY: 0.6
 --- !u!224 &1654191732 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4338673652353332066, guid: a8f79e7cc048bdd41924cb69112d64e3, type: 3}

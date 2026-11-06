@@ -52,5 +52,9 @@ MonoBehaviour:
   freePawn: {fileID: 0}
   maxFreePawns: 8
   moveLimit: 100
-  promotionChoices: []
+  promotionChoices:
+  - {fileID: 11400000, guid: d78b5575554df5742a56e92de4d2e10f, type: 2}
+  - {fileID: 11400000, guid: 9ec2daed356162a47bb402d293a0c8a9, type: 2}
+  - {fileID: 11400000, guid: 54f87a6fd608e8241ae3ae1dd82ee643, type: 2}
+  - {fileID: 11400000, guid: 1c48c9228ef6cc14d96083af0e1804a1, type: 2}
   aiProfile: {fileID: 0}

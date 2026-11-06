@@ -210,7 +210,8 @@ namespace Promotion.UI
                     : "킹을 배치해야 시작합니다 - 인벤토리 기물 칸에서 킹을 고르세요")
                 : "턴 " + _turn.Turn
                   + "   |   웨이브 " + _director.WavesSent + "/" + _director.TotalWaves
-                  + "   |   적 " + _director.EnemiesOnBoard;
+                  + "   |   적 " + _director.EnemiesOnBoard
+                  + (_director.AwaitingPromotion ? "   |   승격할 기물을 고르세요" : "");
 
             // AP 표시: 배치 단계에서는 기물을 무료로 놓으므로 "무료", 전투 중에는 현재 AP / 최대 AP
             _ap.text = _turn.Phase == TurnPhase.Deploy
@@ -222,9 +223,9 @@ namespace Promotion.UI
 
             if (!over)  // 만약 아직 진행 중이라면 -> 행동 버튼의 상태와 글자를 단계에 맞게 설정
             {
-                bool interactable = _turn.Phase == TurnPhase.PlayerTurn
+                bool interactable = (_turn.Phase == TurnPhase.PlayerTurn && !_director.AwaitingPromotion)
                                     || (_turn.Phase == TurnPhase.Deploy && _director.KingPlaced);
-                // 버튼을 누를 수 있는 경우: 플레이어 턴이거나, 배치 단계에서 킹을 이미 놓았을 때 (킹 없이는 시작 불가)
+                // 버튼을 누를 수 있는 경우: 플레이어 턴이거나(승격 선택 중 제외), 배치 단계에서 킹을 이미 놓았을 때 (킹 없이는 시작 불가)
                 _action.interactable = interactable;
                 _action.image.color = interactable ? ButtonIdle : ButtonOff;  // 누를 수 없으면 어두운 색
 

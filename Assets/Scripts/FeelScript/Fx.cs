@@ -275,6 +275,31 @@ namespace Promotion.Feel
                 });
         }
 
+        public static Sequence CastleSwap(Transform first, Vector3 firstTarget, float firstScale,
+            Transform second, Vector3 secondTarget, float secondScale, Transform boardRoot, Action onLanded)
+        // 캐슬링 연출 함수 -> 두 기물이 동시에 살짝 커지며 서로의 칸으로 휙 건너간 뒤 '쾅' 착지함
+        // -> 착지하는 순간 onLanded(이펙트·글자·소리)를 호출함
+        {
+            float half = P.castleSwapDuration * 0.5f;
+            if (first.localRotation != Quaternion.identity) // 드래그로 기울어진 기물을 바로 세움 (CaptureAdvance와 같은 방식)
+                Tween.LocalRotation(first, Quaternion.identity, half, Ease.OutQuad);
+            return Sequence.Create()
+                .Group(Tween.LocalPosition(first, ToLocal(first, firstTarget), P.castleSwapDuration, Ease.InOutCubic))
+                .Group(Tween.LocalPosition(second, ToLocal(second, secondTarget), P.castleSwapDuration, Ease.InOutCubic))
+                .Group(Sequence.Create(Tween.Scale(first, firstScale * P.castleHopScale, half, Ease.OutQuad))  // 건너가는 앞 절반 동안 커졌다가
+                    .Chain(Tween.Scale(first, firstScale, half, Ease.InQuad)))    // 뒤 절반 동안 원래 크기로 돌아오며 착지
+                .Group(Sequence.Create(Tween.Scale(second, secondScale * P.castleHopScale, half, Ease.OutQuad))
+                    .Chain(Tween.Scale(second, secondScale, half, Ease.InQuad)))
+                .ChainCallback(() =>    // 착지하는 순간
+                {
+                    Tween.PunchScale(first, new ShakeSettings(P.dropPunchStrength, P.dropPunchDuration, P.dropPunchFrequency));
+                    Tween.PunchScale(second, new ShakeSettings(P.dropPunchStrength, P.dropPunchDuration, P.dropPunchFrequency));
+                    if (boardRoot != null)
+                        ShakeBoard(boardRoot, P.castleShake);   // 일반 착지보다 세게 흔들고
+                    onLanded?.Invoke();
+                });
+        }
+
         public static void HitFlash(SpriteRenderer sr, Color baseColor) // 맞은 기물이 빨갛게 번쩍이며 부르르 떨리는 연출 함수
         {
             Tween.Color(sr, P.hitFlashColor, P.hitFlashDuration, Ease.OutQuad, cycles: 2,
@@ -298,6 +323,11 @@ namespace Promotion.Feel
         // -> 화면에서는 불티가 사방으로 튀면서 기물이 '화르륵' 커졌다 돌아오고 체스판이 약하게 흔들림
         {
             Tween.Delay(P.fireIgniteDelay, () => IgniteWhenIdle(piece, boardRoot, baseScale, onIgnite, 0));
+        }
+
+        public static bool IsAnimating(Transform t)  // 그 오브젝트에 아직 재생 중인 연출이 있는지 확인하는 함수 (연출이 끝난 뒤에 할 일을 기다릴 때 사용)
+        {
+            return t != null && Tween.GetTweensCount(t) > 0;
         }
 
         static void IgniteWhenIdle(Transform piece, Transform boardRoot, float baseScale, Action onIgnite, int tries)

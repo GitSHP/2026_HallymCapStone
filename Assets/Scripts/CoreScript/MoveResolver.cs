@@ -8,11 +8,13 @@ namespace Promotion.Core
     {
         public Coord target;   // 도착할 칸
         public bool isCapture;   // 그 칸으로 가면 상대 기물을 잡는지 여부 (하이라이트 색 구분에 사용)
+        public bool isCastle;   // 그 칸의 아군 기물(킹 또는 룩)과 자리를 맞바꾸는 캐슬링인지 여부 (디펜스 스테이지 전용)
 
         public MoveOption(Coord target, bool isCapture)   // 도착 칸과 잡기 여부로 이동 후보를 만드는 생성자
         {
             this.target = target;
             this.isCapture = isCapture;
+            isCastle = false;
         }
     }
 

@@ -139,6 +139,7 @@ namespace Promotion.Gameplay
             _deploy.deployAllAtSetup = false;   // 배치 단계에서는 킹만 놓을 수 있음
             _deploy.summonDuringBattle = true;  // 나머지 기물은 전투 중 AP를 써서 소환
             _drag.chessLegality = false;    // 체크 같은 체스 규칙 검사는 하지 않음
+            _drag.MoveCommitted += OnPlayerMoved;   // 플레이어가 기물을 움직이면 OnPlayerMoved가 호출되도록 연결 -> 폰이 맨 윗줄에 닿으면 프로모션
             _turn.Configure(stage.apPerTurn);   // 한 턴에 받는 AP(행동력) 설정
             _spawner.spawnRows = stage.spawnRows;   // 적이 나타나는 위쪽 줄 수 설정
             _mover.moveDiagonally = stage.enemiesMoveDiagonally;    // 적이 대각선으로도 움직일 수 있는지 설정
@@ -287,12 +288,44 @@ namespace Promotion.Gameplay
             }
         }
 
-        void OnPlayerMoved(Piece piece, Coord to)   // 체스 대결에서 플레이어가 수를 하나 뒀을 때 발생하는 이벤트
+        void OnPlayerMoved(Piece piece, Coord to)   // 플레이어가 기물을 하나 움직였을 때 발생하는 이벤트
+        // 체스 대결: 상대(컴퓨터)가 응수함 / 일반 스테이지: 폰이 맨 윗줄에 닿았다면 프로모션
         {
-            if (!IsChessDuel || _resolving || _turn.IsOver) // 체스 대결이 아니거나, 이미 처리 중이거나, 스테이지가 끝났다면 무시
+            if (_resolving || _turn.IsOver) // 이미 처리 중이거나, 스테이지가 끝났다면 무시
                 return;
 
+            if (!IsChessDuel)   // 일반 스테이지라면 프로모션 조건만 확인
+            {
+                if (PromotionChoices.Count > 0 && ChessRules.IsPromotion(_state, piece, to))
+                    StartCoroutine(PromoteInDefense(piece));
+                return;
+            }
+
             StartCoroutine(DuelReply(piece));   // 상대(컴퓨터)의 응수 처리를 시작
+        }
+
+        IEnumerator PromoteInDefense(Piece pawn)    // 일반 스테이지에서 폰이 맨 윗줄에 닿았을 때 프로모션을 처리하는 코루틴
+        // -> 이동·잡기 연출이 끝난 뒤 선택창을 띄우고, 고르는 동안 보드 조작과 턴 종료를 막음
+        {
+            _resolving = true;  // 처리 중 표시 -> 그동안 턴 종료 요청을 무시함
+            InputGate.Push();   // 고르는 동안 다른 기물을 움직이지 못하게 막음
+            StateChanged?.Invoke();
+
+            yield return new WaitForSecondsRealtime(duelSettleDelay);   // 폰이 칸에 놓이는 장면이 보이도록 대기
+            var view = _registry.GetView(pawn);
+            float waited = 0f;
+            while (view != null && Fx.IsAnimating(view.transform) && waited < 1.5f)    // 잡기 돌진 같은 연출이 남아 있다면 끝날 때까지 기다림
+            {
+                waited += Time.unscaledDeltaTime;
+                yield return null;
+            }
+
+            if (!_turn.IsOver && _state.GetPiece(pawn.Coord) == pawn)   // 그사이 스테이지가 끝나지 않았고 폰이 그대로라면 프로모션
+                yield return PromotePlayer(pawn);
+
+            InputGate.Pop();
+            _resolving = false;
+            StateChanged?.Invoke();
         }
 
         IEnumerator DuelReply(Piece playerPiece)    // 플레이어가 수를 둔 뒤의 처리 전체를 담당하는 코루틴
@@ -430,8 +463,25 @@ namespace Promotion.Gameplay
             }
 
             if (_promotionPick != null) // 고른 기물로 교체
-                _registry.Replace(piece, _promotionPick);
+            {
+                var view = _registry.Replace(piece, _promotionPick);
+                if (!IsChessDuel && view != null)   // 일반 스테이지라면 살아남았을 때 인벤토리에 넣을 수 있도록 표시
+                    MarkPromoted(piece, view.Piece);
+            }
             StateChanged?.Invoke();
+        }
+
+        static void MarkPromoted(Piece pawn, Piece promoted)  // 프로모션으로 생긴 기물에 표시를 남기는 함수 (일반 스테이지)
+        // -> 승리할 때까지 살아남으면 PromotionKeeper가 인벤토리에 넣어 줌
+        {
+            promoted.Promoted = true;
+            promoted.Kills = pawn.Kills;    // 폰이 쌓은 누적 킬은 이어서 셈
+
+            if (pawn.Owned) // 인벤토리에서 꺼낸 폰이었다면 -> 폰은 이제 없어졌으므로 인벤토리에서도 지움
+            {
+                pawn.Owned = false;
+                RunState.Instance.RemovePiece(pawn.Def);
+            }
         }
 
         public void ChoosePromotion(PieceDefinition into)   // 플레이어가 선택창에서 프로모션할 기물을 골랐을 때 HUD가 호출하는 함수

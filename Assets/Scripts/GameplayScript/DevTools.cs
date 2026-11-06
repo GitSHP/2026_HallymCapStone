@@ -76,6 +76,117 @@ namespace Promotion.Gameplay
             if (shift && keyboard.digit4Key.wasPressedThisFrame) ShowGameOver();  // Shift+4: 게임오버 화면
             if (shift && keyboard.digit5Key.wasPressedThisFrame) ToggleFire();  // Shift+5: 아군 기물 불꽃 켜기/끄기
             if (shift && keyboard.digit6Key.wasPressedThisFrame) JumpToStage3();  // Shift+6: 3스테이지로 바로 이동 (중갑병 등장 확인용)
+            if (shift && keyboard.digit7Key.wasPressedThisFrame) SetUpCastling();  // Shift+7: 캐슬링을 바로 해 볼 수 있는 상황 만들기
+            if (shift && keyboard.digit8Key.wasPressedThisFrame) SetUpPromotion();  // Shift+8: 프로모션을 바로 해 볼 수 있는 상황 만들기
+        }
+
+        bool EnsureBattle() // 일반 스테이지의 플레이어 턴으로 맞추는 함수 (캐슬링·프로모션 테스트 준비) -> 준비됐으면 true
+        // 배치 단계라면 킹을 자동으로 놓고 시작하며, AP를 가득 채움
+        {
+            if (_director.IsChessDuel)  // 최종전에서는 디펜스 규칙(캐슬링·디펜스 프로모션)을 쓰지 않음
+            {
+                _lastAction = "Not available in the final duel";
+                return false;
+            }
+
+            if (_turn.Phase == TurnPhase.Deploy)    // 배치 단계라면 킹을 놓고 1턴 시작
+                AutoDeployKing();
+
+            if (_turn.Phase != TurnPhase.PlayerTurn)    // 적 턴이거나 끝난 스테이지라면 실행하지 않음
+            {
+                _lastAction = "Wait for the player turn";
+                return false;
+            }
+
+            _turn.RefillAp();
+            return true;
+        }
+
+        void ClearSquare(Coord square)  // 그 칸에 있는 기물을 지우는 함수 (테스트 상황을 만들 자리 비우기)
+        {
+            var piece = _state.GetPiece(square);
+            if (piece != null && !piece.IsObjective)    // 킹은 지우지 않음
+                _registry.Kill(piece);
+        }
+
+        PieceDefinition FindCastleRook()    // 캐슬링할 수 있는 기물(룩) 데이터를 승격 선택지에서 찾는 함수
+        {
+            foreach (var def in _director.PromotionChoices)
+            {
+                if (def != null && def.canCastle)
+                    return def;
+            }
+            return null;
+        }
+
+        PieceDefinition FindDeckPawn()  // 프로모션할 수 있는 기물(폰) 데이터를 덱(상시 폰)에서 찾는 함수
+        {
+            foreach (var def in _deploy.Deck)
+            {
+                if (def != null && def.canPromote)
+                    return def;
+            }
+            return null;
+        }
+
+        void SetUpCastling()    // 킹과 같은 줄 끝에 룩을 놓고 사이를 비워, 바로 캐슬링을 해 볼 수 있게 만드는 함수
+        {
+            if (!EnsureBattle())
+                return;
+
+            var king = _state.FindObjective(Team.Player);
+            var rook = FindCastleRook();
+            if (king == null || rook == null)
+            {
+                _lastAction = "No king on board or no castling piece in promotion choices";
+                return;
+            }
+
+            int rookX = king.Coord.x >= 2 ? 0 : _grid.width - 1;   // 킹에서 먼 쪽 끝 칸에 룩을 놓음
+            int step = rookX > king.Coord.x ? 1 : -1;
+            for (int x = king.Coord.x + step; x != rookX + step; x += step) // 킹과 룩 자리 사이(룩 칸 포함)를 비움
+                ClearSquare(new Coord(x, king.Coord.y));
+
+            _registry.Spawn(rook, Team.Player, new Coord(rookX, king.Coord.y));
+            _turn.ResetCastling();  // 이미 썼더라도 다시 쓸 수 있게
+            _director.RefreshEnemyCount();
+            _lastAction = "Castling ready: drag the king onto the rook (blue)";
+        }
+
+        void SetUpPromotion()   // 맨 윗줄 바로 아래에 폰을 놓고 앞칸을 비워, 한 칸만 올리면 프로모션되게 만드는 함수
+        {
+            if (!EnsureBattle())
+                return;
+
+            if (_director.PromotionChoices.Count == 0)  // 스테이지에 승격 선택지가 없다면 프로모션이 일어나지 않음
+            {
+                _lastAction = "This stage has no promotion choices";
+                return;
+            }
+
+            var pawn = FindDeckPawn();
+            if (pawn == null)
+            {
+                _lastAction = "No pawn in the deck";
+                return;
+            }
+
+            int top = _grid.height - 1;
+            int column = 0;
+            for (int x = 0; x < _grid.width; x++)   // 두 칸이 모두 비어 있는 열을 먼저 찾고, 없으면 맨 왼쪽 열을 비움
+            {
+                if (_state.IsEmpty(new Coord(x, top)) && _state.IsEmpty(new Coord(x, top - 1)))
+                {
+                    column = x;
+                    break;
+                }
+            }
+
+            ClearSquare(new Coord(column, top));
+            ClearSquare(new Coord(column, top - 1));
+            _registry.Spawn(pawn, Team.Player, new Coord(column, top - 1));
+            _director.RefreshEnemyCount();
+            _lastAction = "Promotion ready: move the pawn up one square";
         }
 
         void OpenShop() // 강제로 승리시켜 상점을 여는 함수 -> 승리가 선언되면 ShopLauncher가 알아서 상점을 염
@@ -262,7 +373,7 @@ namespace Promotion.Gameplay
             }
 
             const float width = 330f;   // 패널 너비
-            GUILayout.BeginArea(new Rect(10f, 10f, width, 445f), GUI.skin.box);   // 왼쪽 위에 상자 모양 패널 영역 시작
+            GUILayout.BeginArea(new Rect(10f, 10f, width, 560f), GUI.skin.box);   // 왼쪽 위에 상자 모양 패널 영역 시작
 
             GUILayout.Label("DEV TOOLS   (F1 to hide)");
             GUILayout.Label(Status());  // 현재 상태 요약 표시
@@ -285,6 +396,8 @@ namespace Promotion.Gameplay
             if (GUILayout.Button("Shift+4  Show game over")) ShowGameOver();
             if (GUILayout.Button("Shift+5  Toggle piece fire")) ToggleFire();
             if (GUILayout.Button("Shift+6  Jump to stage 3")) JumpToStage3();
+            if (GUILayout.Button("Shift+7  Set up castling")) SetUpCastling();
+            if (GUILayout.Button("Shift+8  Set up promotion")) SetUpPromotion();
 
             if (!string.IsNullOrEmpty(_lastAction)) // 마지막 실행 결과가 있다면 패널 아래에 표시
             {

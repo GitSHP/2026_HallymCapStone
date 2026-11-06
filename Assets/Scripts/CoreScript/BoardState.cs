@@ -76,6 +76,21 @@ namespace Promotion.Core
             _pieces[to.x, to.y] = piece;   // 도착 칸에 기물을 기록함
         }
 
+        public void Swap(Piece a, Piece b)   // 두 기물의 자리를 서로 맞바꾸는 함수 (캐슬링) -> 어느 쪽도 잡히지 않음
+        {
+            if (a == null || b == null || a == b)
+                return;
+
+            var coordA = a.Coord;
+            var coordB = b.Coord;
+            a.Coord = coordB;
+            b.Coord = coordA;
+            a.HasMoved = true;   // 둘 다 움직인 것으로 표시
+            b.HasMoved = true;
+            _pieces[coordB.x, coordB.y] = a;
+            _pieces[coordA.x, coordA.y] = b;
+        }
+
         public void Remove(Piece piece)   // 기물을 보드에서 없애는 함수
         {
             if (piece == null)
