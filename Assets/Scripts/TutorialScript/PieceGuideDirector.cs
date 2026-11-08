@@ -139,6 +139,35 @@ namespace Promotion.Tutorial
             _running = false;
         }
 
+        // ---------- 직접 열기 (인벤토리 우클릭 메뉴의 [설명]) ----------
+
+        public bool HasGuide(PieceDefinition piece) // 그 기물의 가이드가 있는지 확인하는 함수 -> 없으면 [설명] 버튼을 숨김
+        {
+            return piece != null && _catalog != null && _catalog.Find(piece) != null;
+        }
+
+        public bool ShowGuide(PieceDefinition piece)
+        // 플레이어가 고른 기물의 가이드를 바로 띄우는 함수 -> 띄웠으면 true
+        // -> 처음 소환 때 자동으로 뜨는 것과 같은 창을 쓰며, 본 기록은 건드리지 않음
+        {
+            if (!HasGuide(piece) || _running || _paused) // 가이드가 없거나 다른 가이드가 이미 떠 있다면 무시
+                return false;
+            StartCoroutine(RunManual(piece));
+            return true;
+        }
+
+        IEnumerator RunManual(PieceDefinition piece)    // 직접 연 가이드를 보여 주는 코루틴 -> 자동 가이드와 같이 게임을 멈췄다가 닫으면 되돌림
+        {
+            _running = true;    // 그동안 자동 가이드 대기열은 기다리게 함
+            Pause();
+            yield return _view.Show(_catalog.Find(piece));
+            Resume();
+            _running = false;
+
+            if (_queue.Count > 0)   // 보는 사이에 새로 소환한 기물이 있다면 이어서 자동 가이드를 처리함
+                StartCoroutine(RunQueue());
+        }
+
         bool Ended // 스테이지의 승패가 이미 났는지 여부
         {
             get { return _turn != null && (_turn.Phase == TurnPhase.Victory || _turn.Phase == TurnPhase.Defeat); }

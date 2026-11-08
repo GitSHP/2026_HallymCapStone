@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8f5ffa668bab104ebcf0900180ce568, type: 3}
+  m_Name: Archbishop
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Data.PieceDefinition
+  itemName: "\uC544\uCE58\uBE44\uC20D"
+  itemType: 2
+  itemImage: {fileID: 21300000, guid: a50b3b7e01f44944ba1b66ee9d251c39, type: 3}
+  itemPrefab: {fileID: 0}
+  glyph: A
+  playerColor: {r: 1, g: 1, b: 1, a: 1}
+  enemyColor: {r: 0.32, g: 0.3, b: 0.36, a: 1}
+  moveApCost: 1
+  deployApCost: 5
+  shopCost: 8
+  shopWeight: 0.35
+  isObjective: 0
+  patterns:
+  - directions:
+    - {x: 1, y: 1}
+    - {x: 1, y: -1}
+    - {x: -1, y: 1}
+    - {x: -1, y: -1}
+    sliding: 1
+    maxDistance: 8
+    canMoveToEmpty: 1
+    canCapture: 1
+    relativeToFacing: 0
+    firstMoveOnly: 0
+  - directions:
+    - {x: 2, y: 1}
+    - {x: 1, y: 2}
+    - {x: 2, y: -1}
+    - {x: 1, y: -2}
+    - {x: -2, y: 1}
+    - {x: -1, y: 2}
+    - {x: -2, y: -1}
+    - {x: -1, y: -2}
+    sliding: 0
+    maxDistance: 1
+    canMoveToEmpty: 1
+    canCapture: 1
+    relativeToFacing: 0
+    firstMoveOnly: 0
+  enemySprite: {fileID: 0}
+  aiValue: 8
+  canPromote: 0
+  canCastle: 0
+  enemyStepsPerTurn: 1
+  captureImmuneTo: []
+  idleAura: {fileID: 7776848850255723840, guid: 18fca38b6299f2e48a7ceff6d88c2728, type: 3}

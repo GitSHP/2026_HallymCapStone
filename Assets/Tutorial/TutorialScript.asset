@@ -20,48 +20,58 @@ MonoBehaviour:
   charactersPerSecond: 40
   steps:
   - text: "\uC548\uB155\uD558\uC138\uC694! \uC800\uB294 \uC774\uACF3\uC758 \uC548\uB0B4\uB97C
-      \uB9E1\uC740 \uC548\uB0B4\uC778\uC774\uC5D0\uC694.\n\uCC98\uC74C \uC624\uC168\uAD70\uC694?
-      \uC81C\uAC00 \uCC28\uADFC\uCC28\uADFC \uC54C\uB824 \uB4DC\uB9B4\uAC8C\uC694."
+      \uB9E1\uC740 \uC548\uB0B4\uC778\uC774\uC5D0\uC694.\n\uD504\uB85C\uBAA8\uC158\uC5D0\uC11C
+      \uCC98\uC74C \uC9C4\uD589\uD558\uB294 \uB7F0\uC774\uAD70\uC694?"
     wait: 0
     action: 0
     portrait: {fileID: -367406339, guid: b5bc08d628e02d44e8bc2fd1fa99b589, type: 3}
     storyFrame: {fileID: 0}
     coverBoard: 1
     focus: 0
-  - text: "(\uC138\uACC4\uAD00 \uC124\uBA85 1 \u2014 \uCCAB \uBC88\uC9F8 \uCEF7\uC5D0
-      \uB9DE\uB294 \uB300\uC0AC\uB97C \uC9C1\uC811 \uC785\uB825\uD558\uC138\uC694)"
+  - text: "\uC804\uBC18\uC801\uC778 \uC124\uBA85\uC744 \uD574\uB4DC\uB9B4\uAC8C\uC694."
+    wait: 0
+    action: 0
+    portrait: {fileID: 21300000, guid: f3ac0ab8b2e6fac4da9e5d63d6d8eda5, type: 3}
+    storyFrame: {fileID: 0}
+    coverBoard: 1
+    focus: 0
+  - text: "\uC9C0\uAE08 \uC655\uAD6D\uC740 \uD3ED\uAD70\uC5D0 \uC758\uD574 \uD1B5\uCE58\uB3FC\uACE0
+      \uC788\uC5B4\uC694.\r\n\uB2E4\uB4E4 \uACE0\uD1B5\uC18D\uC5D0 \uD558\uB8E8\uD558\uB8E8
+      \uC0B4\uC544\uAC00\uACE0\uC788\uC8E0."
     wait: 0
     action: 0
     portrait: {fileID: 0}
     storyFrame: {fileID: 21300000, guid: 17eb8149017e17d4a8dddd8bd91af73f, type: 3}
     coverBoard: 1
     focus: 0
-  - text: "(\uC138\uACC4\uAD00 \uC124\uBA85 2 \u2014 \uB450 \uBC88\uC9F8 \uCEF7\uC5D0
-      \uB9DE\uB294 \uB300\uC0AC\uB97C \uC9C1\uC811 \uC785\uB825\uD558\uC138\uC694)"
+  - text: "\uAD76\uC8FC\uB9AC\uB358 \uC2DC\uBBFC\uB4E4\uC740 \uAC19\uC774 \uBB49\uCCD0
+      \uD3ED\uAD70\uC744 \uBAB0\uC544\uB0B4\uACE0\uC790 \uD588\uC5B4\uC694"
     wait: 0
     action: 0
     portrait: {fileID: 0}
     storyFrame: {fileID: 21300000, guid: c2b393d693b5a8649bd248b06ddfbd13, type: 3}
     coverBoard: 1
     focus: 0
-  - text: "(\uC138\uACC4\uAD00 \uC124\uBA85 3 \u2014 \uC138 \uBC88\uC9F8 \uCEF7\uC5D0
-      \uB9DE\uB294 \uB300\uC0AC\uB97C \uC9C1\uC811 \uC785\uB825\uD558\uC138\uC694)"
+  - text: "\uB2E4\uB4E4 \uBAA8\uC5EC \uD3ED\uAD70\uC744 \uBAB0\uC544\uB0BC \uACC4\uD68D\uC744
+      \uC138\uC6E0\uACE0, \uB2F9\uC2E0\uAC19\uC740 \uC9C0\uD718\uAD00\uB4E4\uC744
+      \uC815\uD588\uC5B4\uC694\r\n"
     wait: 0
     action: 0
     portrait: {fileID: 0}
     storyFrame: {fileID: 21300000, guid: 42a703151f6bbae4aa21644578ae24c8, type: 3}
     coverBoard: 1
     focus: 0
-  - text: "(\uC138\uACC4\uAD00 \uC124\uBA85 4 \u2014 \uB124 \uBC88\uC9F8 \uCEF7\uC5D0
-      \uB9DE\uB294 \uB300\uC0AC\uB97C \uC9C1\uC811 \uC785\uB825\uD558\uC138\uC694)"
+  - text: "\uB4DC\uB514\uC5B4 \uC624\uB298, \uC9C0\uD718\uAD00\uB4E4\uC774 \uBAA8\uB450
+      \uBAA8\uC5EC \uACF5\uACA9\uC744 \uACC4\uD68D\uD558\uACE0 \uC2E4\uD589\uD558\uAE30\uB85C
+      \uD588\uC2B5\uB2C8\uB2E4.\r\n"
     wait: 0
     action: 0
     portrait: {fileID: 0}
     storyFrame: {fileID: 21300000, guid: 103ee5f1caa62804caa5ebd553d1650d, type: 3}
     coverBoard: 1
     focus: 0
-  - text: "\uC557, \uC800\uAE30 \uBCF4\uC138\uC694! \uC801\uC774 \uBAB0\uB824\uC624\uACE0
-      \uC788\uC5B4\uC694!"
+  - text: "\uC557, \uC800\uAE30 \uBCF4\uC138\uC694! \uACBD\uBE44\uBCD1\uB4E4\uC774
+      \uBAB0\uB824\uC624\uACE0\uC788\uC5B4\uC694!"
     wait: 0
     action: 1
     portrait: {fileID: 1547360486, guid: 3541545db66a39a42b28ccc8f7f73dfb, type: 3}
@@ -106,7 +116,8 @@ MonoBehaviour:
     focus: 0
   - text: "\uC778\uBCA4\uD1A0\uB9AC\uC5D0\uC11C \uD3F0\uC744 \uACE0\uB974\uACE0,
       \uD0B9 \uADFC\uCC98 \uBE5B\uB098\uB294 \uCE78\uC5D0 \uC18C\uD658\uD574 \uBCF4\uC138\uC694.
-      (AP 1)"
+      \n\uAC01 \uAE30\uBB3C\uC740 \uC18C\uD658\uD560\uB54C \uB9C8\uB2E4 AP\uB97C
+      \uC0AC\uC6A9\uD558\uBA70 \uD3F0\uC740 \uC18C\uBAA8\uAC12\uC774 1\uC774\uC5D0\uC694."
     wait: 3
     action: 0
     portrait: {fileID: 0}
@@ -132,7 +143,8 @@ MonoBehaviour:
     coverBoard: 0
     focus: 0
   - text: "\uC801\uC744 \uBAA8\uB450 \uC7A1\uACE0 \uD134\uC744 \uC885\uB8CC\uD558\uBA74
-      \uC2B9\uB9AC! (\uD3F0\uC740 \uB300\uAC01\uC120 \uC55E\uC758 \uC801\uC744 \uC7A1\uC544\uC694)"
+      \uC2B9\uB9AC\uD558\uACE0, \uB2E4\uC74C \uC804\uD22C\uAD6C\uC5ED\uC73C\uB85C
+      \uAC00\uC57C\uD574\uC694"
     wait: 4
     action: 0
     portrait: {fileID: 0}
@@ -264,7 +276,7 @@ MonoBehaviour:
     storyFrame: {fileID: 0}
     coverBoard: 0
     focus: 6
-  - text: "\uCE7C \uBAA8\uC591 \uCE78\uC5D0\uC11C\uB294 \uC804\uD22C\uAC00 \uBC8C\uC5B4\uC838\uC694.\n\uC774\uAE30\uBA74
+  - text: "\uAC01 \uCE78\uC5D0\uC11C\uB294 \uC804\uD22C\uAC00 \uBC8C\uC5B4\uC838\uC694.\n\uC774\uAE30\uBA74
       \uB2E4\uC2DC \uC0C1\uC810\uC5D0\uC11C \uACE8\uB4DC\uB97C \uC4F8 \uC218 \uC788\uC5B4\uC694."
     wait: 0
     action: 0
@@ -272,9 +284,8 @@ MonoBehaviour:
     storyFrame: {fileID: 0}
     coverBoard: 0
     focus: 6
-  - text: "\uB9E8 \uAF2D\uB300\uAE30\uC758 \uC655\uAD00\uC774 \uBCF4\uC2A4\uC608\uC694.\n\uADF8\uACF3\uC5D0\uC11C
-      \uC801\uC758 \uD0B9\uACFC \uC9C4\uC9DC \uCCB4\uC2A4 \uB300\uACB0\uC744 \uD3BC\uCE58\uAC8C
-      \uB3FC\uC694."
+  - text: "\uB9E8 \uAF2D\uB300\uAE30\uC758 \uC655\uAD00\uC774 \uC655\uAD81\uC774\uC5D0\uC694.\n\uADF8\uACF3\uC5D0\uC11C
+      \uBE14\uB799 \uD0B9\uC744 \uC0C1\uB300\uD560\uAC70\uC560\uC694."
     wait: 0
     action: 0
     portrait: {fileID: 0}

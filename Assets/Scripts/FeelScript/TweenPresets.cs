@@ -187,6 +187,30 @@ namespace Promotion.Feel
         public float castleHopScale = 1.18f;    // 건너가는 동안 살짝 커지는 배율 (뛰어오르는 느낌)
         public float castleShake = 1.4f;    // 착지 순간 체스판 흔들림 세기 배율 (1 = 일반 착지)
 
+        [Header("특수 기물 해금·룰렛 (타이틀)")]
+        [Tooltip("타이틀이 다 나타난 뒤 자물쇠가 풀리기 시작하기까지 기다리는 시간.")]
+        public float fairyUnlockDelay = 0.4f;   // 풀리기 전 대기
+        public Vector3 fairyLockShake = new Vector3(10f, 4f, 0f);  // 자물쇠가 덜컹거리는 세기(픽셀)
+        public float fairyLockShakeDuration = 0.6f; // 덜컹거리는 시간
+        public float fairyLockFlyHeight = 110f; // 풀린 자물쇠가 튕겨 날아가는 높이(픽셀)
+        public float fairyLockSpin = 200f;  // 날아가며 도는 각도
+        public float fairyLockFlyDuration = 0.5f;   // 날아가며 사라지는 시간
+        public float fairyUnlockPunch = 0.18f;  // 풀리는 순간 버튼이 튀는 정도
+        [Tooltip("룰렛 칸의 글자가 바뀔 때 위에서 내려오는 거리(픽셀).")]
+        public float reelTickOffset = 26f;
+        public float reelTickDuration = 0.06f;  // 글자가 내려오는 시간
+        [Tooltip("룰렛이 돌기 시작할 때 글자가 바뀌는 간격(초). 점점 느려져 reelSlowInterval이 되면 멈춘다.")]
+        public float reelFastInterval = 0.05f;
+        public float reelSlowInterval = 0.26f;  // 멈추기 직전 글자가 바뀌는 간격(초)
+        public float reelLeftSpinTime = 1.6f;   // 첫 번째 룰렛이 도는 시간
+        public float reelRightSpinTime = 2.5f;  // 두 번째 룰렛이 도는 시간 (첫 번째보다 늦게 멈춰 긴장감을 줌)
+        public float reelStopPunch = 0.22f; // 칸이 멈추는 순간 튀는 정도
+        public float reelStopDuration = 0.3f;
+        public float reelRevealDuration = 0.45f;    // 결과 기물 그림이 나타나는 시간
+        public float fairyGlowMin = 0.12f;  // 기물 뒤 파란 빛의 가장 어두운 투명도
+        public float fairyGlowMax = 0.38f;  // 가장 밝은 투명도
+        public float fairyGlowPeriod = 0.9f;    // 밝아졌다 어두워지는 데 걸리는 시간
+
         [Header("전역")]
         public float hitStopDuration = 0.08f;   // 타격 순간 시간이 거의 멈추는 '히트 스톱'의 길이 -> 타격감을 줌
     }

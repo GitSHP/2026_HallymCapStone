@@ -259,6 +259,9 @@ namespace Promotion.Gameplay
 
         void Finish(TurnPhase outcome, string reason = "")  // 스테이지를 승리 또는 패배로 끝내는 함수 -> reason에는 끝난 이유를 넣음
         {
+            if (IsChessDuel && outcome == TurnPhase.Victory && _turn.Phase != TurnPhase.Victory)
+                MetaProgress.RecordBossClear(); // 보스(최종전)를 처음 이긴 순간 -> 영구 기록에 클리어 +1, 검은 왕관 +1 (특수 기물 해금 조건)
+
             OutcomeReason = reason; // 끝난 이유 저장(HUD에서 표시)
             _resolving = false; // 처리 중 표시와 생각 중 표시를 모두 해제
             AIThinking = false;

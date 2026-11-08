@@ -25,6 +25,24 @@ namespace Promotion.Title
         [SerializeField] UiButton _options;  // 옵션 버튼 (아직 기능이 없어서 비활성 상태로 둠)
         [SerializeField] UiButton _quit;  // 게임 종료 버튼
 
+        [Header("특수 기물 (보스를 처음 이기면 열림)")]
+        [SerializeField] UiButton _fairy;  // 왼쪽 아래 [특수 기물] 버튼 -> 누르면 룰렛 창이 열림
+        [SerializeField] RectTransform _fairyLock;  // 버튼 위의 자물쇠 (잠겨 있는 동안 보임, 풀릴 때 날아감)
+        [SerializeField] Image _fairyLockImage; // 자물쇠 그림 (풀릴 때 사라지는 연출 대상)
+        [SerializeField] GameObject _fairyLockedHint;   // 버튼 아래 "보스를 처치하면 열립니다" 안내
+        [SerializeField] FairyRouletteView _roulette;   // 특수 기물 뽑기 창
+        [SerializeField] DialogueView _dialogue;    // 버튼이 풀린 뒤 특수 기물을 소개하는 대화창 (튜토리얼 대화창 프리팹)
+        [TextArea(2, 5)]
+        [SerializeField] string[] _fairyIntroLines = // 버튼이 처음 풀릴 때 안내인이 하는 말
+        {
+            "첫 보스 클리어를 축하합니다!",
+            "당신은 이미 정석 체스의 기본 기물들의 행마법과 운용법을 모두 완벽히 숙지하고 활용해 내고 있습니다.",
+            "그런 당신을 위한 새로운 기물을 소개합니다!",
+            "Fairy 체스 룰에 기반한 특수 기물들은 기존 체스 기물들의 행마법이 섞여 있습니다.",
+            "보스를 처치할 때마다 얻는 '검은 왕관'으로 룰렛을 돌려 특수 기물을 얻으면, 다음 런부터 상점에 등장합니다.",
+            "이들을 잘 활용하여 더 압도적인 승리를 거둬 보세요!",
+        };
+
         [Header("튜토리얼 선택")]
         [SerializeField] GameObject _choice;  // 튜토리얼을 할지 고르는 선택창 전체 (평소에는 꺼져 있음)
         [SerializeField] Button _choiceBackdrop;  // 선택창 뒤의 어두운 배경 -> 클릭하면 선택창이 닫힘
@@ -59,9 +77,22 @@ namespace Promotion.Title
             _playTutorial.Clicked += () => Begin(true);  // 튜토리얼 하기 → 튜토리얼과 함께 시작
             _skipTutorial.Clicked += () => Begin(false);  // 건너뛰기 → 바로 맵으로 시작
 
+            _fairy.Clicked += OpenRoulette;  // 특수 기물 버튼 → 룰렛 창 열기
+            _roulette.Closed += ApplyFairyLock;  // 룰렛 창을 닫으면 버튼 상태를 다시 그림
+            _roulette.gameObject.SetActive(false);  // 룰렛 창은 처음에 숨겨 둠
+            if (_dialogue != null)
+                _dialogue.gameObject.SetActive(false);  // 대화창도 숨겨 둠
+            ApplyFairyLock();  // 보스를 이겼는지에 따라 잠금/풀림 상태로 그림
+            MetaProgress.Changed += ApplyFairyLock;  // 개발자 도구 등으로 기록이 바뀌면 다시 그림
+
             _choice.SetActive(false);  // 선택창은 처음에 숨겨 둠
             _skipCatcher.onClick.AddListener(FinishIntro);  // 연출 중 화면을 클릭하면 연출을 바로 끝냄
             _intro = StartCoroutine(PlayIntro());  // 등장 연출 시작
+        }
+
+        void OnDestroy()
+        {
+            MetaProgress.Changed -= ApplyFairyLock;
         }
 
         void Update()  // 매 프레임 키보드 입력을 확인하는 함수
@@ -74,6 +105,8 @@ namespace Promotion.Title
                 FinishIntro();
             else if (_choice.activeSelf && keyboard.escapeKey.wasPressedThisFrame)  // 만약 선택창이 열린 상태에서 ESC를 눌렀다면 -> 선택창 닫기
                 CloseChoice();
+            else if (_roulette.IsOpen && keyboard.escapeKey.wasPressedThisFrame)  // 룰렛 창이 열려 있다면 ESC로 닫기
+                _roulette.Close();
         }
 
         IEnumerator PlayIntro()  // 타이틀 등장 연출을 순서대로 재생하는 코루틴
@@ -83,7 +116,7 @@ namespace Promotion.Title
             var p = Fx.P;  // 연출 수치 에셋
             _skipCatcher.gameObject.SetActive(true);  // 연출 중에는 클릭으로 건너뛸 수 있도록 투명 판을 켬
 
-            foreach (var button in new[] { _start, _options, _quit })  // 메뉴 버튼 3개를
+            foreach (var button in new[] { _start, _options, _quit, _fairy })  // 메뉴 버튼 4개를
                 UiBuilder.Group(button.gameObject).alpha = 0f;  // 처음에는 투명하게 숨겨 둠 (나중에 차례로 등장)
 
             // 배경 체스판 칸 연출: 왼쪽 위 칸부터 대각선 방향으로 차례차례 나타남
@@ -110,6 +143,7 @@ namespace Promotion.Title
             _start.PlayIn(0);  // 메뉴 버튼을 위에서부터 차례로 등장시킴
             _options.PlayIn(1);
             _quit.PlayIn(2);
+            _fairy.PlayIn(3);
 
             yield return new WaitForSecondsRealtime(
                 Mathf.Max(p.titleCreditDelay + p.titleCreditFade, p.titleShakeDuration + p.titleLogoDelay) - p.titleMenuDelay + 0.3f);
@@ -127,13 +161,72 @@ namespace Promotion.Title
                 StopCoroutine(_intro);  // 아직 진행 중인 연출 코루틴이 있다면 중단
 
             Fx.CompleteAll();  // 진행 중인 모든 트윈을 즉시 끝 상태로 만듦 (칸·로고·제목이 바로 제자리에)
-            foreach (var button in new[] { _start, _options, _quit })
+            foreach (var button in new[] { _start, _options, _quit, _fairy })
                 UiBuilder.Group(button.gameObject).alpha = 1f;  // 메뉴 버튼이 확실히 보이도록 불투명하게
             _credits.alpha = 1f;  // 크레딧도 확실히 보이게
             _stage.anchoredPosition = Vector2.zero;  // 흔들리던 화면 묶음을 제자리로
 
             _skipCatcher.gameObject.SetActive(false);  // 건너뛰기용 투명 판을 꺼서 메뉴 버튼을 누를 수 있게 함
             Fx.IdleBreathe(_logo);  // 이후 킹 로고가 천천히 숨 쉬듯 커졌다 작아지는 대기 연출 시작
+
+            if (MetaProgress.FairyUnlocked && !MetaProgress.FairyIntroShown)  // 보스를 처음 이기고 돌아왔다면 -> 자물쇠가 풀리는 연출과 소개
+                PlayFairyUnlock();
+        }
+
+        // ---------- 특수 기물 ----------
+
+        bool _fairyUnlocking;  // 자물쇠가 풀리는 연출·소개 대사가 진행 중인지 여부
+
+        void ApplyFairyLock()  // 특수 기물 버튼을 기록에 맞게 잠금/풀림 상태로 그리는 함수
+        {
+            if (_fairyUnlocking)  // 풀리는 연출 중에는 건드리지 않음
+                return;
+
+            bool open = MetaProgress.FairyUnlocked && MetaProgress.FairyIntroShown;  // 보스를 이겼고 소개까지 봤다면 열림
+            bool pendingIntro = MetaProgress.FairyUnlocked && !MetaProgress.FairyIntroShown;  // 이겼지만 아직 풀리는 연출을 안 봤다면 연출 전까지 잠긴 모습
+            _fairy.SetInteractable(open);
+            _fairyLock.gameObject.SetActive(!open);
+            _fairyLockImage.color = Color.white;
+            _fairyLock.localRotation = Quaternion.identity;
+            _fairyLock.anchoredPosition = Vector2.zero;
+            _fairyLockedHint.SetActive(!open && !pendingIntro);  // "보스를 처치하면 열립니다"는 정말 잠겨 있을 때만
+        }
+
+        void PlayFairyUnlock()  // 자물쇠가 풀리는 연출 -> 소개 대사 -> 버튼 열림 순서로 진행하는 함수
+        {
+            _fairyUnlocking = true;
+            _fairyLockedHint.SetActive(false);
+            _skipCatcher.gameObject.SetActive(true);  // 연출 중에는 메뉴를 누르지 못하게 투명 판으로 막음 (클릭해도 건너뛰지 않음)
+            _skipCatcher.onClick.RemoveListener(FinishIntro);
+            Sfx.Play(SfxId.Lock);  // '철컥'
+            Fx.FairyUnlock(_fairy.transform, _fairyLock, _fairyLockImage, () => StartCoroutine(FairyIntro()));
+        }
+
+        IEnumerator FairyIntro()  // 안내인이 특수 기물을 소개하는 대사를 차례로 보여 주는 코루틴
+        {
+            _fairyLock.gameObject.SetActive(false);
+            _skipCatcher.gameObject.SetActive(false);
+
+            if (_dialogue != null && tutorial != null)
+            {
+                _dialogue.Init(tutorial.speakerName, tutorial.portrait, null, 0f, tutorial.charactersPerSecond);
+                foreach (var line in _fairyIntroLines)
+                    yield return _dialogue.Say(line);
+                _dialogue.HideAll();
+                _dialogue.gameObject.SetActive(false);
+            }
+
+            MetaProgress.MarkFairyIntroShown(true);  // 다시 보지 않도록 기록
+            _fairyUnlocking = false;
+            ApplyFairyLock();
+            UiFx.Punch(_fairy.transform);  // 이제 누를 수 있다는 걸 알리듯 한 번 더 톡
+        }
+
+        void OpenRoulette()  // 특수 기물 버튼을 눌렀을 때 룰렛 창을 여는 함수
+        {
+            if (_starting || _roulette.IsOpen || _fairyUnlocking)
+                return;
+            _roulette.Open();
         }
 
         void OpenChoice()  // 시작 버튼을 눌렀을 때 튜토리얼 선택창을 여는 함수

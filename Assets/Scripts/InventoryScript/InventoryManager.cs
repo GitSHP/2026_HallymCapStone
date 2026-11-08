@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Promotion.Core;
 using Promotion.Data;
 using Promotion.Gameplay;
+using Promotion.Tutorial;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -23,7 +24,8 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
     private GameObject artifactInventoryBase; // 아티팩트 인벤토리를 관리할 때 사용할 변수
 
     private ItemSlot[] itemSlots;   // 아이템에 대한 정보가 들어있는 배열
-    private ItemSlot[] pieceSlots; //  체스 말에 대한 정보가 들어있는 배열
+    private ItemSlot[] pieceSlots; //  체스 말에 대한 정보가 들어있는 배열 (기물이 많아지면 RefreshPieces가 칸을 더 만들어 늘림)
+    private int basePieceSlotCount; // 씬에 처음 놓인 기물 칸 수(6) -> 보상 기물을 받을 자리가 있는지 판단하는 기준은 이 값을 그대로 씀
     private ItemSlot[] artifactSlots; // 아티팩트에 대한 정보가 들어있는 배열
     private ItemData pendingItem;   // 저장하지 못해 대기 중인 아이템
     private ItemSlot selectedSlot; // 슬롯을 우클릭했을 때 그 선택된 슬롯의 정보를 기억하도록 하는 변수
@@ -41,6 +43,9 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
     private GameObject itemActionMenuUI;    // 아이템 사용, 버리기 메뉴 UI 변수
     [SerializeField]
     private GameObject discardConfirmUI;    // 아이템을 정말 버릴지 묻는 확인 UI 변수
+    [SerializeField]
+    private GameObject describeButton;  // 우클릭 메뉴의 [설명] 버튼 -> 기물 슬롯에서만 보임 (누르면 그 기물의 가이드 창이 뜸)
+    // -> 메뉴의 VerticalLayoutGroup·ContentSizeFitter가 켜진 버튼 수에 맞춰 버튼을 늘어놓고 메뉴 높이를 맞춤
         [SerializeField]
     private GameObject rewardFullConfirmUI; // 보상 기물을 받을 자리가 없을 때 "버리고 받으시겠습니까?"를 묻는 예/아니요 창
     [SerializeField]
@@ -59,6 +64,7 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
     {
         itemSlots = itemInventoryBase.GetComponentsInChildren<ItemSlot>(true);
         pieceSlots = pieceInventoryBase.GetComponentsInChildren<ItemSlot>(true);
+        basePieceSlotCount = pieceSlots.Length;
         artifactSlots = artifactInventoryBase.GetComponentsInChildren<ItemSlot>(true);
         // true -> 인벤토리 창이 꺼져 있어도 슬롯을 찾음
 
@@ -121,7 +127,11 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
     private void RefreshPieces()    // 기물 슬롯을 그리는 함수
     // 순서: ① 스테이지가 주는 임시 기물(킹, 상시 폰 등 -> DeployController 덱) ② 런에서 모은 보유 기물(RunState 장부)
     {
+        EnsurePieceSlots(CountUsedPieceSlots());   // 그릴 기물이 칸 수보다 많다면 칸을 더 만들어 둠 -> 스크롤로 내려서 볼 수 있음
+
         int slot = 0;   // 다음에 채울 슬롯 번호
+        var director = deploy != null ? deploy.GetComponent<StageDirector>() : null;
+        bool showAp = director == null || !director.IsChessDuel;  // 최종전(체스 대결)은 AP를 쓰지 않으므로 소환 AP를 표시하지 않음
 
         if (deploy != null) // ① 전투 씬이라면 덱 카드(임시 기물)를 먼저 채움
         {
@@ -145,6 +155,7 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
                 target.AddItem(deck[i], count);
                 target.SetPieceSource(false, i);    // 임시 기물 표시 + 덱 번호(i) 기억 -> 사용할 때 deploy.Select(i)로 고름
                 target.SetCountText(unlimited ? "∞" : count.ToString());   // 상시 카드는 개수 대신 ∞ 표시
+                target.SetApCost(deck[i].deployApCost, showAp);  // 왼쪽 아래에 전투 중 소환 AP 표시 (최종전은 숨김)
                 target.SetHighlight(deploy.SelectedOwned == null && deploy.Selected == deck[i]);   // 지금 고른 카드라면 강조
             }
         }
@@ -169,6 +180,7 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
             target.AddItem(piece, count);
             target.SetPieceSource(true, -1);    // 보유 기물 표시 -> 사용할 때 deploy.SelectOwned(기물)로 고름
             target.SetCountText(count.ToString());
+            target.SetApCost(piece.deployApCost, showAp);   // 왼쪽 아래에 전투 중 소환 AP 표시 (최종전은 숨김)
             target.SetHighlight(deploy != null && deploy.SelectedOwned == piece);
         }
 
@@ -334,12 +346,20 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
         itemFullWarningUI.SetActive(false);
     }
 
-    // ---------- 우클릭 메뉴 (사용 / 버리기) ----------
+    // ---------- 우클릭 메뉴 (기물: 사용 / 설명 / 버리기, 유물·아이템: 사용 / 버리기) ----------
 
     public void OpenItemActionMenu(ItemSlot _slot, Vector2 _position)  // 우클릭한 슬롯 위치에 사용, 버리기 메뉴 띄우는 함수
     {
         selectedSlot = _slot;   // 우클릭된 슬롯의 정보를 현재 선택된 슬롯 변수에 정보를 저장한다
         discardConfirmUI.SetActive(false);   // 이전 버리기 확인창이 남아 있으면 닫음
+
+        bool isPiece = _slot.item is PieceDefinition;   // 기물이면 [사용 / 설명 / 버리기], 유물·아이템이면 [사용 / 버리기]
+        if (describeButton != null)
+        {
+            var guide = FindGuideDirector();
+            describeButton.SetActive(isPiece && guide != null && guide.HasGuide((PieceDefinition)_slot.item));  // 가이드가 없는 기물이면 [설명]도 숨김
+        }
+
         itemActionMenuUI.transform.position = _position;  // 우클릭했을 때 마우스가 있는 위치에 메뉴가 나타나도록 함
         itemActionMenuUI.SetActive(true);
     }
@@ -349,6 +369,24 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
         var slot = selectedSlot;
         CloseItemActionUI();    // 메뉴를 먼저 닫고
         UseSlot(slot);          // 좌클릭과 같은 방식으로 사용 -> 기물이면 소환할 기물로 고름
+    }
+
+    public void OnClickDescribe()   // 우클릭 메뉴에서 [설명] 버튼을 눌렀을 때 실행되는 함수 -> 그 기물의 가이드 창을 띄움
+    {
+        var piece = selectedSlot != null ? selectedSlot.item as PieceDefinition : null;
+        CloseItemActionUI();    // 메뉴를 먼저 닫고
+        var guide = FindGuideDirector();
+        if (piece != null && guide != null)
+            guide.ShowGuide(piece); // 처음 소환 때 뜨는 것과 같은 가이드 창을 띄움 (게임은 창이 닫힐 때까지 멈춤)
+    }
+
+    private PieceGuideDirector guideDirector;   // 기물 가이드 창을 띄우는 컴포넌트 (전투 씬에만 있음)
+
+    private PieceGuideDirector FindGuideDirector()  // 가이드 담당 컴포넌트를 찾아 두는 함수 -> 전투 씬이 아니면 null
+    {
+        if (guideDirector == null)
+            guideDirector = FindAnyObjectByType<PieceGuideDirector>();
+        return guideDirector;
     }
 
     public void OnClickDiscard()    // 사용, 버리기 메뉴에서 버리기 버튼을 눌렀을 때 실행되는 함수
@@ -571,13 +609,43 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
         rewardPendingNoticeUI.SetActive(hasPending);
     }
 
+    private void EnsurePieceSlots(int needed)
+    // 기물 칸이 needed개 이상 있도록 첫 번째 칸을 복제해 같은 줄(스크롤 목록)에 덧붙이고,
+    // 원래 칸 수(6)를 넘는 칸은 쓰일 때만 보이게 하는 함수 -> 7개째부터는 마우스 휠로 내려서 확인
+    {
+        if (pieceSlots.Length == 0)
+        {
+            return;
+        }
+
+        if (needed > pieceSlots.Length)
+        {
+            var template = pieceSlots[0];
+            template.SetHighlight(false);   // 강조된 색이 복제본의 원래 색으로 굳지 않도록 먼저 끔 (바로 아래 그리기에서 다시 칠함)
+            var slots = new List<ItemSlot>(pieceSlots);
+            while (slots.Count < needed)
+            {
+                var copy = Instantiate(template, template.transform.parent);
+                copy.name = "PieceSlot (" + slots.Count + ")";
+                copy.ClearSlot();
+                slots.Add(copy);
+            }
+            pieceSlots = slots.ToArray();
+        }
+
+        for (int i = basePieceSlotCount; i < pieceSlots.Length; i++)   // 원래 칸은 늘 보이고, 덧붙인 칸은 필요한 만큼만 보임
+        {
+            pieceSlots[i].gameObject.SetActive(i < needed);
+        }
+    }
+
     private bool HasRoomForPiece(PieceDefinition _piece)    // 기물을 인벤토리에 추가하려고 할 때 빈 슬롯이 있는지 확인하는 함수
     {
         if (run.CountOf(_piece) > 0)    // 같은 기물을 이미 보유 중이라면 그 슬롯에 1개가 추가되므로 (퀸 ×2) 새 자리가 필요 없음
         {
             return true;
         }
-        return CountUsedPieceSlots() < pieceSlots.Length;   // 처음 받는 기물이라면 빈 슬롯이 하나라도 있어야 함
+        return CountUsedPieceSlots() < basePieceSlotCount;   // 처음 받는 기물이라면 빈 슬롯이 하나라도 있어야 함 (기준은 원래 칸 수 6 그대로)
     }
 
     private int CountUsedPieceSlots()   // 지금 사용되고 있는 슬롯이 몇 슬롯이 있는지 확인하는 함수 -> RefreshPieces와 같은 규칙으로 묶어서 셈

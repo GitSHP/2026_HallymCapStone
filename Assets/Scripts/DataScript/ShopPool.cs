@@ -118,12 +118,19 @@ namespace Promotion.Data
             }
         }
 
+        static readonly List<PieceDefinition> PiecePool = new();  // 이번 진열의 기물 후보 전체 (pieces + 해금한 특수 기물)
+
         void RollPieces(List<PieceDefinition> results)  // 기물 매물을 진열 칸 수만큼 뽑는 함수 (중복 허용)
         {
+            PiecePool.Clear();
+            PiecePool.AddRange(pieces);
+            if (!fixedOrder)    // 고정 진열(튜토리얼 상점)이 아니라면 타이틀 룰렛에서 해금한 특수 기물도 후보에 더함
+                PiecePool.AddRange(FairyRoulette.UnlockedPieces());
+
             Candidates.Clear();
-            for (int i = 0; i < pieces.Length; i++) // 모든 기물 중에서 상점에 나올 수 있는 것만 후보로 모음
+            for (int i = 0; i < PiecePool.Count; i++) // 모든 기물 중에서 상점에 나올 수 있는 것만 후보로 모음
             {
-                var p = pieces[i];
+                var p = PiecePool[i];
                 if (p == null || p.shopWeight <= 0f || p.isObjective)   // 비어 있거나, 가중치가 0이거나, 킹이라면 제외
                     continue;
                 Candidates.Add(i);
@@ -131,8 +138,8 @@ namespace Promotion.Data
 
             for (int slot = 0; slot < pieceSlots && Candidates.Count > 0; slot++)   // 진열 칸 수만큼 반복
             {
-                int picked = fixedOrder ? slot % Candidates.Count : PickWeighted(i => pieces[i].shopWeight);   // 고정 진열이면 목록 순서대로 (칸이 더 많으면 처음부터 반복), 아니면 가중치에 따라 하나를 골라
-                results.Add(pieces[Candidates[picked]]);    // 결과에 추가함 -> 후보에서 빼지 않으므로 같은 기물이 여러 번 나올 수 있음 (폰 두 개 구매도 합리적인 선택)
+                int picked = fixedOrder ? slot % Candidates.Count : PickWeighted(i => PiecePool[i].shopWeight);   // 고정 진열이면 목록 순서대로 (칸이 더 많으면 처음부터 반복), 아니면 가중치에 따라 하나를 골라
+                results.Add(PiecePool[Candidates[picked]]);    // 결과에 추가함 -> 후보에서 빼지 않으므로 같은 기물이 여러 번 나올 수 있음 (폰 두 개 구매도 합리적인 선택)
             }
         }
 

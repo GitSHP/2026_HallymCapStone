@@ -42,4 +42,108 @@ MonoBehaviour:
   spawnDuration: 0.3
   spawnEase: 5
   spawnStagger: 0.06
+  uiBackdropFade: 0.22
+  uiPanelIn: 0.34
+  uiPanelOut: 0.18
+  uiPanelFromScale: {x: 0.92, y: 0.92, z: 1}
+  uiPanelInEase: 27
+  uiPanelOutEase: 5
+  uiCardIn: 0.3
+  uiCardStagger: 0.05
+  uiCardFromOffsetY: -40
+  uiCardInEase: 27
+  uiHoverScale: 1.05
+  uiHoverLift: 10
+  uiHoverDuration: 0.14
+  uiPressScale: 0.95
+  uiPressDuration: 0.07
+  uiPunchStrength: {x: 0.14, y: 0.14, z: 0}
+  uiPunchDuration: 0.35
+  uiPunchFrequency: 10
+  uiDenyShake: {x: 14, y: 0, z: 0}
+  uiDenyDuration: 0.3
+  uiDenyFrequency: 18
+  uiCountDuration: 0.4
+  mapPulseScale: 1.18
+  mapPulseDuration: 0.6
+  mapPulseEase: 4
+  storyFadeDuration: 0.5
+  storyFadeEase: 6
+  curtainFadeDuration: 0.8
+  curtainFadeEase: 7
+  titleTileStart: 0.15
+  titleTileStagger: 0.03
+  titleTileDuration: 0.35
+  titleTileFromScale: 0.5
+  titleLogoDelay: 0.75
+  titleLogoDropHeight: 600
+  titleLogoDropDuration: 0.35
+  titleLandSquash: {x: 0.22, y: -0.22, z: 0}
+  titleShakeStrength: {x: 22, y: 22, z: 0}
+  titleShakeDuration: 0.4
+  titleShakeFrequency: 20
+  titleLetterDelay: 1.1
+  titleLetterStagger: 0.06
+  titleLetterDuration: 0.4
+  titleLetterRise: 70
+  titleMenuDelay: 1.75
+  titleCreditDelay: 2.2
+  titleCreditFade: 0.5
+  titleLogoBreatheScale: 1.04
+  titleLogoBreatheDuration: 1.8
+  guideOpenDuration: 0.28
+  guideOpenScale: 0.9
+  guideShowDelay: 0.45
+  killStreakThreshold: 3
+  fireIgniteDelay: 0.3
+  fireIgnitePunch: {x: 0.3, y: 0.3, z: 0}
+  fireIgnitePunchDuration: 0.35
+  fireIgniteShake: 0.6
+  fireGlowColor: {r: 1, g: 0.62, b: 0.3, a: 1}
+  fireGlowPeriod: 0.5
+  fireGlowFadeOut: 0.25
+  calloutAfterBurstDelay: 0.35
+  calloutEnterRise: 90
+  calloutPopScale: 1.25
+  calloutPopDuration: 0.28
+  calloutHold: 0.9
+  calloutFadeDuration: 0.35
+  calloutExitRise: 30
+  calloutFirstColor: {r: 1, g: 1, b: 1, a: 1}
+  calloutChainColor: {r: 1, g: 0.62, b: 0.2, a: 1}
+  calloutFireColor: {r: 1, g: 0.85, b: 0.25, a: 1}
+  calloutFireScale: 1.12
+  apLockDelay: 0.45
+  apLockDuration: 0.45
+  apLockFlashColor: {r: 1, g: 0.32, b: 0.25, a: 1}
+  apLockPunch: {x: 0.12, y: 0.12, z: 0}
+  apLockShake: {x: 12, y: 0, z: 0}
+  blockedShake: {x: 0.12, y: 0, z: 0}
+  blockedShakeDuration: 0.3
+  blockedPopIn: 0.18
+  blockedHold: 0.45
+  blockedFade: 0.3
+  blockedRise: 0.35
+  castleSwapDuration: 0.2
+  castleHopScale: 1.18
+  castleShake: 1.4
+  fairyUnlockDelay: 0.4
+  fairyLockShake: {x: 10, y: 4, z: 0}
+  fairyLockShakeDuration: 0.6
+  fairyLockFlyHeight: 110
+  fairyLockSpin: 200
+  fairyLockFlyDuration: 0.5
+  fairyUnlockPunch: 0.18
+  reelTickOffset: 26
+  reelTickDuration: 0.06
+  reelFastInterval: 0.05
+  reelSlowInterval: 0.26
+  reelLeftSpinTime: 1.6
+  reelRightSpinTime: 2.5
+  reelStopPunch: 0.22
+  reelStopDuration: 0.3
+  reelRevealDuration: 0.45
+  fairyGlowMin: 0.12
+  fairyGlowMax: 0.38
+  fairyGlowPeriod: 0.9
   hitStopDuration: 0.08

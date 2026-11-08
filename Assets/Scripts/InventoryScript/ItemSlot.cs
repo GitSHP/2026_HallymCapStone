@@ -26,6 +26,10 @@ public class ItemSlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     [SerializeField]
     private GameObject itemCountImage;  // 아이템의 갯수 이미지를 표시하는 Image UI에 접근하기 위한 변수
     [SerializeField]
+    private GameObject apCostImage; // 기물 슬롯 왼쪽 아래의 소환 AP 표시 (기물 슬롯 프리팹에만 있음, 유물·아이템 슬롯은 비워 둠)
+    [SerializeField]
+    private TextMeshProUGUI apCostText; // 소환 AP 숫자 글자
+    [SerializeField]
     private ItemData.ItemType allowedType;  // 이 슬롯에 저장할 수 있는 아이템 유형 (인스펙터에서 설정)
 
     void Awake()
@@ -43,6 +47,7 @@ public class ItemSlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         {
             SetImageAlpha(0);   // 최초 인벤토리를 불러올 때 슬롯의 이미지들이 보이지 않도록 설정
             itemCountImage.SetActive(false);
+            HideApCost();
         }
     }
 
@@ -52,6 +57,30 @@ public class ItemSlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     {
         IsOwnedPiece = _owned;
         DeckIndex = _deckIndex;
+    }
+
+    public void SetApCost(int _ap, bool _show)  // 이 기물을 전투 중 소환할 때 드는 AP를 왼쪽 아래에 표시하는 함수 -> InventoryManager.RefreshPieces가 호출
+    // _show: false면 숨김 (최종전은 AP를 쓰지 않으므로)
+    {
+        if (!_show)
+        {
+            HideApCost();
+            return;
+        }
+        if (apCostImage == null)    // AP 표시가 없는 슬롯(유물·아이템)이면 아무것도 하지 않음
+        {
+            return;
+        }
+        apCostImage.SetActive(true);
+        apCostText.text = _ap.ToString();
+    }
+
+    private void HideApCost()   // 소환 AP 표시를 숨기는 함수
+    {
+        if (apCostImage != null)
+        {
+            apCostImage.SetActive(false);
+        }
     }
 
     public void SetCountText(string _text)  // 개수 표시 글자를 직접 정하는 함수 -> 상시 폰처럼 개수 대신 "∞"를 보여 줄 때 사용
@@ -120,6 +149,7 @@ public class ItemSlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         itemTextCount.text = "0";
         
         itemCountImage.SetActive(false);    // 마지막으로 아이템 갯수 UI가 보이지 않도록 설정
+        HideApCost();   // 소환 AP 표시도 숨김
     }
 
     // 마우스 드래그가 시작됐을 때 발생하는 이벤트

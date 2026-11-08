@@ -567,6 +567,55 @@ namespace Promotion.Feel
             Tween.Custom(body, 0.35f, 1f, P.guideOpenDuration, (t, a) => t.alpha = a, Ease.OutQuad, useUnscaledTime: true);
         }
 
+        // ---------- 특수 기물 해금·룰렛 (타이틀) ----------
+        public static void FairyUnlock(Transform button, Transform lockIcon, UnityEngine.UI.Graphic lockGraphic, Action onDone)
+        // 잠겨 있던 특수 기물 버튼의 자물쇠가 풀리는 연출 함수 -> 자물쇠가 덜컹덜컹 흔들리다 위로 튕겨 날아가며 사라지고, 버튼이 '톡' 튐
+        // -> 다 끝나면 onDone 호출 (설명 대사 시작)
+        {
+            Sequence.Create(useUnscaledTime: true)
+                .ChainDelay(P.fairyUnlockDelay) // 화면이 다 나타난 뒤 잠깐 기다렸다가
+                .Chain(Tween.ShakeLocalPosition(lockIcon, new ShakeSettings(P.fairyLockShake, P.fairyLockShakeDuration, 18f)))  // 자물쇠가 덜컹덜컹 흔들리고
+                .Chain(Tween.PunchScale(lockIcon, new ShakeSettings(Vector3.one * 0.35f, 0.2f, 8f)))   // '철컥' 하고 부풀었다가
+                .Chain(Tween.LocalPositionY(lockIcon, lockIcon.localPosition.y + P.fairyLockFlyHeight, P.fairyLockFlyDuration, Ease.OutCubic))  // 위로 튕겨 날아가며
+                .Group(Tween.LocalRotation(lockIcon, new Vector3(0f, 0f, P.fairyLockSpin), P.fairyLockFlyDuration, Ease.OutCubic))   // 빙글 돌고
+                .Group(Tween.Alpha(lockGraphic, 0f, P.fairyLockFlyDuration, Ease.InQuad))  // 서서히 사라짐
+                .Group(Tween.PunchScale(button, new ShakeSettings(Vector3.one * P.fairyUnlockPunch, P.fairyLockFlyDuration, 7f)))  // 동시에 버튼이 출렁 튐
+                .ChainCallback(() => onDone?.Invoke());
+        }
+
+        public static void ReelTick(Transform word)
+        // 룰렛 글자가 다음 단어로 바뀔 때마다 위에서 툭 내려오는 연출 함수 -> 칸이 굴러가는 느낌을 줌
+        {
+            Tween.StopAll(word);
+            Tween.LocalPositionY(word, P.reelTickOffset, 0f, P.reelTickDuration, Ease.OutQuad, useUnscaledTime: true);
+        }
+
+        public static void ReelStop(Transform reel)    // 룰렛 한 칸이 멈추는 순간 '탁' 하고 튀는 연출 함수
+        {
+            Tween.PunchScale(reel, new ShakeSettings(Vector3.one * P.reelStopPunch, P.reelStopDuration, 9f, useUnscaledTime: true));
+        }
+
+        public static void RevealPiece(Transform art, CanvasGroup group)
+        // 뽑힌 특수 기물 그림이 커지며 나타나는 연출 함수 -> 0이 아니라 60% 크기·옅은 상태에서 시작 (트윈이 멈춰도 그림은 보이게)
+        {
+            art.localScale = Vector3.one * 0.6f;
+            group.alpha = 0.3f;
+            Tween.Scale(art, 0.6f, 1f, P.reelRevealDuration, Ease.OutBack, useUnscaledTime: true);
+            Tween.Alpha(group, 0.3f, 1f, P.reelRevealDuration * 0.6f, Ease.OutQuad, useUnscaledTime: true);
+        }
+
+        public static void GlowPulse(UnityEngine.UI.Graphic glow)
+        // 기물 뒤의 파란 빛이 천천히 밝아졌다 어두워지기를 반복하는 연출 함수 -> 멈출 때는 GlowStop
+        {
+            Tween.StopAll(glow);
+            Tween.Alpha(glow, P.fairyGlowMin, P.fairyGlowMax, P.fairyGlowPeriod, Ease.InOutSine, -1, CycleMode.Yoyo, useUnscaledTime: true);
+        }
+
+        public static void GlowStop(UnityEngine.UI.Graphic glow)   // 파란 빛 깜빡임을 멈추는 함수
+        {
+            Tween.StopAll(glow);
+        }
+
         // ---------- 전역 ----------
         public static void HitStop(float scale = 0.05f)
         // 타격감이 필요한 순간 게임 시간을 아주 잠깐 거의 멈추는(히트 스톱) 함수
