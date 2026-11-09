@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Promotion.Tutorial
 {
-    public class PieceGuideDirector : MonoBehaviour // 기물을 이번 런에서 처음 소환했을 때 그 기물의 가이드 창을 띄우는 클래스
+    public class PieceGuideDirector : MonoBehaviour // 기물을 처음 소환(또는 폰이 처음 그 기물로 승격)했을 때 그 기물의 가이드 창을 띄우는 클래스
     // -> DeployController가 보내는 소환 이벤트(PieceDeployed)를 구독함 -> DeployController는 가이드가 있는지조차 모름
     // -> 가이드가 떠 있는 동안 게임 시간을 멈추고(timeScale 0) 보드 입력을 막음
     // -> 본 기록은 PlayerPrefs에 영구 저장되므로 튜토리얼 포함 기물마다 딱 한 번만 보여 줌. 최종전(체스 대결)에서는 띄우지 않음
@@ -36,6 +36,8 @@ namespace Promotion.Tutorial
                 _deploy.PieceDeployed += OnPieceDeployed; // 기물이 소환될 때마다 OnPieceDeployed가 실행되게 연결
                 _turn = _deploy.GetComponent<TurnManager>();
                 _stage = _deploy.GetComponent<StageDirector>();
+                if (_stage != null)
+                    _stage.PlayerPromoted += OnPieceDeployed;   // 폰이 처음 보는 기물로 승격해도 소환과 똑같이 가이드를 띄움 (본 기록도 함께 남음)
                 _spawner = _deploy.GetComponent<WaveSpawner>();
                 if (_spawner != null)
                     _spawner.EnemySpawned += OnPieceDeployed;   // 적이 처음 나왔을 때도 같은 방식으로 가이드를 띄움 (적 가이드가 있는 적만: 중갑병)
@@ -49,6 +51,8 @@ namespace Promotion.Tutorial
                 _deploy.PieceDeployed -= OnPieceDeployed; // 연결을 끊고
             if (_spawner != null)
                 _spawner.EnemySpawned -= OnPieceDeployed;
+            if (_stage != null)
+                _stage.PlayerPromoted -= OnPieceDeployed;
 
             if (_paused) // 가이드가 떠 있는 채로 씬이 바뀌었다면 멈춘 게임 시간을 되돌림 -> 다음 씬이 멈춘 채로 시작되지 않게
                 Resume();

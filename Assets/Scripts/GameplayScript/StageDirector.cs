@@ -30,6 +30,8 @@ namespace Promotion.Gameplay
 
         public event Action PromotionRequested; // 플레이어의 폰이 끝 줄에 도달해 무엇으로 바뀔지(프로모션) 골라야 할 때 발생하는 이벤트
 
+        public event Action<PieceDefinition> PlayerPromoted;  // 일반 스테이지에서 플레이어 폰이 다른 기물로 승격된 순간 -> 처음 얻은 기물이면 기물 가이드가 뜸
+
         public bool IsChessDuel  // 지금 스테이지가 체스 대결(최종전)인지 여부
         {
             get { return stage != null && stage.IsChessDuel; }
@@ -469,7 +471,10 @@ namespace Promotion.Gameplay
             {
                 var view = _registry.Replace(piece, _promotionPick);
                 if (!IsChessDuel && view != null)   // 일반 스테이지라면 살아남았을 때 인벤토리에 넣을 수 있도록 표시
+                {
                     MarkPromoted(piece, view.Piece);
+                    PlayerPromoted?.Invoke(_promotionPick); // 승격한 기물을 알림 (기물 가이드가 구독)
+                }
             }
             StateChanged?.Invoke();
         }

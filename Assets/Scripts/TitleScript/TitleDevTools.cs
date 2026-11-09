@@ -18,6 +18,11 @@ namespace Promotion.Title
 
         void Awake()
         {
+            if (!Application.isEditor && !Debug.isDebugBuild)  // 정식(베타) 빌드에서는 개발자 도구를 통째로 없앰 -> 테스터가 F키로 승패·기록을 건드리지 못하게
+            {                                                   // (에디터와 Development Build에서는 그대로 쓸 수 있음)
+                Destroy(this);
+                return;
+            }
             _visible = visibleOnStart;
         }
 

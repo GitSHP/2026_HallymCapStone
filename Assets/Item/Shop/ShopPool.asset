@@ -36,7 +36,6 @@ MonoBehaviour:
     unique: 1
     blurb: "\uC2A4\uCF5C\uB77C\uC2A4 \uBA54\uC774\uD2B8 \uC544\uD2F0\uD329\uD2B8"
   pieces:
-  - {fileID: 11400000, guid: f67a518ee14ae324484f9ab773792fbc, type: 2}
   - {fileID: 11400000, guid: 1c48c9228ef6cc14d96083af0e1804a1, type: 2}
   - {fileID: 11400000, guid: 54f87a6fd608e8241ae3ae1dd82ee643, type: 2}
   - {fileID: 11400000, guid: 9ec2daed356162a47bb402d293a0c8a9, type: 2}

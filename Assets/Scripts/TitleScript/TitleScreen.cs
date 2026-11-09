@@ -58,6 +58,8 @@ namespace Promotion.Title
         [SerializeField] RectTransform _logo;  // 킹 로고 이미지 (위에서 떨어지는 연출 대상)
         [SerializeField] TMP_Text _title;  // 게임 제목 텍스트 (한 글자씩 솟아오르는 연출 대상)
         [SerializeField] CanvasGroup _credits;  // 화면 아래 크레딧 묶음 (서서히 나타나는 연출 대상)
+        [Tooltip("오른쪽 위 버전 표기. Player Settings의 Version 값을 그대로 보여 준다.")]
+        [SerializeField] TMP_Text _version;  // 빌드 버전 표기 (피드백을 받을 때 어느 빌드인지 구분)
         [Tooltip("연출 중에만 켜지는 투명한 판. 어디를 클릭해도 연출을 건너뛴다.")]
         [SerializeField] Button _skipCatcher;  // 연출 중 화면 아무 곳이나 클릭하면 연출을 건너뛰게 해주는 투명 버튼
 
@@ -68,6 +70,8 @@ namespace Promotion.Title
         void Start()  // 타이틀 화면이 시작될 때 버튼을 연결하고 등장 연출을 시작하는 함수
         {
             InputGate.Reset();  // 이전 씬에서 남아 있을 수 있는 입력 차단 수를 0으로 초기화
+            if (_version != null)
+                _version.text = "Beta v" + Application.version;  // 버전은 Player Settings에서만 바꿈
 
             // 메뉴 버튼 연결
             _start.Clicked += OpenChoice;  // 시작 버튼 → 튜토리얼 선택창 열기

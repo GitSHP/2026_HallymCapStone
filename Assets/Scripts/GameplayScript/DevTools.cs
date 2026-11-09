@@ -32,6 +32,11 @@ namespace Promotion.Gameplay
 
         void Awake()    // 오브젝트가 생성될 때 한 번 실행 -> 같은 오브젝트(Board)의 컴포넌트를 찾아 둠
         {
+            if (!Application.isEditor && !Debug.isDebugBuild)  // 정식(베타) 빌드에서는 개발자 도구를 통째로 없앰 -> 테스터가 F키로 승패·기록을 건드리지 못하게
+            {                                                   // (에디터와 Development Build에서는 그대로 쓸 수 있음)
+                Destroy(this);
+                return;
+            }
             _visible = visibleOnStart;
             _director = GetComponent<StageDirector>();
             _turn = GetComponent<TurnManager>();
