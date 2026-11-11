@@ -38,6 +38,23 @@ namespace Promotion.Gameplay
             get { return _dragged != null; }
         }
 
+        public bool IsHoveringPickable  // 포인터 아래에 지금 집을 수 있는 아군 기물이 있는지 여부 -> 커서를 '편 손'으로 바꾸는 데 사용
+        {
+            get
+            {
+                Resolve();
+                if (_dragged != null || _input == null || !InputGate.WorldInputEnabled)
+                    return false;
+                var coord = _input.HoveredCoord;
+                if (!_grid.IsInside(coord))
+                    return false;
+                var piece = _state.GetPiece(coord);
+                if (piece == null || piece.Team != controlledTeam)
+                    return false;
+                return _turn == null || _turn.CanAfford(piece.Def.moveApCost);
+            }
+        }
+
         void Awake()  // 오브젝트가 생성될 때 한 번 실행 -> 필요한 컴포넌트를 찾아 둠
         {
             Resolve();
