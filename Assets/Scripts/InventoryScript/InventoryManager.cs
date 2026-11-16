@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Promotion.Core;
 using Promotion.Data;
+using Promotion.Feel;
 using Promotion.Gameplay;
 using Promotion.Tutorial;
 using TMPro;
@@ -98,9 +99,50 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
         }
     }
 
+    const int HotkeyCount = 6;  // 숫자 키 1~6으로 위에서부터 기물 칸을 고름
+
     void Update()
     {
         CloseMenuOnOutsideClick();  // 매 프레임마다 마우스의 위치 값을 확인해서 UI 영역 안에 있는지 없는지 확인
+        HandleHotkeys();
+    }
+
+    private void HandleHotkeys()
+    // 숫자 키 1~6(키패드 포함)을 누르면 위에서부터 그 번째 기물 칸을 고르는 함수 -> 칸을 클릭한 것과 같음
+    // -> 이후 보드 칸을 마우스 좌클릭하면 소환됨 (DeployController.TryDeployAt)
+    {
+        var keyboard = Keyboard.current;
+        if (keyboard == null || deploy == null || pieceSlots == null)
+            return;
+        if (keyboard.shiftKey.isPressed || keyboard.ctrlKey.isPressed || keyboard.altKey.isPressed)  // Shift+숫자는 개발자 도구가 씀
+            return;
+        if (!InputGate.WorldInputEnabled)   // 대화·가이드·선택창이 떠 있어 보드 입력이 막혀 있다면 무시
+            return;
+        if (IsChessDuel)    // 최종전은 소환하지 않음
+            return;
+
+        for (int i = 0; i < HotkeyCount && i < pieceSlots.Length; i++)
+        {
+            if (!keyboard[Key.Digit1 + i].wasPressedThisFrame && !keyboard[Key.Numpad1 + i].wasPressedThisFrame)
+                continue;
+
+            var slot = pieceSlots[i];
+            if (slot.gameObject.activeInHierarchy && slot.item != null)
+            {
+                UseSlot(slot);
+                Sfx.Play(SfxId.UiClick);
+            }
+            return;
+        }
+    }
+
+    private bool IsChessDuel
+    {
+        get
+        {
+            var director = deploy != null ? deploy.GetComponent<StageDirector>() : null;
+            return director != null && director.IsChessDuel;
+        }
     }
 
     public void OnToggleInventory(InputAction.CallbackContext context)  // 인벤토리 창 토글
@@ -189,6 +231,9 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
             pieceSlots[slot].ClearSlot();
             pieceSlots[slot].SetHighlight(false);
         }
+
+        for (int i = 0; i < pieceSlots.Length; i++)    // 위에서부터 6칸에 단축키 번호 표시 (빈 칸과 최종전은 숨김)
+            pieceSlots[i].SetHotkey(showAp && deploy != null && i < HotkeyCount && pieceSlots[i].item != null ? i + 1 : 0);
     }
 
     private static int IndexOfPair(List<PieceDefinition> defs, List<bool> flags, PieceDefinition def, bool flag)

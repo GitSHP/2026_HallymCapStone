@@ -1,4 +1,5 @@
 using Promotion.Core;
+using Promotion.Data;
 using Promotion.Feel;
 using Promotion.Gameplay;
 using TMPro;
@@ -41,7 +42,10 @@ namespace Promotion.UI
         [SerializeField] Button _toTitle;  // 타이틀로 버튼 -> 패배(런 종료)하거나 최종전에서 이겼을 때 보임
         [SerializeField] RectTransform _promotionPanel;  // 폰 승격 시 기물을 고르는 선택창
         [SerializeField] RectTransform _promotionRow;  // 승격 선택 버튼들이 들어가는 줄
-        [SerializeField] Button _choiceButtonPrefab;  // 승격 선택 버튼 프리팹 -> 선택지 수만큼 복제
+        [SerializeField] Promotion.Gameplay.PromotionCard _promotionCardPrefab;  // 승격 선택 카드 프리팹 (기물 그림 + 이름 + 행마법) -> 비어 있으면 글자 버튼 사용
+        [SerializeField] RectTransform _promotionBox;  // 승격 선택창의 가운데 패널 (등장 연출용)
+        [SerializeField] Button _choiceButtonPrefab;// 승격 선택 버튼 프리팹 -> 선택지 수만큼 복제
+        [SerializeField] Promotion.Analysis.RunReportView _reportPrefab;  // 런이 끝났을 때 타이틀로 가기 전에 띄우는 복기 리포트 화면
 
         [Header("최종전 AP 잠김 연출")]
         [Tooltip("최종전 대화가 끝나기 전까지 AP 패널에 보여 줄 평소 AP 값이다. 잠기는 순간 '사용 불가'로 바뀐다.")]
@@ -66,7 +70,7 @@ namespace Promotion.UI
 
             // 버튼을 눌렀을 때 실행할 함수 연결
             _action.onClick.AddListener(OnActionPressed);  // 행동 버튼 → 스테이지 시작 / 턴 종료
-            _toTitle.onClick.AddListener(ReturnToTitle);  // 타이틀로 버튼 → 런 초기화 후 타이틀 씬으로
+            _toTitle.onClick.AddListener(OnToTitleClicked);  // 타이틀로 버튼 → 런 초기화 후 타이틀 씬으로
 
             // 처음에는 결과 관련 UI를 모두 숨겨 둠
             _bannerPanel.SetActive(false);
@@ -147,8 +151,22 @@ namespace Promotion.UI
         }
 
 
+        void OnToTitleClicked()  // 타이틀로 버튼을 눌렀을 때 -> 기록된 런이 끝났다면 복기 리포트를 먼저 보여 줌 (튜토리얼은 기록이 없어 바로 이동)
+        {
+            var log = Promotion.Analysis.RunLog.Current;
+            if (_reportPrefab == null || log == null || !log.finished || Promotion.Tutorial.TutorialSession.Active != null)
+            {
+                ReturnToTitle();
+                return;
+            }
+
+            _toTitle.interactable = false;  // 두 번 눌러 리포트가 겹치지 않게 함
+            Instantiate(_reportPrefab).Show(log, ReturnToTitle);
+        }
+
         static void ReturnToTitle()  // 런을 끝내고 타이틀 화면으로 돌아가는 함수 (최종전 승리 후)
         {
+            Promotion.Analysis.RunLog.Current = null;  // 끝난 런의 기록을 비움
             RunState.Instance.ResetRun();  // 골드·보유 기물·유물 등 이번 판 진행 정보를 초기화하고
             SceneManager.LoadScene(TitleScene);  // 타이틀 씬으로 이동
         }
@@ -166,17 +184,30 @@ namespace Promotion.UI
                 if (def == null)  // 비어 있는 선택지는 건너뜀
                     continue;
 
-                var button = Instantiate(_choiceButtonPrefab, _promotionRow);  // 선택 버튼 프리팹을 복제하고
+                if (_promotionCardPrefab != null)  // 기물 그림이 들어간 카드로 보여 줌
+                {
+                    var card = Instantiate(_promotionCardPrefab, _promotionRow);
+                    card.name = "Promote_" + i;
+                    card.Fill(def, () => ChoosePromotion(def));
+                    card.PlayIn(i);  // 카드가 차례로 올라오며 등장
+                    continue;
+                }
+
+                var button = Instantiate(_choiceButtonPrefab, _promotionRow);  // (카드 프리팹이 없을 때) 글자 버튼으로 보여 줌
                 button.name = "Promote_" + i;
                 button.GetComponentInChildren<TextMeshProUGUI>().text = def.itemName;  // 버튼 글자에 기물 이름 표시
-                button.onClick.AddListener(() =>  // 버튼을 누르면
-                {
-                    _promotionPanel.gameObject.SetActive(false);  // 선택창을 닫고
-                    _director.ChoosePromotion(def);  // 고른 기물로 승격하라고 StageDirector에 전달
-                });
+                button.onClick.AddListener(() => ChoosePromotion(def));
             }
 
             _promotionPanel.gameObject.SetActive(true);  // 선택창을 화면에 표시
+            if (_promotionBox != null)
+                UiFx.PanelIn(_promotionBox, UiBuilder.Group(_promotionBox.gameObject));  // 다른 창과 같은 등장 연출
+        }
+
+        void ChoosePromotion(PieceDefinition def)  // 승격할 기물을 골랐을 때
+        {
+            _promotionPanel.gameObject.SetActive(false);  // 선택창을 닫고
+            _director.ChoosePromotion(def);  // 고른 기물로 승격하라고 StageDirector에 전달
         }
 
         void OnActionPressed()  // 행동 버튼을 눌렀을 때 실행되는 함수 -> 현재 단계에 따라 하는 일이 다름

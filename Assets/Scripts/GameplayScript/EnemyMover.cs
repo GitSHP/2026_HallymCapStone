@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Promotion.Core;
 using Promotion.Feel;
@@ -63,7 +64,7 @@ namespace Promotion.Gameplay
             if (king == null)   // 킹이 없다면 이미 진 것으로 보고 true 반환
                 return true;
 
-            BuildDistanceField(king.Coord); // 모든 칸에서 킹까지의 최단 거리를 계산
+            BuildDistanceField(king.Coord, RealEnemyAt); // 모든 칸에서 킹까지의 최단 거리를 계산
 
             _state.GetPiecesOf(Team.Enemy, _enemies);   // 적을 모두 모으고
             _enemies.Sort((a, b) => DistanceAt(a.Coord).CompareTo(DistanceAt(b.Coord)));
@@ -78,7 +79,13 @@ namespace Promotion.Gameplay
             return false;
         }
 
-        void BuildDistanceField(Coord target)   // 킹 칸(target)에서 시작해 모든 칸까지의 최단 거리를 BFS(너비 우선 탐색)로 계산하는 함수
+        bool RealEnemyAt(Coord c)   // 실제 보드에서 그 칸에 적이 있는지
+        {
+            var occupant = _state.GetPiece(c);
+            return occupant != null && occupant.Team == Team.Enemy;
+        }
+
+        void BuildDistanceField(Coord target, Func<Coord, bool> enemyAt)   // 킹 칸(target)에서 시작해 모든 칸까지의 최단 거리를 BFS(너비 우선 탐색)로 계산하는 함수
         // 적이 있는 칸은 막다른 곳 -> 그 적이 자기 거리를 알 수 있도록 거리는 기록하지만 그 칸을 거쳐서 더 퍼져 나가지는 않음
         {
             if (_dist == null || _dist.GetLength(0) != _grid.width || _dist.GetLength(1) != _grid.height)
@@ -107,8 +114,7 @@ namespace Promotion.Gameplay
 
                     _dist[neighbour.x, neighbour.y] = next; // 이웃 칸의 거리를 기록
 
-                    var occupant = _state.GetPiece(neighbour);
-                    if (occupant != null && occupant.Team == Team.Enemy)
+                    if (enemyAt(neighbour))
                     // 적이 있는 칸이라면 거리는 기록하되 이 칸을 거쳐 더 퍼져 나가지는 않음 -> 적끼리는 길을 막음
                         continue;
 
@@ -148,26 +154,7 @@ namespace Promotion.Gameplay
         // stepIndex: 이번 턴의 몇 번째 걸음인지 (0 = 첫 걸음) -> 두 번째 걸음부터는 빈 칸·킹 칸으로만 감 (잡기는 첫 걸음에서만)
         // from: 이번 걸음의 출발 칸 (연출용)
         {
-            var best = Coord.Invalid;   // 이동할 가장 좋은 칸(아직 없음)
-            int bestDistance = DistanceAt(enemy.Coord); // 지금 칸의 거리 -> 이보다 가까운 칸만 후보가 됨
-
-            foreach (var dir in Directions) // 이동 가능한 방향의 이웃 칸을 하나씩 확인
-            {
-                var candidate = enemy.Coord + dir;
-                if (!_grid.IsInside(candidate)) // 보드 밖이라면 건너뜀
-                    continue;
-
-                int distance = DistanceAt(candidate);
-                if (distance >= bestDistance)   // 지금까지 찾은 칸보다 킹에 가깝지 않다면 건너뜀
-                    continue;
-
-                var occupant = _state.GetPiece(candidate);
-                if (occupant != null && occupant.Team == Team.Enemy)    // 다른 적이 있는 칸이라면 건너뜀 -> 적끼리는 공격하지 않고 기다리기만 함
-                    continue;
-
-                best = candidate;   // 더 가까운 칸을 찾았으므로 기록
-                bestDistance = distance;
-            }
+            var best = BestStep(enemy.Coord, RealEnemyAt);  // 킹 쪽으로 다가갈 칸
 
             if (!best.IsValid)  // 만약 다가갈 칸이 없다면(갇힌 상태) -> 첫 걸음이라면 옆에 있는 아군 기물을 공격하거나, 없으면 그냥 대기
             {
@@ -195,6 +182,140 @@ namespace Promotion.Gameplay
 
             StepInto(enemy, best, order, stepIndex, from);   // 빈 칸이라면 그냥 한 칸 이동
             return StepResult.Moved;
+        }
+
+        Coord BestStep(Coord from, Func<Coord, bool> enemyAt)  // from에서 킹 쪽으로 한 칸 다가갈 가장 좋은 칸을 고르는 함수 (없으면 Coord.Invalid)
+        {
+            var best = Coord.Invalid;   // 이동할 가장 좋은 칸(아직 없음)
+            int bestDistance = DistanceAt(from); // 지금 칸의 거리 -> 이보다 가까운 칸만 후보가 됨
+
+            foreach (var dir in Directions) // 이동 가능한 방향의 이웃 칸을 하나씩 확인
+            {
+                var candidate = from + dir;
+                if (!_grid.IsInside(candidate)) // 보드 밖이라면 건너뜀
+                    continue;
+
+                int distance = DistanceAt(candidate);
+                if (distance >= bestDistance)   // 지금까지 찾은 칸보다 킹에 가깝지 않다면 건너뜀
+                    continue;
+
+                if (enemyAt(candidate))    // 다른 적이 있는 칸이라면 건너뜀 -> 적끼리는 공격하지 않고 기다리기만 함
+                    continue;
+
+                best = candidate;   // 더 가까운 칸을 찾았으므로 기록
+                bestDistance = distance;
+            }
+            return best;
+        }
+
+        // ---------- 다음 적 턴 미리 보기 (위협 표시용) ----------
+
+        class SimUnit   // 미리 보기에 쓰는 가벼운 기물 정보 -> 실제 기물은 건드리지 않음
+        {
+            public Piece piece;     // 실제 기물 (아직 떨어지지 않은 웨이브 적이면 null)
+            public Team team;
+            public bool king;
+            public int steps;       // 한 턴에 걷는 칸 수
+            public Coord coord;
+        }
+
+        readonly Dictionary<Coord, SimUnit> _sim = new();
+        readonly List<SimUnit> _simEnemies = new();
+
+        bool SimEnemyAt(Coord c)
+        {
+            return _sim.TryGetValue(c, out var unit) && unit.team == Team.Enemy;
+        }
+
+        void SimMove(SimUnit unit, Coord to)
+        {
+            _sim.Remove(unit.coord);
+            unit.coord = to;
+            _sim[to] = unit;
+        }
+
+        public void PredictThreats(IEnumerable<WaveSpawner.Landing> landings, HashSet<Piece> threatened)
+        // 다음 적 턴을 실제로 움직이지 않고 똑같은 규칙으로 따라 해 보는 함수 -> 잡히거나 깔릴 아군 기물(킹 포함)을 threatened에 담음
+        // -> 순서도 실제 적 턴과 같음: 예정된 웨이브 착지 -> 킹에 가까운 적부터 이동(중갑병은 2칸)
+        {
+            Resolve();
+            threatened.Clear();
+            _sim.Clear();
+            _simEnemies.Clear();
+
+            foreach (var p in _state.AllPieces)
+                _sim[p.Coord] = new SimUnit { piece = p, team = p.Team, king = p.IsObjective, steps = Mathf.Max(1, p.Def.enemyStepsPerTurn), coord = p.Coord };
+
+            if (landings != null)
+            {
+                foreach (var landing in landings)   // 웨이브가 먼저 떨어짐 -> 그 칸의 아군은 깔림
+                {
+                    if (_sim.TryGetValue(landing.cell, out var under) && under.team == Team.Player)
+                        threatened.Add(under.piece);
+                    int steps = landing.enemy != null ? Mathf.Max(1, landing.enemy.enemyStepsPerTurn) : 1;
+                    _sim[landing.cell] = new SimUnit { team = Team.Enemy, steps = steps, coord = landing.cell };
+                }
+            }
+
+            SimUnit king = null;
+            foreach (var unit in _sim.Values)
+            {
+                if (unit.team == Team.Player && unit.king)
+                    king = unit;
+                if (unit.team == Team.Enemy)
+                    _simEnemies.Add(unit);
+            }
+            if (king == null)   // 킹이 이미 깔렸다면 더 볼 것이 없음
+                return;
+
+            BuildDistanceField(king.coord, SimEnemyAt);
+            _simEnemies.Sort((a, b) => DistanceAt(a.coord).CompareTo(DistanceAt(b.coord)));
+
+            foreach (var enemy in _simEnemies)
+            {
+                for (int k = 0; k < enemy.steps; k++)
+                {
+                    var best = BestStep(enemy.coord, SimEnemyAt);
+                    if (!best.IsValid)  // 갇혔다면 첫 걸음에 한해 옆의 아군 하나를 제자리에서 공격
+                    {
+                        if (k == 0)
+                            SimAttackAdjacent(enemy, threatened);
+                        break;
+                    }
+
+                    _sim.TryGetValue(best, out var target);
+                    if (target != null && target.team == Team.Player)
+                    {
+                        if (target.king)    // 킹 칸에 들어감 -> 실제로는 여기서 패배로 끝남
+                        {
+                            threatened.Add(target.piece);
+                            return;
+                        }
+                        if (k > 0)  // 두 번째 걸음부터는 잡지 않고 멈춤
+                            break;
+                        threatened.Add(target.piece);
+                        SimMove(enemy, best);
+                        break;
+                    }
+
+                    SimMove(enemy, best);
+                }
+            }
+        }
+
+        void SimAttackAdjacent(SimUnit enemy, HashSet<Piece> threatened)   // AttackAdjacentPlayerPiece와 같은 규칙의 미리 보기
+        {
+            foreach (var dir in Directions)
+            {
+                var neighbour = enemy.coord + dir;
+                if (!_grid.IsInside(neighbour))
+                    continue;
+                if (!_sim.TryGetValue(neighbour, out var occupant) || occupant.team != Team.Player || occupant.king)
+                    continue;
+                threatened.Add(occupant.piece);
+                _sim.Remove(neighbour);
+                return;
+            }
         }
 
         void AttackAdjacentPlayerPiece(Piece enemy) // 갇힌 적이 바로 옆의 아군 기물 하나를 제자리에서 공격하는 함수

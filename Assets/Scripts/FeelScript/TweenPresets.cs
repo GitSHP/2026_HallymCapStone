@@ -211,6 +211,23 @@ namespace Promotion.Feel
         public float fairyGlowMax = 0.38f;  // 가장 밝은 투명도
         public float fairyGlowPeriod = 0.9f;    // 밝아졌다 어두워지는 데 걸리는 시간
 
+        [Header("착지 경고 (다음 적 턴에 적이 떨어질 칸)")]
+        public float dangerPulsePeriod = 0.9f;  // 깜빡임·테두리가 한 번 반복되는 시간
+        public float dangerFlashMin = 0.12f;    // 칸이 붉게 깜빡일 때 가장 옅은 진하기
+        public float dangerFlashMax = 0.42f;    // 가장 진한 진하기
+        public float dangerRingScale = 1.25f;   // 테두리가 퍼지는 최대 크기 (칸 크기 기준)
+
+        [Header("위협 표시 (다음 적 턴에 잡힐 아군 기물)")]
+        public float threatDelay = 0.4f;    // 플레이어 턴이 시작된 뒤 위협을 처음 검사하기까지 기다리는 시간
+        public float threatPopDuration = 0.25f; // '!'가 튀어나오는 시간
+        public Vector2 threatPopStretch = new Vector2(0.8f, 1.2f);  // 튀어나올 때 세로로 늘어나는 모양 (가로, 세로 배율)
+        public float threatSettleDuration = 0.2f;   // 늘어난 모양이 원래 크기로 돌아오는 시간
+        public float threatHold = 1.1f; // '!'가 또렷하게 보이는 시간
+        public float threatFadeDuration = 0.5f; // '!'가 옅어지는 시간
+        [Range(0f, 1f)] public float threatRestAlpha = 0.7f;  // 옅어진 뒤 남는 진하기 (0 = 사라짐, 떨림은 계속됨) -> 초심자가 놓치지 않게 조금 남겨 둠
+        public float threatShake = 0.05f;   // 위협받는 동안 기물이 떨리는 세기 (칸 크기 기준)
+        public float threatShakeInterval = 0.03f;   // 떨리는 위치를 바꾸는 간격 (초)
+
         [Header("전역")]
         public float hitStopDuration = 0.08f;   // 타격 순간 시간이 거의 멈추는 '히트 스톱'의 길이 -> 타격감을 줌
     }

@@ -530,7 +530,10 @@ namespace Promotion.Tutorial
 
             var keyboard = Keyboard.current; // 현재 연결된 키보드 (신 Input System)
             if (keyboard != null && (keyboard.spaceKey.wasPressedThisFrame || keyboard.enterKey.wasPressedThisFrame)) // 만약 이번 프레임에 스페이스나 엔터를 눌렀다면
+            {
+                Sfx.Play(SfxId.UiClick); // 클릭으로 넘길 때와 같은 소리 (클릭음은 Sfx가 UI 클릭에만 자동으로 냄)
                 Continue(); // 대사를 넘김 (클릭과 같은 처리)
+            }
         }
 
         void Continue()

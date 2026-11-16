@@ -22,6 +22,20 @@ namespace Promotion.Core
         public float bestScore;   // 가장 좋은 수의 평가 점수 -> score와 비교해 얼마나 손해 보는 수를 뒀는지 확인
     }
 
+    public struct MoveReview   // 플레이어가 둔 수 하나를 엔진으로 평가한 결과 (복기 리포트용)
+    {
+        public bool found;   // 둔 수가 합법 수 목록에서 발견됐는지
+        public float playedScore;   // 둔 수의 점수
+        public float bestScore;   // 최선의 수 점수
+        public ChessMove best;   // 최선의 수
+        public Coord bestFrom;   // 최선의 수의 출발 칸
+        public bool bestMates;   // 최선의 수가 체크메이트로 이어지는지
+        public bool playedMates;   // 둔 수가 체크메이트로 이어지는지
+        public bool playedGetsMated;   // 둔 수 때문에 체크메이트를 당하게 되는지
+        public bool bestGetsMated;   // 최선의 수를 둬도 체크메이트를 피할 수 없는지
+        public float hangingLoss;   // 둔 수로 움직인 기물이 그 자리에서 잡힐 수 있는 가치
+    }
+
     public static class ChessAI   // 최종전 체스 대결의 상대 AI
     // -> 정해진 수만큼 앞을 내다보며 모든 합법 수를 평가한 뒤, 초심자처럼 그중에서 느슨하게 고름
     // -> 대체로 무난한 수를 두고 가끔 그럴듯한 실수도 하지만, 체크메이트는 (설정에 따라) 놓치지 않음
@@ -102,6 +116,46 @@ namespace Promotion.Core
 
             // 4. 그 외에는 느슨하게 고름 -> 좋은 수일수록 뽑힐 확률이 높을 뿐 확정은 아님
             return Decide(scored, SoftPick(scored, profile.temperature, rng), AIDecisionKind.Considered);
+        }
+
+        public static MoveReview ReviewMove(SearchBoard board, Team side, Coord from, Coord to, int depth, PieceDefinition promotion)
+        // 이미 둔 수 하나를 모든 합법 수와 비교해 평가하는 함수 -> board는 그 수를 두기 직전의 판이며, 끝나면 원래대로 돌아옴
+        {
+            var review = new MoveReview();
+            var moves = new List<ChessMove>();
+            ChessRules.GetAllLegalMoves(board, side, moves, 0);
+            var played = board.GetPiece(from);
+
+            float best = -Mathf.Infinity;
+            foreach (var m in moves)
+            {
+                var moverFrom = m.piece.Coord;
+                var promo = ChessRules.IsPromotion(board, m.piece, m.to) ? promotion : null;
+                var undo = board.Make(m.piece, m.to, promo);
+                float score = -Search(board, side.Opponent(), side.Opponent(), depth - 1, -Mathf.Infinity, Mathf.Infinity, 1, promotion);
+                bool isPlayed = m.piece == played && m.to == to;
+                if (isPlayed)
+                {
+                    review.found = true;
+                    review.playedScore = score;
+                    review.playedMates = score >= MateScore - 10f;
+                    review.playedGetsMated = score <= -(MateScore - 10f);
+                    review.hangingLoss = HangingLoss(board, undo.promoted ?? m.piece);
+                }
+                board.Unmake(undo);
+
+                if (score > best)
+                {
+                    best = score;
+                    review.best = m;
+                    review.bestFrom = moverFrom;
+                }
+            }
+
+            review.bestScore = best;
+            review.bestMates = best >= MateScore - 10f;
+            review.bestGetsMated = best <= -(MateScore - 10f);
+            return review;
         }
 
         static AIDecision Decide(List<Scored> scored, int index, AIDecisionKind kind)

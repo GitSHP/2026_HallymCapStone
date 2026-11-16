@@ -230,6 +230,13 @@ namespace Promotion.Feel
                 startDelay: index * P.highlightStagger);    // 순번만큼 늦게 시작해 원래 크기로 튀어나옴
         }
 
+        public static void ReportSceneFocus(Transform board)  // 복기 리포트의 체스판 장면이 바뀔 때 살짝 튕기며 시선을 끄는 함수
+        {
+            Tween.StopAll(board);
+            board.localScale = Vector3.one; // 이전 튕김이 끝나기 전에 바뀌어도 크기가 어긋나지 않게 원래 크기로 되돌린 뒤 시작
+            Tween.PunchScale(board, new ShakeSettings(new Vector3(0.05f, 0.05f, 0f), 0.3f, 6f, useUnscaledTime: true));
+        }
+
         const float PopInStartScale = 0.6f; // PopIn이 시작하는 크기 비율 (목표 크기의 60%)
 
         // ---------- 전투 ----------
@@ -534,7 +541,7 @@ namespace Promotion.Feel
                 .OnComplete(t, _ => Sfx.Play(SfxId.Move), warnIfTargetDestroyed: false);
         }
 
-        public static Sequence SpawnDrop(Transform t, Vector3 worldTarget, Transform boardRoot, int index = 0)
+        public static Sequence SpawnDrop(Transform t, Vector3 worldTarget, Transform boardRoot, int index = 0, Action onLand = null)
         // 적이 위에서 칸으로 떨어지며 등장하는 연출 함수
         {
             var landing = ToLocal(t, worldTarget);  // 착지할 칸 (보드 기준)
@@ -547,7 +554,75 @@ namespace Promotion.Feel
                 {
                     ShakeBoard(boardRoot, 0.6f);    // 착지 순간 체스판을 약하게(60%) 흔들고
                     Sfx.Play(SfxId.Move);   // '탁' 소리
+                    onLand?.Invoke();   // 착지했다고 알림 (위험 핑 등)
                 });
+        }
+
+        public static void DangerWarnStart(SpriteRenderer flash, SpriteRenderer[] rings, SpriteRenderer mark, SpriteRenderer ghost)
+        // 다음 적 턴에 적이 떨어질 칸을 경고하는 반복 연출 -> 칸이 붉게 숨 쉬듯 깜빡이고, 테두리가 번갈아 퍼지고, 경고 표시가 통통 튐
+        // -> 플레이어 턴 내내 반복되고 DangerWarnStop으로 멈춤
+        {
+            var p = P;
+            float half = p.dangerPulsePeriod * 0.5f;
+            Tween.Alpha(flash, p.dangerFlashMin, p.dangerFlashMax, half, Ease.InOutSine, cycles: -1, cycleMode: CycleMode.Yoyo);
+
+            for (int i = 0; i < rings.Length; i++)
+            {
+                float delay = i * half;     // 두 테두리가 반 박자씩 엇갈려 퍼짐
+                Tween.Scale(rings[i].transform, 0.9f, p.dangerRingScale, p.dangerPulsePeriod, Ease.OutCubic, cycles: -1, startDelay: delay);
+                Tween.Alpha(rings[i], 0.85f, 0f, p.dangerPulsePeriod, Ease.InQuad, cycles: -1, startDelay: delay);
+            }
+
+            var markTransform = mark.transform;
+            float baseY = markTransform.localPosition.y;
+            SetAlpha(mark, 1f);
+            Tween.LocalPositionY(markTransform, baseY, baseY + 0.12f, half, Ease.InOutSine, cycles: -1, cycleMode: CycleMode.Yoyo);
+
+            if (ghost != null)  // 떨어질 적의 반투명 그림자
+                Tween.Alpha(ghost, 0.2f, 0.45f, half, Ease.InOutSine, cycles: -1, cycleMode: CycleMode.Yoyo);
+        }
+
+        public static void DangerWarnStop(SpriteRenderer flash, SpriteRenderer[] rings, SpriteRenderer mark, SpriteRenderer ghost)  // 경고 반복 연출을 멈추는 함수
+        {
+            Tween.StopAll(flash);
+            foreach (var ring in rings)
+            {
+                Tween.StopAll(ring);
+                Tween.StopAll(ring.transform);
+            }
+            Tween.StopAll(mark.transform);
+            if (ghost != null)
+                Tween.StopAll(ghost);
+        }
+
+        // ---------- 위협 표시 ----------
+        public static void ThreatPop(Transform mark, SpriteRenderer sprite)
+        // 다음 적 턴에 잡힐 기물 위에 '!'가 톡 튀어나오는 연출 -> 세로로 늘어났다가 제자리 -> 잠시 뒤 옅어짐
+        // -> 크기 0에서 시작하지 않음 (연출이 끊겨도 표시는 보이도록)
+        {
+            var p = P;
+            Tween.StopAll(mark);
+            Tween.StopAll(sprite);
+            SetAlpha(sprite, 1f);
+            var stretched = new Vector3(p.threatPopStretch.x, p.threatPopStretch.y, 1f);
+            mark.localScale = stretched * 0.35f;
+            Sequence.Create()
+                .Chain(Tween.Scale(mark, stretched, p.threatPopDuration, Ease.OutBack))
+                .Chain(Tween.Scale(mark, Vector3.one, p.threatSettleDuration, Ease.OutBack));
+            Tween.Alpha(sprite, p.threatRestAlpha, p.threatFadeDuration, Ease.InQuad, startDelay: p.threatHold);
+        }
+
+        public static void ThreatStop(Transform mark, SpriteRenderer sprite)  // 위협 표시 연출을 멈추는 함수
+        {
+            Tween.StopAll(mark);
+            Tween.StopAll(sprite);
+        }
+
+        static void SetAlpha(SpriteRenderer sr, float alpha)
+        {
+            var c = sr.color;
+            c.a = alpha;
+            sr.color = c;
         }
 
         // ---------- 기물 가이드 ----------

@@ -5269,6 +5269,8 @@ GameObject:
   - component: {fileID: 1641209554}
   - component: {fileID: 1641209555}
   - component: {fileID: 1641209556}
+  - component: {fileID: 1641209557}
+  - component: {fileID: 1641209558}
   m_Layer: 0
   m_Name: Board
   m_TagString: Untagged
@@ -5576,6 +5578,33 @@ MonoBehaviour:
   _burstPrefab: {fileID: 232602586891157604, guid: fa4053dea0f5de543b7b80afae1d545f, type: 3}
   _popupPrefab: {fileID: 7269252503486452256, guid: 46a06a6aba7cd7e4694304b20b59596e, type: 3}
   _offsetY: 0.6
+--- !u!114 &1641209557
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1641209534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32245326c1833764ab49b7428ee7f385, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Gameplay.DangerPingView
+  _prefab: {fileID: 1754242794860189019, guid: fb65da20fe458f14da4be46274e64c76, type: 3}
+--- !u!114 &1641209558
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1641209534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea98c39317595994ca984de1a1f1654d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Gameplay.ThreatView
+  _prefab: {fileID: 1278313087390763345, guid: eb5b3722eb2936e42858c8444a1ff43f, type: 3}
+  _refreshInterval: 0.15
 --- !u!224 &1654191732 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4338673652353332066, guid: a8f79e7cc048bdd41924cb69112d64e3, type: 3}

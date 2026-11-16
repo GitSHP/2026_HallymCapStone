@@ -30,6 +30,10 @@ public class ItemSlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     [SerializeField]
     private TextMeshProUGUI apCostText; // 소환 AP 숫자 글자
     [SerializeField]
+    private GameObject hotkeyBadge; // 기물 슬롯 왼쪽 위의 단축키 번호 표시 (기물 슬롯 프리팹에만 있음)
+    [SerializeField]
+    private TextMeshProUGUI hotkeyText; // 단축키 번호 글자
+    [SerializeField]
     private ItemData.ItemType allowedType;  // 이 슬롯에 저장할 수 있는 아이템 유형 (인스펙터에서 설정)
 
     void Awake()
@@ -73,6 +77,15 @@ public class ItemSlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         }
         apCostImage.SetActive(true);
         apCostText.text = _ap.ToString();
+    }
+
+    public void SetHotkey(int _key)    // 이 슬롯을 고르는 숫자 키를 왼쪽 위에 표시하는 함수 -> 0이면 숨김
+    {
+        if (hotkeyBadge == null)    // 단축키 표시가 없는 슬롯(유물·아이템)이면 아무것도 하지 않음
+            return;
+        hotkeyBadge.SetActive(_key > 0);
+        if (_key > 0)
+            hotkeyText.text = _key.ToString();
     }
 
     private void HideApCost()   // 소환 AP 표시를 숨기는 함수

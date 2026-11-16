@@ -69,8 +69,9 @@ namespace Promotion.Tutorial
             yield return null;
             yield return null;
 
-            foreach (var step in _script.steps) // 대본의 단계를 하나씩 차례로 진행
+            for (int index = 0; index < _script.steps.Length; index++) // 대본의 단계를 하나씩 차례로 진행
             {
+                var step = _script.steps[index];
                 if (step == null) // 비어 있는 단계는 건너뜀
                     continue;
 
@@ -85,13 +86,18 @@ namespace Promotion.Tutorial
 
                 // 대사가 아닌 단계라면 -> 짧은 힌트를 띄우고 플레이어가 직접 행동할 때까지 기다림
                 _view.ShowHint(step.text);
-                yield return new WaitUntil(() => IsMet(step.wait) || Lost); // 조건을 만족하거나 패배할 때까지 매 프레임 검사
+                yield return new WaitUntil(() => IsMet(step.wait) || Lost || Won); // 조건을 만족하거나 승패가 날 때까지 매 프레임 검사
 
                 if (Lost) // 만약 패배했다면
                 {
                     _view.HideAll(); // 대사 화면을 모두 숨기고 튜토리얼 진행을 멈춤 -> HUD의 재시작에 맡기고, 튜토리얼은 처음부터 다시 시작됨
                     yield break;
                 }
+
+                if (Won && step.wait != TutorialWait.Victory && !IsMet(step.wait))
+                // 기다리던 행동(예: 폰 소환)을 하지 않은 채 먼저 이겨 버렸다면 -> 승리를 기다리는 단계까지 건너뜀
+                // -> 그 사이의 안내(폰 사용법 등)와 웨이브 소환 동작은 이미 의미가 없으므로 실행하지 않음
+                    index = SkipToVictoryStep(index);
             }
 
             if (_script.shopPool != null) // 상점 단계가 준비되어 있다면 전투 승리 뒤 상점을 열어 이어서 진행
@@ -184,6 +190,21 @@ namespace Promotion.Tutorial
                     results.Add(_shop.ConfirmRect);
                     break;
             }
+        }
+
+        bool Won // 지금 승리 상태인지 여부
+        {
+            get { return _turn.Phase == TurnPhase.Victory; }
+        }
+
+        int SkipToVictoryStep(int current)  // current 다음에 오는 "승리 대기" 단계의 위치를 찾는 함수 -> 없으면 current 그대로
+        {
+            for (int i = current + 1; i < _script.steps.Length; i++)
+            {
+                if (_script.steps[i] != null && _script.steps[i].wait == TutorialWait.Victory)
+                    return i;   // 반복문이 이 단계를 지나 바로 다음 단계(승리 축하 대사)부터 진행함
+            }
+            return current;
         }
 
         bool Lost // 지금 패배 상태인지 여부

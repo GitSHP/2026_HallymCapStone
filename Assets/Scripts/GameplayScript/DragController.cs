@@ -19,6 +19,19 @@ namespace Promotion.Gameplay
         public event System.Action<Piece, Piece> Castled;   // 캐슬링 연출이 착지했을 때 발생하는 이벤트 -> (킹, 룩). 이펙트는 CastlingEffectView가 담당
         public event System.Action<Piece, Coord> MoveCommitted; // 드래그로 이동이 확정됐을 때 발생하는 이벤트 -> 움직인 기물과 도착 칸을 넘겨줌
 
+        public enum DragOutcome // 드래그가 어떻게 끝났는지 -> 플레이 기록(RunRecorder)에 사용
+        {
+            Moved,      // 이동 또는 잡기 확정
+            Castled,    // 캐슬링 확정
+            Cancelled,  // 원래 칸이나 보드 밖에 놓음(또는 창이 열려 취소됨)
+            Illegal,    // 갈 수 없는 칸에 놓음
+            Blocked,    // 잡을 수 없는 상대(면역)에게 놓음
+            NoAp        // AP가 부족해 실행되지 않음
+        }
+
+        public event System.Action<Piece, IReadOnlyList<MoveOption>> DragStarted;   // 기물을 집은 순간 -> (집은 기물, 갈 수 있는 칸 목록). 보드는 아직 바뀌기 전
+        public event System.Action<Piece, Coord, DragOutcome> DragEnded;    // 드래그가 끝난 순간 -> (기물, 놓은 칸, 결과). MoveCommitted보다 먼저 발생
+
         BoardGrid _grid;    // 칸 좌표 변환과 칸 강조 표시용
         BoardState _state;  // 보드 위 기물 위치 데이터
         BoardInput _input;  // 마우스 누름/뗌과 포인터 위치를 알려 주는 컴포넌트
@@ -131,6 +144,7 @@ namespace Promotion.Gameplay
 
             view.SetSortingBoost(true); // 드래그 중인 기물이 다른 기물 위에 그려지도록 순서를 올리고
             Fx.PickUp(view.transform, view.BaseScale);  // 집어 드는 연출(살짝 커지고 기울어짐)
+            DragStarted?.Invoke(piece, _options);
         }
 
         void UpdateDragVisual() // 드래그 중인 기물이 포인터를 따라오게 하는 함수
@@ -150,6 +164,7 @@ namespace Promotion.Gameplay
             _grid.ClearHighlights();    // 칸 강조 표시 지우고
             view.SetSortingBoost(false);    // 그리기 순서를 원래대로
             Fx.Drop(view.transform, _grid.CoordToWorld(_dragOrigin), transform, view.BaseScale);   // 원래 칸으로 내려놓는 연출
+            DragEnded?.Invoke(view.Piece, _dragOrigin, DragOutcome.Cancelled);
         }
 
         void EndDrag()  // 마우스를 뗐을 때 이동을 확정하거나 취소하는 함수
@@ -168,9 +183,17 @@ namespace Promotion.Gameplay
 
             if (!legal) // 갈 수 없는 칸이라면 원래 자리로 되돌림 -> 보드 밖에 놓는 것이 자연스러운 "취소"
             {
-                if (_blocked.Contains(target))  // 잡으려 했지만 상대가 면역인 칸이라면(폰 -> 중갑병) '막힘!'을 알림
+                bool blocked = _blocked.Contains(target);
+                if (blocked)  // 잡으려 했지만 상대가 면역인 칸이라면(폰 -> 중갑병) '막힘!'을 알림
                     CaptureBlocked?.Invoke(piece, _state.GetPiece(target));
                 Fx.Drop(view.transform, _grid.CoordToWorld(_dragOrigin), transform, view.BaseScale);
+
+                DragOutcome failed = DragOutcome.Illegal;
+                if (blocked)
+                    failed = DragOutcome.Blocked;
+                else if (!_grid.IsInside(target) || target == _dragOrigin)  // 보드 밖이나 원래 칸은 실수가 아니라 취소로 봄
+                    failed = DragOutcome.Cancelled;
+                DragEnded?.Invoke(piece, target, failed);
                 return;
             }
 
@@ -179,6 +202,7 @@ namespace Promotion.Gameplay
             if (option.isCastle)    // 캐슬링이라면 두 기물의 자리를 맞바꾸고 종료
             {
                 PerformCastle(view, target);
+                DragEnded?.Invoke(piece, target, _turn.CastledThisStage ? DragOutcome.Castled : DragOutcome.NoAp);
                 return;
             }
 
@@ -186,6 +210,7 @@ namespace Promotion.Gameplay
             // 이동 AP를 소모 -> 부족하다면 원래 자리로 되돌림
             {
                 Fx.Drop(view.transform, _grid.CoordToWorld(_dragOrigin), transform, view.BaseScale);
+                DragEnded?.Invoke(piece, target, DragOutcome.NoAp);
                 return;
             }
 
@@ -193,6 +218,7 @@ namespace Promotion.Gameplay
             {
                 _combat.CaptureInto(piece, _state.GetPiece(target), target);
                 // CombatResolver가 기물 이동과 잡기 연출을 모두 처리함 -> 여기서 이동 연출을 따로 시작하면 서로 충돌함
+                DragEnded?.Invoke(piece, target, DragOutcome.Moved);
                 MoveCommitted?.Invoke(piece, target);   // 이동이 확정됐음을 알림
                 return;
             }
@@ -202,6 +228,7 @@ namespace Promotion.Gameplay
 
             _state.Move(piece, target); // 보드 데이터에서 기물을 옮기고
             Fx.Drop(view.transform, _grid.CoordToWorld(target), transform, view.BaseScale); // 새 칸에 내려놓는 연출
+            DragEnded?.Invoke(piece, target, DragOutcome.Moved);
             MoveCommitted?.Invoke(piece, target);   // 이동이 확정됐음을 알림
         }
 

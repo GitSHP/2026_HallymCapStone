@@ -144,6 +144,7 @@ namespace Promotion.Gameplay
             _drag.MoveCommitted += OnPlayerMoved;   // 플레이어가 기물을 움직이면 OnPlayerMoved가 호출되도록 연결 -> 폰이 맨 윗줄에 닿으면 프로모션
             _turn.Configure(stage.apPerTurn);   // 한 턴에 받는 AP(행동력) 설정
             _spawner.spawnRows = stage.spawnRows;   // 적이 나타나는 위쪽 줄 수 설정
+            _spawner.ClearPlans();  // 이전 스테이지의 착지 계획(경고 표시)을 지움
             _mover.moveDiagonally = stage.enemiesMoveDiagonally;    // 적이 대각선으로도 움직일 수 있는지 설정
             _deploy.deployRows = stage.deployRows;  // 아군 기물을 놓을 수 있는 아래쪽 줄 수 설정
         }
@@ -195,7 +196,17 @@ namespace Promotion.Gameplay
                 return;
 
             _turn.BeginPlayerTurn();    // 플레이어 턴 시작 -> AP 지급
+            PlanUpcomingWaves();    // 이번 적 턴에 떨어질 웨이브의 착지 칸을 미리 정해 경고를 띄움
             StateChanged?.Invoke();
+        }
+
+        void PlanUpcomingWaves()
+        // 이번 플레이어 턴이 끝나면 소환될 웨이브들의 착지 칸을 미리 정하는 함수 -> 플레이어가 경고를 보고 그 칸을 피할 수 있음
+        {
+            if (IsChessDuel)
+                return;
+            for (int w = WavesSent; w < TotalWaves && stage.waves[w].spawnOnTurn <= _turn.Turn; w++)
+                _spawner.Plan(w, stage.waves[w], ExtraEnemies, RunState.Instance.StageIndex + 1);
         }
 
         public void RequestEndTurn()    // 플레이어가 턴 종료 버튼을 눌렀을 때 호출되는 함수 -> 적 턴을 시작함
@@ -221,11 +232,18 @@ namespace Promotion.Gameplay
             while (WavesSent < TotalWaves && stage.waves[WavesSent].spawnOnTurn <= _turn.Turn)
             // 아직 안 나온 웨이브 중 등장 턴이 지금 턴 이하인 것을 모두 소환 -> 누구든 움직이기 전에 등장함
             {
-                _spawner.Spawn(stage.waves[WavesSent], ExtraEnemies, RunState.Instance.StageIndex + 1); // 웨이브의 적들을 보드 위쪽에 소환하고 (런 진행에 따라 적이 더 나옴)
+                _spawner.Spawn(WavesSent, stage.waves[WavesSent], ExtraEnemies, RunState.Instance.StageIndex + 1); // 웨이브의 적들을 보드 위쪽에 소환하고 (런 진행에 따라 적이 더 나옴)
                 WavesSent++;    // 소환한 웨이브 수 +1
                 RefreshEnemyCount();
                 StateChanged?.Invoke();
                 yield return new WaitForSeconds(phaseDelay);    // 웨이브가 하나씩 나오는 것이 보이도록 대기
+
+                if (_spawner.KingCrushed)   // 경고 칸에 킹을 세워 두었다면 -> 적이 킹 칸에 들어온 것과 같으므로 즉시 패배
+                {
+                    _resolving = false;
+                    Finish(TurnPhase.Defeat, "경고 칸에 킹이 있었음");
+                    yield break;
+                }
             }
 
             bool kingReached = _mover.ResolveEnemyTurn();   // 모든 적을 킹 쪽으로 한 칸씩 이동 -> 적이 킹 칸에 들어갔다면 true
@@ -249,6 +267,7 @@ namespace Promotion.Gameplay
             }
 
             _turn.BeginPlayerTurn();    // 승패가 안 났다면 다음 플레이어 턴 시작(턴 수 +1, AP 다시 지급)
+            PlanUpcomingWaves();    // 다음 적 턴에 떨어질 웨이브의 착지 칸을 미리 정해 경고를 띄움
             StateChanged?.Invoke();
         }
 
@@ -265,6 +284,8 @@ namespace Promotion.Gameplay
                 MetaProgress.RecordBossClear(); // 보스(최종전)를 처음 이긴 순간 -> 영구 기록에 클리어 +1, 검은 왕관 +1 (특수 기물 해금 조건)
 
             OutcomeReason = reason; // 끝난 이유 저장(HUD에서 표시)
+            if (_spawner != null)
+                _spawner.ClearPlans();  // 끝났으면 남은 착지 경고를 지움
             _resolving = false; // 처리 중 표시와 생각 중 표시를 모두 해제
             AIThinking = false;
             _turn.SetPhase(outcome);    // 단계를 승리/패배로 바꿈 -> 이후 입력이 막힘
@@ -508,7 +529,7 @@ namespace Promotion.Gameplay
             if (WavesSent >= TotalWaves)    // 남은 웨이브가 없다면 false 반환
                 return false;
 
-            _spawner.Spawn(stage.waves[WavesSent], ExtraEnemies, RunState.Instance.StageIndex + 1); // 다음 웨이브를 소환하고
+            _spawner.Spawn(WavesSent, stage.waves[WavesSent], ExtraEnemies, RunState.Instance.StageIndex + 1); // 다음 웨이브를 소환하고
             WavesSent++;    // 소환한 웨이브 수 +1
             RefreshEnemyCount();
             StateChanged?.Invoke();

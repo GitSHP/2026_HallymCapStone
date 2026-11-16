@@ -31,6 +31,8 @@ namespace Promotion.Title
         [SerializeField] Image _fairyLockImage; // 자물쇠 그림 (풀릴 때 사라지는 연출 대상)
         [SerializeField] GameObject _fairyLockedHint;   // 버튼 아래 "보스를 처치하면 열립니다" 안내
         [SerializeField] FairyRouletteView _roulette;   // 특수 기물 뽑기 창
+        [SerializeField] UiButton _archiveButton;   // 왼쪽 아래 [기록소] 버튼 (특수 기물 버튼 위)
+        [SerializeField] ArchiveView _archive;      // 기록소 창 -> 저장된 복기 리포트 목록
         [SerializeField] DialogueView _dialogue;    // 버튼이 풀린 뒤 특수 기물을 소개하는 대화창 (튜토리얼 대화창 프리팹)
         [TextArea(2, 5)]
         [SerializeField] string[] _fairyIntroLines = // 버튼이 처음 풀릴 때 안내인이 하는 말
@@ -84,6 +86,8 @@ namespace Promotion.Title
             _fairy.Clicked += OpenRoulette;  // 특수 기물 버튼 → 룰렛 창 열기
             _roulette.Closed += ApplyFairyLock;  // 룰렛 창을 닫으면 버튼 상태를 다시 그림
             _roulette.gameObject.SetActive(false);  // 룰렛 창은 처음에 숨겨 둠
+            _archiveButton.Clicked += OpenArchive;  // 기록소 버튼 → 기록소 창 열기
+            _archive.gameObject.SetActive(false);
             if (_dialogue != null)
                 _dialogue.gameObject.SetActive(false);  // 대화창도 숨겨 둠
             ApplyFairyLock();  // 보스를 이겼는지에 따라 잠금/풀림 상태로 그림
@@ -111,6 +115,8 @@ namespace Promotion.Title
                 CloseChoice();
             else if (_roulette.IsOpen && keyboard.escapeKey.wasPressedThisFrame)  // 룰렛 창이 열려 있다면 ESC로 닫기
                 _roulette.Close();
+            else if (_archive.IsOpen && keyboard.escapeKey.wasPressedThisFrame)  // 기록소가 열려 있다면 ESC로 리포트 또는 기록소 닫기
+                _archive.Back();
         }
 
         IEnumerator PlayIntro()  // 타이틀 등장 연출을 순서대로 재생하는 코루틴
@@ -120,7 +126,7 @@ namespace Promotion.Title
             var p = Fx.P;  // 연출 수치 에셋
             _skipCatcher.gameObject.SetActive(true);  // 연출 중에는 클릭으로 건너뛸 수 있도록 투명 판을 켬
 
-            foreach (var button in new[] { _start, _options, _quit, _fairy })  // 메뉴 버튼 4개를
+            foreach (var button in new[] { _start, _options, _quit, _archiveButton, _fairy })  // 메뉴 버튼 4개를
                 UiBuilder.Group(button.gameObject).alpha = 0f;  // 처음에는 투명하게 숨겨 둠 (나중에 차례로 등장)
 
             // 배경 체스판 칸 연출: 왼쪽 위 칸부터 대각선 방향으로 차례차례 나타남
@@ -147,7 +153,8 @@ namespace Promotion.Title
             _start.PlayIn(0);  // 메뉴 버튼을 위에서부터 차례로 등장시킴
             _options.PlayIn(1);
             _quit.PlayIn(2);
-            _fairy.PlayIn(3);
+            _archiveButton.PlayIn(3);
+            _fairy.PlayIn(4);
 
             yield return new WaitForSecondsRealtime(
                 Mathf.Max(p.titleCreditDelay + p.titleCreditFade, p.titleShakeDuration + p.titleLogoDelay) - p.titleMenuDelay + 0.3f);
@@ -165,7 +172,7 @@ namespace Promotion.Title
                 StopCoroutine(_intro);  // 아직 진행 중인 연출 코루틴이 있다면 중단
 
             Fx.CompleteAll();  // 진행 중인 모든 트윈을 즉시 끝 상태로 만듦 (칸·로고·제목이 바로 제자리에)
-            foreach (var button in new[] { _start, _options, _quit, _fairy })
+            foreach (var button in new[] { _start, _options, _quit, _archiveButton, _fairy })
                 UiBuilder.Group(button.gameObject).alpha = 1f;  // 메뉴 버튼이 확실히 보이도록 불투명하게
             _credits.alpha = 1f;  // 크레딧도 확실히 보이게
             _stage.anchoredPosition = Vector2.zero;  // 흔들리던 화면 묶음을 제자리로
@@ -231,6 +238,13 @@ namespace Promotion.Title
             if (_starting || _roulette.IsOpen || _fairyUnlocking)
                 return;
             _roulette.Open();
+        }
+
+        void OpenArchive()  // 기록소 버튼을 눌렀을 때 기록소 창을 여는 함수
+        {
+            if (_starting || _roulette.IsOpen || _archive.IsOpen || _fairyUnlocking)
+                return;
+            _archive.Open();
         }
 
         void OpenChoice()  // 시작 버튼을 눌렀을 때 튜토리얼 선택창을 여는 함수

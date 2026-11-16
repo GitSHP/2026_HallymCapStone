@@ -32,12 +32,7 @@ namespace Promotion.Gameplay
 
         void Awake()    // 오브젝트가 생성될 때 한 번 실행 -> 같은 오브젝트(Board)의 컴포넌트를 찾아 둠
         {
-            if (!Application.isEditor && !Debug.isDebugBuild)  // 정식(베타) 빌드에서는 개발자 도구를 통째로 없앰 -> 테스터가 F키로 승패·기록을 건드리지 못하게
-            {                                                   // (에디터와 Development Build에서는 그대로 쓸 수 있음)
-                Destroy(this);
-                return;
-            }
-            _visible = visibleOnStart;
+            _visible = Application.isEditor && visibleOnStart;  // 빌드에서는 숨긴 채 시작 -> F1을 눌러야만 패널이 보임 (테스터에게 존재를 알리지 않음)
             _director = GetComponent<StageDirector>();
             _turn = GetComponent<TurnManager>();
             _deploy = GetComponent<DeployController>();
@@ -373,7 +368,8 @@ namespace Promotion.Gameplay
         {
             if (!_visible)  // 패널이 닫혀 있다면 안내 문구만 표시
             {
-                GUI.Label(new Rect(10f, 10f, 300f, 22f), "F1: dev tools");
+                if (Application.isEditor)  // 빌드에서는 안내 문구도 표시하지 않음
+                    GUI.Label(new Rect(10f, 10f, 300f, 22f), "F1: dev tools");
                 return;
             }
 

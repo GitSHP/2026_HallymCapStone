@@ -18,12 +18,7 @@ namespace Promotion.Title
 
         void Awake()
         {
-            if (!Application.isEditor && !Debug.isDebugBuild)  // 정식(베타) 빌드에서는 개발자 도구를 통째로 없앰 -> 테스터가 F키로 승패·기록을 건드리지 못하게
-            {                                                   // (에디터와 Development Build에서는 그대로 쓸 수 있음)
-                Destroy(this);
-                return;
-            }
-            _visible = visibleOnStart;
+            _visible = Application.isEditor && visibleOnStart;  // 빌드에서는 숨긴 채 시작 -> F1을 눌러야만 패널이 보임 (테스터에게 존재를 알리지 않음)
         }
 
         void Update()
@@ -38,7 +33,53 @@ namespace Promotion.Title
             if (keyboard.f4Key.wasPressedThisFrame) ReplayUnlock(); // F4: 버튼이 풀리는 연출 다시 보기
             if (keyboard.f5Key.wasPressedThisFrame) UnlockAll();    // F5: 특수 기물 모두 해금
             if (keyboard.f6Key.wasPressedThisFrame) LockAll();  // F6: 특수 기물 모두 잠금 (룰렛 다시 돌려 보기용)
+            if (keyboard.f7Key.wasPressedThisFrame) AddSampleRecords();  // F7: 기록소에 예시 기록 10개 넣기
+            if (keyboard.f8Key.wasPressedThisFrame) ClearRecords();  // F8: 기록소 기록 모두 지우기
             if (keyboard.f10Key.wasPressedThisFrame) ResetToFirstRun(); // F10: 첫 실행 상태로 초기화
+        }
+
+        void AddSampleRecords()     // 기록소 화면 확인용 예시 기록 -> 이전 5런은 매번 외통수를 놓치고, 최근 5런은 한 번만 놓친 모습 (성장 추이 확인용)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                bool old = i >= 5;
+                var analysis = new Promotion.Analysis.RunAnalysis
+                {
+                    result = i == 0 ? "Victory" : "Defeat",
+                    stagesPlayed = 3, stagesCleared = i == 0 ? 3 : 1 + i % 3, reachedDuel = i < 3,
+                    totalTurns = 20, totalMoves = 30, totalCaptures = 6 - i % 3, totalLost = 1 + i % 3,
+                    duelMoves = i < 3 ? 12 : 0, duelCleanMoves = i < 3 ? 10 : 0
+                };
+                analysis.pieces.Add(new Promotion.Analysis.PieceStat { piece = "룩", deployed = 1, moved = 6, captures = 3, avgHoldSec = 2f });
+                if (old || i == 2)
+                {
+                    analysis.findings.Add(new Promotion.Analysis.Finding
+                    {
+                        id = "F1", kind = "MissedMate", severity = 4, piece = "룩", hasMove = true,
+                        fact = "룩을 a1-a2로 뒀지만, 룩 a1-a8로 체크메이트까지 이어갈 수 있었습니다.",
+                        board = "King.P.6.0.1|Rook.P.0.0.0|King.E.6.7.1|Pawn_Duel.E.5.6.0|Pawn_Duel.E.6.6.0|Pawn_Duel.E.7.6.0",
+                        played = "a1-a2", better = "a1-a8", betterPiece = "룩"
+                    });
+                }
+                else
+                {
+                    analysis.findings.Add(new Promotion.Analysis.Finding { id = "F1", kind = "PieceLosses", severity = 1, count = 2, fact = "이번 런에서 아군 기물을 2개 잃었습니다." });
+                }
+                analysis.findings.Add(new Promotion.Analysis.Finding { id = "F2", kind = "TopCapturer", positive = true, severity = 2, piece = "룩", count = 3, fact = "룩으로 상대를 3번 잡았습니다." });
+
+                var entry = Promotion.Analysis.RunArchive.Create(analysis);
+                var when = System.DateTime.Now.AddDays(-i).AddMinutes(-i);
+                entry.id = "sample_" + i + "_" + when.ToString("yyyyMMddHHmmss");
+                entry.savedAt = when.ToString("yyyy-MM-dd HH:mm:ss");
+                Promotion.Analysis.RunArchive.Save(entry);
+            }
+            _lastAction = "Added 10 sample records";
+        }
+
+        void ClearRecords()
+        {
+            Promotion.Analysis.RunArchive.DeleteAll();
+            _lastAction = "Cleared archive records";
         }
 
         void AddCrown()
@@ -107,11 +148,12 @@ namespace Promotion.Title
         {
             if (!_visible)
             {
-                GUI.Label(new Rect(10f, 10f, 300f, 22f), "F1: dev tools");
+                if (Application.isEditor)  // 빌드에서는 안내 문구도 표시하지 않음
+                    GUI.Label(new Rect(10f, 10f, 300f, 22f), "F1: dev tools");
                 return;
             }
 
-            GUILayout.BeginArea(new Rect(10f, 10f, 360f, 330f), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(10f, 10f, 360f, 390f), GUI.skin.box);
             GUILayout.Label("TITLE DEV TOOLS   (F1 to hide)");
             GUILayout.Label(Status());
             GUILayout.Space(6f);
@@ -121,6 +163,8 @@ namespace Promotion.Title
             if (GUILayout.Button("F4  Replay fairy unlock intro")) ReplayUnlock();
             if (GUILayout.Button("F5  Unlock all fairy pieces")) UnlockAll();
             if (GUILayout.Button("F6  Lock all fairy pieces")) LockAll();
+            if (GUILayout.Button("F7  Add 10 sample archive records")) AddSampleRecords();
+            if (GUILayout.Button("F8  Clear archive records")) ClearRecords();
             if (GUILayout.Button("F10 Reset to first run (all progress)")) ResetToFirstRun();
 
             if (_lastAction.Length > 0)

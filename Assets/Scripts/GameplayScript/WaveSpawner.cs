@@ -7,17 +7,30 @@ using UnityEngine;
 namespace Promotion.Gameplay
 {
     public class WaveSpawner : MonoBehaviour  // 웨이브(정해진 턴에 한꺼번에 나타나는 적 무리)를 보드 위쪽 줄에 소환하는 클래스
+    // -> 착지 칸은 소환 한 턴 전(플레이어 턴 시작)에 미리 정해 둠(Plan) -> 플레이어가 경고 표시를 보고 피할 수 있게 함
+    // -> 소환할 때 그 칸에 아군 기물이 있으면 떨어지는 적에게 깔려 잡힘, 킹이 있으면 패배(적이 킹 칸에 들어온 것과 같음)
     {
-        [Tooltip("적이 생성될 수 있는, 위쪽 가장자리부터의 줄 수.")]
-        public event System.Action<PieceDefinition> EnemySpawned;   // 적이 하나 소환될 때마다 발생하는 이벤트 -> 기물 가이드가 처음 보는 적(중갑병)의 설명을 띄움
+        public struct Landing   // 미리 정해 둔 착지 하나 -> 어떤 적이 어느 칸에 떨어질지
+        {
+            public PieceDefinition enemy;
+            public Coord cell;
+        }
 
+        public event System.Action<PieceDefinition> EnemySpawned;   // 적이 하나 소환될 때마다 발생하는 이벤트 -> 기물 가이드가 처음 보는 적(중갑병)의 설명을 띄움
+        public event System.Action PlansChanged;    // 미리 정해 둔 착지 칸이 바뀔 때 (계획 추가·소환·초기화) -> 위험 경고 표시(DangerPingView)가 구독
+
+        [Tooltip("적이 생성될 수 있는, 위쪽 가장자리부터의 줄 수.")]
         public int spawnRows = 2;   // 적이 나타날 수 있는 위쪽 줄 수
 
-        BoardGrid _grid;    // 보드 크기와 칸 좌표 변환용
-        BoardState _state;  // 칸이 비어 있는지 확인하는 보드 데이터
-        PieceRegistry _registry;    // 적 기물을 생성하는 컴포넌트
+        public bool KingCrushed { get; private set; }   // 마지막 소환에서 적이 킹이 서 있던 칸에 떨어졌는지 -> StageDirector가 패배로 처리
 
-        readonly List<Coord> _freeCells = new();    // 적을 놓을 수 있는 빈 칸 목록(재사용)
+        BoardGrid _grid;    // 보드 크기와 칸 좌표 변환용
+        BoardState _state;  // 칸 상태를 확인하는 보드 데이터
+        PieceRegistry _registry;    // 적 기물을 생성하는 컴포넌트
+        CombatResolver _combat;     // 착지 칸의 아군 기물을 잡는 처리
+
+        readonly Dictionary<int, List<Landing>> _plans = new();    // 웨이브 번호 -> 미리 정해 둔 착지 목록
+        readonly List<Coord> _candidates = new();   // 착지 후보 칸 목록(재사용)
 
         void Awake()  // 오브젝트가 생성될 때 한 번 실행 -> 필요한 컴포넌트를 찾아 둠
         {
@@ -29,68 +42,143 @@ namespace Promotion.Gameplay
             if (_grid == null) _grid = GetComponent<BoardGrid>();
             if (_state == null) _state = GetComponent<BoardState>();
             if (_registry == null) _registry = GetComponent<PieceRegistry>();
+            if (_combat == null) _combat = GetComponent<CombatResolver>();
         }
 
-        public int Spawn(WaveDefinition wave, int extra = 0, int stageNumber = 1)   // 웨이브 하나의 적들을 위쪽 빈 칸에 무작위로 소환하는 함수 -> 실제로 소환한 수를 반환
-        // extra: 런 진행(난이도 상승)으로 웨이브에 더할 적 수 -> 웨이브 데이터(에셋)는 바꾸지 않고 소환할 때만 더함
-        // stageNumber: 지금 몇 번째 스테이지인지 (1부터) -> 섞여 나오는 적(중갑병)이 등장할 스테이지인지 판단
+        // ---------- 착지 계획 ----------
+
+        public IEnumerable<Landing> PlannedLandings   // 아직 소환되지 않은 모든 착지 계획 (경고 표시용)
+        {
+            get
+            {
+                foreach (var plan in _plans.Values)
+                {
+                    foreach (var landing in plan)
+                        yield return landing;
+                }
+            }
+        }
+
+        public void Plan(int waveIndex, WaveDefinition wave, int extra = 0, int stageNumber = 1)
+        // 웨이브의 착지 칸을 미리 정하는 함수 -> 이미 정해 둔 웨이브는 다시 정하지 않음
+        // extra: 런 진행(난이도 상승)으로 웨이브에 더할 적 수 / stageNumber: 섞여 나오는 적(중갑병)이 등장할 스테이지인지 판단
         {
             Resolve();
+            if (wave == null || _plans.ContainsKey(waveIndex))
+                return;
+
+            CollectCandidates();
+            var plan = new List<Landing>();
+            AddLandings(plan, wave.enemy, wave.count + Mathf.Max(0, extra));
+            if (wave.mixedEnemy != null && stageNumber >= wave.mixedFromStage)
+                AddLandings(plan, wave.mixedEnemy, wave.mixedCount);
+
+            _plans[waveIndex] = plan;
+            PlansChanged?.Invoke();
+        }
+
+        public void ClearPlans()    // 계획을 모두 지우는 함수 (스테이지 시작·종료)
+        {
+            if (_plans.Count == 0)
+                return;
+            _plans.Clear();
+            PlansChanged?.Invoke();
+        }
+
+        void AddLandings(List<Landing> plan, PieceDefinition enemy, int count)
+        // 후보 칸 중 무작위로 count칸을 골라 계획에 넣는 함수 (같은 칸이 두 번 뽑히지 않음)
+        {
+            if (enemy == null)
+                return;
+            for (int n = 0; n < count && _candidates.Count > 0; n++)
+            {
+                int pick = Random.Range(0, _candidates.Count);
+                plan.Add(new Landing { enemy = enemy, cell = _candidates[pick] });
+                _candidates.RemoveAt(pick);
+            }
+        }
+
+        void CollectCandidates()
+        // 위쪽 소환 줄에서 착지할 수 있는 칸을 모으는 함수
+        // -> 적이 있는 칸, 킹이 서 있는 칸, 다른 웨이브가 이미 정해 둔 칸은 제외. 아군 기물이 있는 칸은 후보에 넣음(경고를 보고 피해야 함)
+        {
+            _candidates.Clear();
+            int rows = Mathf.Clamp(spawnRows, 1, _grid.height);
+            for (int y = _grid.height - rows; y < _grid.height; y++)
+            for (int x = 0; x < _grid.width; x++)
+            {
+                var coord = new Coord(x, y);
+                var piece = _state.GetPiece(coord);
+                if (piece != null && (piece.Team == Team.Enemy || piece.IsObjective))
+                    continue;
+                if (IsPlanned(coord))
+                    continue;
+                _candidates.Add(coord);
+            }
+        }
+
+        bool IsPlanned(Coord coord)
+        {
+            foreach (var landing in PlannedLandings)
+            {
+                if (landing.cell == coord)
+                    return true;
+            }
+            return false;
+        }
+
+        // ---------- 소환 ----------
+
+        public int Spawn(int waveIndex, WaveDefinition wave, int extra = 0, int stageNumber = 1)
+        // 웨이브를 정해 둔 칸에 소환하는 함수 -> 계획이 없다면(개발자 도구·튜토리얼 즉시 소환) 지금 정해서 소환. 소환한 적 수를 반환
+        {
+            Resolve();
+            KingCrushed = false;
             if (wave == null)
                 return 0;
 
-            CollectFreeSpawnCells();    // 소환 가능한 빈 칸을 모으고 -> 같은 웨이브의 적들이 같은 칸을 고르지 않도록 한 번만 모음
-            int used = 0;   // 지금까지 쓴 빈 칸 수 (목록 앞쪽부터 씀)
-            int spawned = 0;    // 실제로 소환한 적의 수
-
-            spawned += SpawnSome(wave.enemy, wave.count + Mathf.Max(0, extra), ref used, spawned);   // 기본 적
-
-            if (wave.mixedEnemy != null && stageNumber >= wave.mixedFromStage)  // 섞여 나오는 적이 등장할 스테이지라면 함께 소환
-                spawned += SpawnSome(wave.mixedEnemy, wave.mixedCount, ref used, spawned);
-
-            return spawned;
-        }
-
-        int SpawnSome(PieceDefinition enemy, int count, ref int used, int order)
-        // 모아 둔 빈 칸 중 아직 쓰지 않은 칸에 적을 count마리 무작위로 소환하는 함수 -> 실제로 소환한 수를 반환
-        // order: 등장 연출 순번의 시작값 (앞서 소환한 적 다음 순서로 떨어지게)
-        {
-            if (enemy == null || count <= 0)
-                return 0;
+            Plan(waveIndex, wave, extra, stageNumber);
+            var plan = _plans[waveIndex];
+            _plans.Remove(waveIndex);
 
             int spawned = 0;
-            int wanted = Mathf.Min(count, _freeCells.Count - used);   // 남은 빈 칸보다 많이 소환할 수는 없음
-            for (int n = 0; n < wanted; n++)
+            foreach (var landing in plan)
             {
-                int i = used++;
-                int pick = Random.Range(i, _freeCells.Count);   // 아직 고르지 않은 칸 중 하나를 무작위로 골라서
-                (_freeCells[i], _freeCells[pick]) = (_freeCells[pick], _freeCells[i]);
-                // i번째 자리와 바꿈 -> 같은 칸이 두 번 뽑히지 않는 무작위 선택(셔플)
-
-                var view = _registry.Spawn(enemy, Team.Enemy, _freeCells[i]);  // 그 칸에 적을 생성
-                if (view == null)   // 생성에 실패했다면 건너뜀
-                    continue;
-
-                Fx.SpawnDrop(view.transform, _grid.CoordToWorld(_freeCells[i]), transform, order + spawned);
-                EnemySpawned?.Invoke(enemy);
-                // 위에서 떨어지며 등장하는 연출(소환 순서만큼 늦게 시작)
-                spawned++;
+                if (SpawnAt(landing, spawned))
+                    spawned++;
             }
+            PlansChanged?.Invoke();
             return spawned;
         }
 
-        void CollectFreeSpawnCells()    // 위쪽 소환 줄에서 비어 있는 칸을 모두 모으는 함수
+        bool SpawnAt(Landing landing, int order)
+        // 정해 둔 칸 하나에 적을 떨어뜨리는 함수 -> 그 칸의 아군 기물은 착지하는 순간 잡힘
         {
-            _freeCells.Clear(); // 이전 목록을 비우고
-
-            int rows = Mathf.Clamp(spawnRows, 1, _grid.height); // 소환 줄 수(최소 1줄, 최대 보드 높이)
-            for (int y = _grid.height - rows; y < _grid.height; y++)    // 맨 위에서 rows줄 안의
-            for (int x = 0; x < _grid.width; x++)   // 모든 칸을 검사해서
+            var occupant = _state.GetPiece(landing.cell);
+            if (occupant != null && occupant.Team == Team.Enemy)    // 그사이 적이 들어와 있다면 이 적은 건너뜀 (적끼리는 겹치지 않음)
+                return false;
+            if (occupant != null && occupant.IsObjective)   // 킹이 경고 칸에 서 있었다면 -> 적이 킹 칸에 들어온 것과 같으므로 패배
             {
-                var coord = new Coord(x, y);
-                if (_state.IsEmpty(coord))  // 비어 있는 칸만 목록에 추가
-                    _freeCells.Add(coord);
+                KingCrushed = true;
+                return false;
             }
+
+            PieceView victimView = null;
+            if (occupant != null && _combat != null)
+                victimView = _combat.FreeCellForLanding(occupant);  // 데이터에서 먼저 비워 적이 들어설 자리를 만듦 (그림은 착지 순간까지 남김)
+
+            var view = _registry.Spawn(landing.enemy, Team.Enemy, landing.cell);
+            if (view == null)
+                return false;
+
+            System.Action onImpact = null;
+            if (occupant != null && _combat != null)
+                onImpact = _combat.CrushOnLanding(view.Piece, occupant, victimView);   // 잡기를 확정하고, 착지 순간 실행할 처리를 받아 둠
+
+            Fx.SpawnDrop(view.transform, _grid.CoordToWorld(landing.cell), transform, order, onImpact);
+            // 위에서 떨어지며 등장하는 연출(소환 순서만큼 늦게 시작) -> 착지하는 순간 깔린 기물이 부서짐
+            EnemySpawned?.Invoke(landing.enemy);
+            return true;
         }
     }
 }

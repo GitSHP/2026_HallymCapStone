@@ -13,6 +13,8 @@ namespace Promotion.Tutorial
     // -> 가이드가 떠 있는 동안 게임 시간을 멈추고(timeScale 0) 보드 입력을 막음
     // -> 본 기록은 PlayerPrefs에 영구 저장되므로 튜토리얼 포함 기물마다 딱 한 번만 보여 줌. 최종전(체스 대결)에서는 띄우지 않음
     {
+        public static event System.Action<PieceDefinition> ManualGuideOpened; // 플레이어가 [설명]으로 가이드를 직접 연 순간 -> 플레이 기록(RunRecorder)에 사용
+
         [SerializeField] PieceGuideCatalog _catalog; // 기물 가이드 목록
         [SerializeField] PieceGuideView _view; // 가이드 창
 
@@ -156,6 +158,7 @@ namespace Promotion.Tutorial
         {
             if (!HasGuide(piece) || _running || _paused) // 가이드가 없거나 다른 가이드가 이미 떠 있다면 무시
                 return false;
+            ManualGuideOpened?.Invoke(piece);
             StartCoroutine(RunManual(piece));
             return true;
         }

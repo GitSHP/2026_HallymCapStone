@@ -146,4 +146,17 @@ MonoBehaviour:
   fairyGlowMin: 0.12
   fairyGlowMax: 0.38
   fairyGlowPeriod: 0.9
+  dangerPulsePeriod: 0.9
+  dangerFlashMin: 0.12
+  dangerFlashMax: 0.42
+  dangerRingScale: 1.25
+  threatDelay: 0.4
+  threatPopDuration: 0.25
+  threatPopStretch: {x: 0.8, y: 1.2}
+  threatSettleDuration: 0.2
+  threatHold: 1.1
+  threatFadeDuration: 0.5
+  threatRestAlpha: 0.7
+  threatShake: 0.05
+  threatShakeInterval: 0.03
   hitStopDuration: 0.08

@@ -105,6 +105,31 @@ namespace Promotion.Gameplay
             return true;
         }
 
+        public PieceView FreeCellForLanding(Piece target)
+        // 웨이브의 적이 떨어질 칸에 서 있던 아군 기물을 보드 데이터에서 먼저 빼는 함수 -> 적이 그 칸에 생성될 수 있게 함
+        // -> 그림은 적이 착지하는 순간까지 남겨 둠(CrushOnLanding이 돌려주는 처리에서 부서짐)
+        {
+            Resolve();
+            var view = _registry.GetView(target);
+            _state.Remove(target);
+            return view;
+        }
+
+        public Action CrushOnLanding(Piece attacker, Piece target, PieceView targetView)
+        // 떨어지는 적(attacker)이 칸의 기물(target)을 잡는 것을 확정하는 함수 -> 착지하는 순간 실행할 처리를 돌려줌
+        {
+            LoseFromInventory(target);  // 잡히는 것이 확정된 순간 인벤토리 장부부터 정리
+            Captured?.Invoke(attacker, target); // 다른 잡기와 똑같이 알림 (기록·연속처치 등)
+            GameEventManager.RaisePieceCaptured(attacker, target);
+            var victimWorld = _grid.CoordToWorld(target.Coord);
+
+            return () =>
+            {
+                Finish(target, targetView); // 깔리는 순간 부서지고
+                CaptureFinished?.Invoke(target, victimWorld);   // 타격 이펙트
+            };
+        }
+
         static void LoseFromInventory(Piece target) // 잡힌 기물이 인벤토리에서 꺼낸 보유 기물이면 런 인벤토리에서 영구히 지우는 함수
         {
             if (target.Team != Team.Player || !target.Owned)   // 플레이어의 보유 기물이 아니라면(적, 킹·상시 폰 같은 임시 기물) 장부와 무관
