@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Promotion.Data.PieceDefinition
   itemName: "\uCC48\uC2AC\uB7EC"
   itemType: 2
-  itemImage: {fileID: 21300000, guid: 46075c55fc33eab4cbe61e645f003c85, type: 3}
+  itemImage: {fileID: 4975481754437628852, guid: 1da2ff09c4c6dbc489c05e4eb1360a55, type: 3}
   itemPrefab: {fileID: 0}
   glyph: C
   playerColor: {r: 1, g: 1, b: 1, a: 1}

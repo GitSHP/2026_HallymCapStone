@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 814d1b961f7d16e4299e85899a75540f, type: 3}
+  m_Name: GuardianAngel
+  m_EditorClassIdentifier: Assembly-CSharp::GuardianAngelArtifactData
+  itemName: "\uC218\uD638\uCC9C\uC0AC"
+  itemType: 0
+  itemImage: {fileID: -5179550281238729601, guid: feba0375b5122124aafce8786b74764e, type: 3}
+  itemPrefab: {fileID: 0}
+  reviveChance: 50

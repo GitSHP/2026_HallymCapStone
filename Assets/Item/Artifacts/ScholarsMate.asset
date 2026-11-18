@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ScholarsMateArtifactData
   itemName: "\uC2A4\uCF5C\uB77C\uC2A4 \uBA54\uC774\uD2B8"
   itemType: 0
-  itemImage: {fileID: -214534151, guid: 78798b4d2d674b541b70d518726c3dea, type: 3}
+  itemImage: {fileID: 2741031, guid: 926817b4392111947b37226efea629f9, type: 3}
   itemPrefab: {fileID: 0}
-  maxClearTurn: 10
-  bonusGold: 100
+  maxClearTurn: 5
+  bonusGold: 20

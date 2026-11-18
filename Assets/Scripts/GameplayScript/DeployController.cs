@@ -253,6 +253,11 @@ namespace Promotion.Gameplay
             if (owned)
                 OwnedPieceDeployed?.Invoke();   // 보유 기물을 소환했다면 인벤토리에도 알림 -> 남은 개수가 하나 줄어 보임
             PieceDeployed?.Invoke(def); // 어떤 기물이 소환됐는지 알림 -> 기물 가이드가 처음 보는 기물인지 확인함
+
+            GameEventManager.RaisePieceSummoned(view.Piece, cost);
+            // GameEventManager 에게 기물이 소환되었고 AP를 얼마나 소모했는지 알림
+            // cost는 위에서 TrySpend로 실제 차감한 값이므로, 아티팩트가 이 값만큼 돌려주면 정확히 소모 전 AP로 돌아감
+            
             return true;
         }
 

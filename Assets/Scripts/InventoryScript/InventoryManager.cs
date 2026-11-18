@@ -85,7 +85,9 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
     void OnDestroy()    // 오브젝트가 파괴될 때(씬 이동 등) 이벤트 연결을 끊음 -> 사라진 오브젝트를 RunState가 계속 부르지 않도록
     {
         if (run != null)
+        {
             run.InventoryChanged -= Refresh;
+        }
         if (deploy != null)
         {
             deploy.DeckChanged -= Refresh;
@@ -158,8 +160,9 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
     public void Refresh()   // 장부(RunState)와 소환 상태(DeployController)를 읽어 기물·유물 슬롯을 다시 그리는 함수
     {
         if (pieceSlots == null) // 아직 Start 전이라면 그릴 슬롯이 없음
+        {
             return;
-
+        }
         RefreshPieces();
         RefreshArtifacts();
 
@@ -172,42 +175,68 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
         EnsurePieceSlots(CountUsedPieceSlots());   // 그릴 기물이 칸 수보다 많다면 칸을 더 만들어 둠 -> 스크롤로 내려서 볼 수 있음
 
         int slot = 0;   // 다음에 채울 슬롯 번호
-        var director = deploy != null ? deploy.GetComponent<StageDirector>() : null;
+
+        StageDirector director = null;  // 전투 씬이 아니면 null로 남음
+        if (deploy != null)
+        {
+            director = deploy.GetComponent<StageDirector>();
+        }
         bool showAp = director == null || !director.IsChessDuel;  // 최종전(체스 대결)은 AP를 쓰지 않으므로 소환 AP를 표시하지 않음
 
         if (deploy != null) // ① 전투 씬이라면 덱 카드(임시 기물)를 먼저 채움
         {
-            var deck = deploy.Deck;
-            var shown = new List<PieceDefinition>();   // 이미 슬롯에 그린 (기물, 무제한 여부) 조합을 기억 -> 같은 카드는 한 슬롯에 묶음
-            var shownUnlimited = new List<bool>();
+            IReadOnlyList<PieceDefinition> deck = deploy.Deck;
+            List<PieceDefinition> shown = new List<PieceDefinition>();   // 이미 슬롯에 그린 (기물, 무제한 여부) 조합을 기억 -> 같은 카드는 한 슬롯에 묶음
+            List<bool> shownUnlimited = new List<bool>();
             for (int i = 0; i < deck.Count && slot < pieceSlots.Length; i++)
             {
                 bool unlimited = deploy.IsUnlimited(i);
                 if (IndexOfPair(shown, shownUnlimited, deck[i], unlimited) >= 0)  // 이미 그린 카드라면 건너뜀(개수는 아래에서 셈)
+                {
                     continue;
+                }
                 shown.Add(deck[i]);
                 shownUnlimited.Add(unlimited);
 
                 int count = 0;  // 덱에 같은 카드가 몇 장인지 셈
                 for (int j = 0; j < deck.Count; j++)
+                {
                     if (deck[j] == deck[i] && deploy.IsUnlimited(j) == unlimited)
+                    {
                         count++;
+                    }
+                }
 
-                var target = pieceSlots[slot++];
+                ItemSlot target = pieceSlots[slot]; // 지금 번호의 슬롯을 꺼내고
+                slot++;                             // 다음 슬롯 번호로 넘어감
                 target.AddItem(deck[i], count);
                 target.SetPieceSource(false, i);    // 임시 기물 표시 + 덱 번호(i) 기억 -> 사용할 때 deploy.Select(i)로 고름
-                target.SetCountText(unlimited ? "∞" : count.ToString());   // 상시 카드는 개수 대신 ∞ 표시
+
+                string countText;   // 상시 카드는 개수 대신 ∞ 표시
+                if (unlimited)
+                {
+                    countText = "∞";
+                }
+                else
+                {
+                    countText = count.ToString();
+                }
+                target.SetCountText(countText);
                 target.SetApCost(deck[i].deployApCost, showAp);  // 왼쪽 아래에 전투 중 소환 AP 표시 (최종전은 숨김)
                 target.SetHighlight(deploy.SelectedOwned == null && deploy.Selected == deck[i]);   // 지금 고른 카드라면 강조
             }
         }
 
-        var owned = new List<PieceDefinition>();   // ② 장부의 보유 기물을 종류별로 한 번씩만 모음
-        foreach (var piece in run.Deck)
+        List<PieceDefinition> owned = new List<PieceDefinition>();   // ② 장부의 보유 기물을 종류별로 한 번씩만 모음
+        foreach (PieceDefinition piece in run.Deck)
+        {
             if (piece != null && !owned.Contains(piece))
+            {
                 owned.Add(piece);
+            }
+        }
 
-        foreach (var piece in owned)
+        foreach (PieceDefinition piece in owned)
         {
             if (slot >= pieceSlots.Length)  // 슬롯이 모자라면 나머지는 그리지 않음
             {
@@ -215,10 +244,18 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
                 break;
             }
 
-            int count = deploy != null ? deploy.AvailableOwned(piece) : run.CountOf(piece);
-            // 전투 중에는 "보유 개수 - 보드에 나가 있는 개수", 전투가 아니면 보유 개수
+            int count;  // 전투 중에는 "보유 개수 - 보드에 나가 있는 개수", 전투가 아니면 보유 개수
+            if (deploy != null)
+            {
+                count = deploy.AvailableOwned(piece);
+            }
+            else
+            {
+                count = run.CountOf(piece);
+            }
 
-            var target = pieceSlots[slot++];
+            ItemSlot target = pieceSlots[slot]; // 지금 번호의 슬롯을 꺼내고
+            slot++;                             // 다음 슬롯 번호로 넘어감
             target.AddItem(piece, count);
             target.SetPieceSource(true, -1);    // 보유 기물 표시 -> 사용할 때 deploy.SelectOwned(기물)로 고름
             target.SetCountText(count.ToString());
@@ -226,10 +263,11 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
             target.SetHighlight(deploy != null && deploy.SelectedOwned == piece);
         }
 
-        for (; slot < pieceSlots.Length; slot++)    // 남은 슬롯은 비움
+        while (slot < pieceSlots.Length)    // 남은 슬롯은 비움
         {
             pieceSlots[slot].ClearSlot();
             pieceSlots[slot].SetHighlight(false);
+            slot++;
         }
 
         for (int i = 0; i < pieceSlots.Length; i++)    // 위에서부터 6칸에 단축키 번호 표시 (빈 칸과 최종전은 숨김)
@@ -240,20 +278,28 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
     // (기물, 무제한 여부) 조합이 목록에 몇 번째로 있는지 찾는 함수 -> 없으면 -1
     {
         for (int i = 0; i < defs.Count; i++)
+        {
             if (defs[i] == def && flags[i] == flag)
+            {
                 return i;
+            }
+        }
         return -1;
     }
 
     private void RefreshArtifacts() // 유물 슬롯을 장부의 유물 목록으로 그리는 함수
     {
-        var artifacts = run.Artifacts;
+        IReadOnlyList<ItemData> artifacts = run.Artifacts;
         for (int i = 0; i < artifactSlots.Length; i++)
         {
             if (i < artifacts.Count)
+            {
                 artifactSlots[i].AddItem(artifacts[i], 1);  // 유물은 항상 1개
+            }
             else
+            {
                 artifactSlots[i].ClearSlot();
+            }
         }
     }
 
@@ -262,18 +308,26 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
     public void UseSlot(ItemSlot _slot)  // 슬롯의 아이템을 사용하는 함수 -> 슬롯 좌클릭, 우클릭 메뉴의 "사용" 버튼이 모두 여기로 옴
     {
         if (_slot == null || _slot.item == null)
+        {
             return;
+        }
 
-        var piece = _slot.item as PieceDefinition;  // 기물이라면 PieceDefinition으로 바꿈 (PieceDefinition은 ItemData를 상속함)
+        PieceDefinition piece = _slot.item as PieceDefinition;  // 기물이라면 PieceDefinition으로 바꿈 (PieceDefinition은 ItemData를 상속함)
         if (piece != null)
         {
             if (deploy == null) // 전투 씬이 아니면 소환할 수 없음
+            {
                 return;
+            }
 
             if (_slot.IsOwnedPiece)  // 런에서 모은 보유 기물이라면
+            {
                 deploy.SelectOwned(piece);  // 보유 기물로 고름 -> 소환하면 Piece.Owned가 켜짐
+            }
             else    // 킹·상시 폰 같은 임시 기물이라면
+            {
                 deploy.Select(_slot.DeckIndex);   // 덱 번호로 고름 (HUD 카드 버튼과 같은 방식)
+            }
             // -> 이후 보드 칸을 클릭하면 DeployController.TryDeployAt이 AP 차감·생성을 처리
             return;
         }
@@ -285,7 +339,9 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
     // 아이템을 얻는 함수 -> 기물·유물은 런 장부(RunState)에 기록하고, 아이템(Usable)은 슬롯에 직접 저장
     {
         if (_item == null)
+        {
             return;
+        }
 
         if (ItemData.ItemType.Usable == _item.itemType)  // 만약 획득하려는 아이템이 사용 가능한 아이템이라면
         {
@@ -321,14 +377,16 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
         }
         else if (ItemData.ItemType.Piece == _item.itemType)    // 획득하려는 아이템이 체스 말이라면
         {
-            var piece = _item as PieceDefinition;
+            PieceDefinition piece = _item as PieceDefinition;
             if (piece == null)  // 기물 유형인데 기물 데이터(PieceDefinition)가 아니라면 소환할 수 없으므로 거부
             {
                 Debug.LogWarning("[InventoryManager] 기물은 PieceDefinition 에셋이어야 합니다: " + _item.name);
                 return;
             }
             for (int i = 0; i < _count; i++)    // 개수만큼 장부에 기록 -> 같은 기물은 한 슬롯에 개수로 묶여 그려짐
+            {
                 run.AddPiece(piece);
+            }
             return;
         }
 
@@ -401,7 +459,7 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
         bool isPiece = _slot.item is PieceDefinition;   // 기물이면 [사용 / 설명 / 버리기], 유물·아이템이면 [사용 / 버리기]
         if (describeButton != null)
         {
-            var guide = FindGuideDirector();
+            PieceGuideDirector guide = FindGuideDirector();
             describeButton.SetActive(isPiece && guide != null && guide.HasGuide((PieceDefinition)_slot.item));  // 가이드가 없는 기물이면 [설명]도 숨김
         }
 
@@ -411,18 +469,24 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
 
     public void OnClickUse()    // 사용, 버리기 메뉴에서 사용 버튼을 눌렀을 때 실행되는 함수
     {
-        var slot = selectedSlot;
+        ItemSlot slot = selectedSlot;   // 메뉴를 닫으면 selectedSlot이 null이 되므로 미리 기억해 둠
         CloseItemActionUI();    // 메뉴를 먼저 닫고
         UseSlot(slot);          // 좌클릭과 같은 방식으로 사용 -> 기물이면 소환할 기물로 고름
     }
 
     public void OnClickDescribe()   // 우클릭 메뉴에서 [설명] 버튼을 눌렀을 때 실행되는 함수 -> 그 기물의 가이드 창을 띄움
     {
-        var piece = selectedSlot != null ? selectedSlot.item as PieceDefinition : null;
+        PieceDefinition piece = null;   // 선택된 슬롯이 없거나 기물이 아니면 null로 남음
+        if (selectedSlot != null)
+        {
+            piece = selectedSlot.item as PieceDefinition;
+        }
         CloseItemActionUI();    // 메뉴를 먼저 닫고
-        var guide = FindGuideDirector();
+        PieceGuideDirector guide = FindGuideDirector();
         if (piece != null && guide != null)
+        {
             guide.ShowGuide(piece); // 처음 소환 때 뜨는 것과 같은 가이드 창을 띄움 (게임은 창이 닫힐 때까지 멈춤)
+        }
     }
 
     private PieceGuideDirector guideDirector;   // 기물 가이드 창을 띄우는 컴포넌트 (전투 씬에만 있음)
@@ -430,7 +494,9 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
     private PieceGuideDirector FindGuideDirector()  // 가이드 담당 컴포넌트를 찾아 두는 함수 -> 전투 씬이 아니면 null
     {
         if (guideDirector == null)
+        {
             guideDirector = FindAnyObjectByType<PieceGuideDirector>();
+        }
         return guideDirector;
     }
 
@@ -448,11 +514,15 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
 
     private bool CanDiscard(ItemSlot _slot)  // 이 슬롯의 아이템을 버릴 수 있는지 검사하는 함수
     {
-        var piece = _slot.item as PieceDefinition;
+        PieceDefinition piece = _slot.item as PieceDefinition;
         if (piece == null)  // 기물이 아니면(유물·아이템) 버릴 수 있음
+        {
             return true;
+        }
         if (!_slot.IsOwnedPiece)   // 킹·상시 폰 같은 임시 기물은 버릴 수 없음
+        {
             return false;
+        }
         return deploy == null || deploy.AvailableOwned(piece) > 0;  // 보드에 나가 있지 않은 것이 남아 있어야 버릴 수 있음
     }
 
@@ -460,13 +530,21 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
     {
         if (selectedSlot != null && selectedSlot.item != null)  // 우클릭된 슬롯에 아이템이 있다면
         {
-            var item = selectedSlot.item;
-            if (item is PieceDefinition piece)  // 기물이라면 장부에서 하나 지움 -> InventoryChanged로 슬롯이 다시 그려짐
+            ItemData item = selectedSlot.item;
+            PieceDefinition piece = item as PieceDefinition;    // 기물이면 PieceDefinition, 아니면 null
+
+            if (piece != null)  // 기물이라면 장부에서 하나 지움 -> InventoryChanged로 슬롯이 다시 그려짐
+            {
                 run.RemovePiece(piece);
+            }
             else if (item.itemType == ItemData.ItemType.Artifact)   // 유물이라면 장부에서 지움
+            {
                 run.RemoveArtifact(item);
+            }
             else    // 아이템(Usable)이라면 슬롯에서 바로 비움
+            {
                 selectedSlot.ClearSlot();
+            }
         }
         CloseItemActionUI();    // 그 후 확인 UI 창을 닫음
     }
@@ -665,12 +743,12 @@ public class InventoryManager : MonoBehaviour   // 인벤토리의 최고 부모
 
         if (needed > pieceSlots.Length)
         {
-            var template = pieceSlots[0];
+            ItemSlot template = pieceSlots[0];
             template.SetHighlight(false);   // 강조된 색이 복제본의 원래 색으로 굳지 않도록 먼저 끔 (바로 아래 그리기에서 다시 칠함)
-            var slots = new List<ItemSlot>(pieceSlots);
+            List<ItemSlot> slots = new List<ItemSlot>(pieceSlots);
             while (slots.Count < needed)
             {
-                var copy = Instantiate(template, template.transform.parent);
+                ItemSlot copy = Instantiate(template, template.transform.parent);
                 copy.name = "PieceSlot (" + slots.Count + ")";
                 copy.ClearSlot();
                 slots.Add(copy);

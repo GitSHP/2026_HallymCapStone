@@ -14,8 +14,32 @@ public class ItemSlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     private InventoryManager inventoryManager;  // itemSlot의 부모인 InventoryManager에 접근하기 위한 변수
 
-    public bool IsOwnedPiece { get; private set; }  // 이 슬롯의 기물이 런에서 모은 보유 기물인지(true) 킹·상시 폰 같은 임시 기물인지(false)
-    public int DeckIndex { get; private set; } = -1;    // 임시 기물일 때 DeployController 덱에서 몇 번째 카드인지 -> 사용할 때 deploy.Select(DeckIndex)
+    private bool isOwnedPiece;      // IsOwnedPiece 속성이 실제 값을 저장하는 변수
+    private int deckIndex = -1;     // DeckIndex 속성이 실제 값을 저장하는 변수 (기본값 -1)
+
+    public bool IsOwnedPiece    // 이 슬롯의 기물이 런에서 모은 보유 기물인지(true) 킹·상시 폰 같은 임시 기물인지(false)
+    {
+        get
+        {
+            return isOwnedPiece;
+        }
+        private set
+        {
+            isOwnedPiece = value;
+        }
+    }
+
+    public int DeckIndex    // 임시 기물일 때 DeployController 덱에서 몇 번째 카드인지 -> 사용할 때 deploy.Select(DeckIndex)
+    {
+        get
+        {
+            return deckIndex;
+        }
+        private set
+        {
+            deckIndex = value;
+        }
+    }
 
     private Image frame;    // 슬롯 바탕(테두리) 이미지 -> 소환할 기물로 고른 슬롯을 강조할 때 색을 바꿈
     private Color frameColor;   // 슬롯 바탕의 원래 색
@@ -42,7 +66,9 @@ public class ItemSlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         // 아이템 슬롯의 부모 오브젝트인 InventoryManager 오브젝트를 찾아 할당
         frame = GetComponent<Image>();
         if (frame != null)
+        {
             frameColor = frame.color;
+        }
     }
 
     void Start()
@@ -105,7 +131,16 @@ public class ItemSlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     public void SetHighlight(bool _on)  // 소환할 기물로 고른 슬롯이면 바탕을 금색으로 강조하는 함수
     {
         if (frame != null)
-            frame.color = _on ? HighlightColor : frameColor;
+        {
+            if (_on)
+            {
+                frame.color = HighlightColor;   // 고른 슬롯 -> 금색
+            }
+            else
+            {
+                frame.color = frameColor;       // 고르지 않은 슬롯 -> 원래 색
+            }
+        }
     }
     private void SetImageAlpha(float _alpha) // 아이템 이미지의 투명도 조절 
     // -> 아이템이 저장된 경우 아이템 이미지의 투명도를 높여 이미지가 보이도록 조절하고 저장되지 않은 상태면 투명도를 낮춰 보이지 않게함
@@ -169,8 +204,10 @@ public class ItemSlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (allowedType != ItemData.ItemType.Usable)    // 기물·유물 슬롯은 장부 순서대로 그려지므로 드래그로 옮기지 않음 -> 아이템 슬롯만 드래그 가능
+        {
             return;
-        if(item != null)    // 현재 슬롯에 저장된 아이템이 있다면
+        }
+        if (item != null)    // 현재 슬롯에 저장된 아이템이 있다면
         {
             DragSlot.instance.dragSlot = this;  // 그 아이템 슬롯 객체를 가리키는 참조 정보를 드래그 슬롯에 저장한다
             DragSlot.instance.DragSetImage(itemImage);  // 그 아이템의 이미지로 드래그 슬롯의 이미지도 변경된다
@@ -183,9 +220,10 @@ public class ItemSlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     public void OnDrag(PointerEventData eventData)
     {
         if (item != null && DragSlot.instance.dragSlot == this)   // 이 슬롯에서 시작한 드래그일 때만 따라 움직임
-        // 현재 드래그 슬롯이 가리키는 참조 정보가 있다면
+        {
             DragSlot.instance.transform.position = eventData.position;
             // 드래그 슬롯이 마우스를 따라가야하므로 드래그 슬롯이 마우스의 위치 값을 받아 그 위치로 이동되게함
+        }
     }
 
     // 마우스 드래그가 끝났을 때 발생하는 이벤트
@@ -218,7 +256,9 @@ public class ItemSlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
         if (eventData.button == PointerEventData.InputButton.Left) {   // 좌클릭이라면 바로 사용
             if (allowedType == ItemData.ItemType.Piece)    // 기물 슬롯만 좌클릭으로 바로 사용 -> 소환할 기물로 고름 (빠른 조작)
+            {
                 inventoryManager.UseSlot(this);
+            }
             return;
         }
 
