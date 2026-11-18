@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 37c380eac55a82a45898c9f029dff8c2, type: 3}
+  m_Name: Guide_Ferz
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Tutorial.PieceGuideData
+  piece: {fileID: 11400000, guid: 7397ba58d9b891743b9f74d47e258fa7, type: 2}
+  enemy: 0
+  pages:
+  - "\uD398\uB974\uC988\uB294 \uB300\uAC01\uC120 \uB124 \uBC29\uD5A5\uC73C\uB85C
+    \uB531 \uD55C \uCE78\uB9CC \uC6C0\uC9C1\uC785\uB2C8\uB2E4. \uAC00\uB85C\xB7\uC138\uB85C\uB85C\uB294
+    \uAC08 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4."
+  - "\uC6C0\uC9C1\uC778 \uCE78\uC5D0 \uC801\uC774 \uC788\uB2E4\uBA74 \uADF8 \uC801\uC744
+    \uC7A1\uACE0 \uADF8 \uC790\uB9AC\uB97C \uCC28\uC9C0\uD569\uB2C8\uB2E4."
+  - "\uC18C\uD658 \uBE44\uC6A9\uC774 \uC2F8\uC11C \uD0B9 \uACC1\uC744 \uC9C0\uD0A4\uB294
+    \uD638\uC704\uB85C \uC4F0\uAE30 \uC88B\uC2B5\uB2C8\uB2E4. \uBE44\uC20D\uCC98\uB7FC
+    \uCC98\uC74C \uC120 \uCE78\uACFC \uAC19\uC740 \uC0C9 \uCE78\uC73C\uB85C\uB9CC
+    \uB2E4\uB2D9\uB2C8\uB2E4."

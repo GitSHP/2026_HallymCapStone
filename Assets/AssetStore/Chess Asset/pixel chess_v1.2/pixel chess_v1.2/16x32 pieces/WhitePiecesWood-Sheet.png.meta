@@ -163,7 +163,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: WhitePiecesWood-Sheet_Rook
+      name: WhitePiecesWood-Sheet_Knight
       rect:
         serializedVersion: 2
         x: 16
@@ -185,7 +185,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: WhitePiecesWood-Sheet_Knight
+      name: WhitePiecesWood-Sheet_Rook
       rect:
         serializedVersion: 2
         x: 32
@@ -288,10 +288,10 @@ TextureImporter:
     nameFileIdTable:
       WhitePiecesWood-Sheet_Bishop: 22071804
       WhitePiecesWood-Sheet_King: -214534151
-      WhitePiecesWood-Sheet_Knight: 290953856
+      WhitePiecesWood-Sheet_Knight: 782121532
       WhitePiecesWood-Sheet_Pawn: 1484000457
       WhitePiecesWood-Sheet_Queen: 1720620584
-      WhitePiecesWood-Sheet_Rook: 782121532
+      WhitePiecesWood-Sheet_Rook: 290953856
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

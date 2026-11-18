@@ -1,27 +1,25 @@
+using System;
 using System.Collections.Generic;
-using Gambonanza.Core;
-using Gambonanza.Feel;
+using Promotion.Core;
+using Promotion.Feel;
 using UnityEngine;
 
-namespace Gambonanza.Gameplay
+namespace Promotion.Gameplay
 {
-    /// <summary>
-    /// Enemy turn logic. Enemies do not use chess movement — each one walks a
-    /// single step along the shortest route to the king, clears player pieces
-    /// blocking that route, and wins by stepping onto the king's tile.
-    /// </summary>
-    public class EnemyMover : MonoBehaviour
+    public class EnemyMover : MonoBehaviour   // 적 턴에 적들을 움직이는 클래스
+    // 적은 체스 행마법을 쓰지 않음 -> 매 턴 킹까지의 최단 경로를 따라 한 칸씩 다가옴
+    // 경로 위의 아군 기물은 잡고 지나가며, 킹 칸에 들어서면 플레이어 패배. 적끼리는 공격하지 않고 막히면 기다림
     {
-        [Tooltip("Enemies may step diagonally toward the king.")]
-        public bool moveDiagonally = true;
+        [Tooltip("적이 킹을 향해 대각선으로 이동할 수 있다.")]
+        public bool moveDiagonally = true;  // true면 8방향, false면 상하좌우 4방향으로만 이동
 
-        static readonly Vector2Int[] Orthogonal =
+        static readonly Vector2Int[] Orthogonal =   // 상하좌우 4방향
         {
             new Vector2Int(1, 0), new Vector2Int(-1, 0),
             new Vector2Int(0, 1), new Vector2Int(0, -1)
         };
 
-        static readonly Vector2Int[] AllEight =
+        static readonly Vector2Int[] AllEight = // 상하좌우 + 대각선 8방향
         {
             new Vector2Int(1, 0), new Vector2Int(-1, 0),
             new Vector2Int(0, 1), new Vector2Int(0, -1),
@@ -29,20 +27,23 @@ namespace Gambonanza.Gameplay
             new Vector2Int(-1, 1), new Vector2Int(-1, -1)
         };
 
-        BoardGrid _grid;
-        BoardState _state;
-        PieceRegistry _registry;
-        CombatResolver _combat;
+        BoardGrid _grid;    // 보드 크기와 칸 좌표 변환용
+        BoardState _state;  // 보드 위 기물 위치 데이터
+        PieceRegistry _registry;    // 기물 데이터와 화면 오브젝트를 짝지어 관리하는 컴포넌트
+        CombatResolver _combat; // 잡기를 처리하는 컴포넌트
 
-        readonly List<Piece> _enemies = new();
-        readonly Queue<Coord> _frontier = new();
-        int[,] _dist;
+        readonly List<Piece> _enemies = new();  // 이번 턴에 움직일 적 목록
+        readonly Queue<Coord> _frontier = new();    // 최단 거리 탐색(BFS)에서 다음에 살펴볼 칸을 담는 대기열
+        int[,] _dist;   // 각 칸에서 킹까지의 최단 거리(칸 수)를 저장하는 2차원 배열
 
-        const int Unreachable = int.MaxValue;
+        const int Unreachable = int.MaxValue;   // 킹까지 갈 수 없는 칸을 나타내는 값
 
-        void Awake() => Resolve();
+        void Awake()  // 오브젝트가 생성될 때 한 번 실행 -> 필요한 컴포넌트를 찾아 둠
+        {
+            Resolve();
+        }
 
-        void Resolve()
+        void Resolve()  // 같은 오브젝트에 붙어 있는 컴포넌트를 찾아 변수에 저장하는 함수 -> 이미 찾은 것은 건너뜀
         {
             if (_grid == null) _grid = GetComponent<BoardGrid>();
             if (_state == null) _state = GetComponent<BoardState>();
@@ -50,148 +51,299 @@ namespace Gambonanza.Gameplay
             if (_combat == null) _combat = GetComponent<CombatResolver>();
         }
 
-        Vector2Int[] Directions => moveDiagonally ? AllEight : Orthogonal;
+        Vector2Int[] Directions  // 설정에 따라 사용할 이동 방향 목록
+        {
+            get { return moveDiagonally ? AllEight : Orthogonal; }
+        }
 
-        /// <summary>Moves every enemy once. Returns true if the king's tile was reached.</summary>
-        public bool ResolveEnemyTurn()
+        public bool ResolveEnemyTurn()  // 모든 적을 한 번씩 움직이는 함수 -> 적이 킹 칸에 도달했다면 true 반환
         {
             Resolve();
 
-            var king = _state.FindObjective(Team.Player);
-            if (king == null)
+            var king = _state.FindObjective(Team.Player);   // 플레이어 킹을 찾음
+            if (king == null)   // 킹이 없다면 이미 진 것으로 보고 true 반환
                 return true;
 
-            BuildDistanceField(king.Coord);
+            BuildDistanceField(king.Coord, RealEnemyAt); // 모든 칸에서 킹까지의 최단 거리를 계산
 
-            _state.GetPiecesOf(Team.Enemy, _enemies);
-            // Closest first: the front rank vacates its square before the rank
-            // behind tries to advance, so a column does not freeze itself.
+            _state.GetPiecesOf(Team.Enemy, _enemies);   // 적을 모두 모으고
             _enemies.Sort((a, b) => DistanceAt(a.Coord).CompareTo(DistanceAt(b.Coord)));
+            // 킹에 가까운 적부터 처리 -> 앞줄이 먼저 비켜야 뒷줄이 전진할 수 있어서 대열이 막히지 않음
 
-            for (int i = 0; i < _enemies.Count; i++)
+            for (int i = 0; i < _enemies.Count; i++)    // 적을 하나씩 한 칸 이동
             {
-                if (StepEnemy(_enemies[i], i))
+                if (StepEnemy(_enemies[i], i))  // 만약 이 적이 킹 칸에 들어갔다면 즉시 true 반환(패배)
                     return true;
             }
 
             return false;
         }
 
-        /// <summary>
-        /// Breadth-first distance to the king. Enemy-held squares are dead ends —
-        /// they get a distance so their occupant knows where it stands, but the
-        /// search never routes through them.
-        /// </summary>
-        void BuildDistanceField(Coord target)
+        bool RealEnemyAt(Coord c)   // 실제 보드에서 그 칸에 적이 있는지
+        {
+            var occupant = _state.GetPiece(c);
+            return occupant != null && occupant.Team == Team.Enemy;
+        }
+
+        void BuildDistanceField(Coord target, Func<Coord, bool> enemyAt)   // 킹 칸(target)에서 시작해 모든 칸까지의 최단 거리를 BFS(너비 우선 탐색)로 계산하는 함수
+        // 적이 있는 칸은 막다른 곳 -> 그 적이 자기 거리를 알 수 있도록 거리는 기록하지만 그 칸을 거쳐서 더 퍼져 나가지는 않음
         {
             if (_dist == null || _dist.GetLength(0) != _grid.width || _dist.GetLength(1) != _grid.height)
+            // 배열이 없거나 보드 크기가 바뀌었다면 새로 만듦
                 _dist = new int[_grid.width, _grid.height];
 
-            for (int y = 0; y < _grid.height; y++)
+            for (int y = 0; y < _grid.height; y++)  // 모든 칸의 거리를 "갈 수 없음"으로 초기화
             for (int x = 0; x < _grid.width; x++)
                 _dist[x, y] = Unreachable;
 
             _frontier.Clear();
-            _dist[target.x, target.y] = 0;
-            _frontier.Enqueue(target);
+            _dist[target.x, target.y] = 0;  // 킹 칸의 거리는 0
+            _frontier.Enqueue(target);  // 킹 칸부터 탐색 시작
 
-            while (_frontier.Count > 0)
+            while (_frontier.Count > 0) // 살펴볼 칸이 남아 있는 동안 반복
             {
-                var current = _frontier.Dequeue();
-                int next = _dist[current.x, current.y] + 1;
+                var current = _frontier.Dequeue();  // 대기열에서 칸을 하나 꺼내고
+                int next = _dist[current.x, current.y] + 1; // 이웃 칸의 거리는 현재 칸 + 1
 
-                foreach (var dir in Directions)
+                foreach (var dir in Directions) // 이동 가능한 방향의 이웃 칸을 하나씩 확인
                 {
                     var neighbour = current + dir;
                     if (!_grid.IsInside(neighbour) || _dist[neighbour.x, neighbour.y] != Unreachable)
+                    // 보드 밖이거나 이미 거리를 기록한 칸이라면 건너뜀
                         continue;
 
-                    _dist[neighbour.x, neighbour.y] = next;
+                    _dist[neighbour.x, neighbour.y] = next; // 이웃 칸의 거리를 기록
 
-                    var occupant = _state.GetPiece(neighbour);
-                    if (occupant != null && occupant.Team == Team.Enemy)
-                        continue;   // recorded, but not expanded through
+                    if (enemyAt(neighbour))
+                    // 적이 있는 칸이라면 거리는 기록하되 이 칸을 거쳐 더 퍼져 나가지는 않음 -> 적끼리는 길을 막음
+                        continue;
 
-                    _frontier.Enqueue(neighbour);
+                    _frontier.Enqueue(neighbour);   // 다음에 이 칸에서 다시 퍼져 나가도록 대기열에 추가
                 }
             }
         }
 
-        int DistanceAt(Coord c) => _grid.IsInside(c) ? _dist[c.x, c.y] : Unreachable;
-
-        bool StepEnemy(Piece enemy, int order)
+        int DistanceAt(Coord c) // 칸의 킹까지 거리를 돌려주는 함수(보드 밖이면 갈 수 없음)
         {
-            var best = Coord.Invalid;
-            int bestDistance = DistanceAt(enemy.Coord);
+            return _grid.IsInside(c) ? _dist[c.x, c.y] : Unreachable;
+        }
 
-            foreach (var dir in Directions)
+        enum StepResult { Stopped, Moved, Captured, ReachedKing }  // 한 걸음의 결과
+
+        bool StepEnemy(Piece enemy, int order)  // 적 하나를 킹 쪽으로 움직이는 함수 -> 킹 칸에 들어갔다면 true 반환
+        // order는 이번 턴에 몇 번째로 움직이는 적인지 -> 이동 연출에 시차를 줌
+        // -> 한 턴에 걷는 칸 수(PieceDefinition.enemyStepsPerTurn)만큼 한 칸씩 나눠 걸음 (중갑병 2칸)
+        // -> 아군을 잡았거나, 막혔거나, 킹에 닿으면 그 자리에서 멈춤
+        {
+            int steps = Mathf.Max(1, enemy.Def.enemyStepsPerTurn);
+            var from = enemy.Coord; // 연출용: 이번 걸음의 출발 칸
+            for (int k = 0; k < steps; k++)
             {
-                var candidate = enemy.Coord + dir;
-                if (!_grid.IsInside(candidate))
-                    continue;
-
-                int distance = DistanceAt(candidate);
-                if (distance >= bestDistance)
-                    continue;
-
-                var occupant = _state.GetPiece(candidate);
-                if (occupant != null && occupant.Team == Team.Enemy)
-                    continue;   // fellow enemies are never attacked, only waited on
-
-                best = candidate;
-                bestDistance = distance;
+                var result = StepOnce(enemy, order, k, from);
+                if (result == StepResult.ReachedKing)
+                    return true;
+                if (result != StepResult.Moved) // 잡았거나 막혔다면 이번 턴은 여기서 끝
+                    return false;
+                from = enemy.Coord;
             }
-
-            if (!best.IsValid)
-            {
-                // Boxed in: hit something adjacent if possible, otherwise hold.
-                AttackAdjacentPlayerPiece(enemy);
-                return false;
-            }
-
-            var target = _state.GetPiece(best);
-            if (target != null && target.Team == Team.Player)
-            {
-                if (target.IsObjective)
-                {
-                    StepInto(enemy, best, order);
-                    return true;        // reached the king — the run is lost
-                }
-
-                // Capture is positional: take the piece and occupy its square,
-                // as one motion rather than two competing ones.
-                _combat.CaptureInto(enemy, target, best);
-                return false;
-            }
-
-            StepInto(enemy, best, order);
             return false;
         }
 
-        void AttackAdjacentPlayerPiece(Piece enemy)
+        StepResult StepOnce(Piece enemy, int order, int stepIndex, Coord from)
+        // 적을 킹 쪽으로 한 칸 움직이는 함수
+        // stepIndex: 이번 턴의 몇 번째 걸음인지 (0 = 첫 걸음) -> 두 번째 걸음부터는 빈 칸·킹 칸으로만 감 (잡기는 첫 걸음에서만)
+        // from: 이번 걸음의 출발 칸 (연출용)
+        {
+            var best = BestStep(enemy.Coord, RealEnemyAt);  // 킹 쪽으로 다가갈 칸
+
+            if (!best.IsValid)  // 만약 다가갈 칸이 없다면(갇힌 상태) -> 첫 걸음이라면 옆에 있는 아군 기물을 공격하거나, 없으면 그냥 대기
+            {
+                if (stepIndex == 0)
+                    AttackAdjacentPlayerPiece(enemy);
+                return StepResult.Stopped;
+            }
+
+            var target = _state.GetPiece(best); // 이동할 칸에 있는 기물
+            if (target != null && target.Team == Team.Player)   // 만약 이동할 칸에 아군 기물이 있다면
+            {
+                if (target.IsObjective) // 그 기물이 킹이라면 -> 킹 칸으로 들어가고 패배
+                {
+                    StepInto(enemy, best, order, stepIndex, from);
+                    return StepResult.ReachedKing;
+                }
+
+                if (stepIndex > 0)  // 두 번째 걸음부터는 잡지 않고 그 앞에서 멈춤 -> 한 턴에 연달아 잡는 일이 없게 함
+                    return StepResult.Stopped;
+
+                _combat.CaptureInto(enemy, target, best);
+                // 킹이 아니라면 잡고 그 칸을 차지함 -> 잡기와 이동을 하나의 동작으로 처리
+                return StepResult.Captured;
+            }
+
+            StepInto(enemy, best, order, stepIndex, from);   // 빈 칸이라면 그냥 한 칸 이동
+            return StepResult.Moved;
+        }
+
+        Coord BestStep(Coord from, Func<Coord, bool> enemyAt)  // from에서 킹 쪽으로 한 칸 다가갈 가장 좋은 칸을 고르는 함수 (없으면 Coord.Invalid)
+        {
+            var best = Coord.Invalid;   // 이동할 가장 좋은 칸(아직 없음)
+            int bestDistance = DistanceAt(from); // 지금 칸의 거리 -> 이보다 가까운 칸만 후보가 됨
+
+            foreach (var dir in Directions) // 이동 가능한 방향의 이웃 칸을 하나씩 확인
+            {
+                var candidate = from + dir;
+                if (!_grid.IsInside(candidate)) // 보드 밖이라면 건너뜀
+                    continue;
+
+                int distance = DistanceAt(candidate);
+                if (distance >= bestDistance)   // 지금까지 찾은 칸보다 킹에 가깝지 않다면 건너뜀
+                    continue;
+
+                if (enemyAt(candidate))    // 다른 적이 있는 칸이라면 건너뜀 -> 적끼리는 공격하지 않고 기다리기만 함
+                    continue;
+
+                best = candidate;   // 더 가까운 칸을 찾았으므로 기록
+                bestDistance = distance;
+            }
+            return best;
+        }
+
+        // ---------- 다음 적 턴 미리 보기 (위협 표시용) ----------
+
+        class SimUnit   // 미리 보기에 쓰는 가벼운 기물 정보 -> 실제 기물은 건드리지 않음
+        {
+            public Piece piece;     // 실제 기물 (아직 떨어지지 않은 웨이브 적이면 null)
+            public Team team;
+            public bool king;
+            public int steps;       // 한 턴에 걷는 칸 수
+            public Coord coord;
+        }
+
+        readonly Dictionary<Coord, SimUnit> _sim = new();
+        readonly List<SimUnit> _simEnemies = new();
+
+        bool SimEnemyAt(Coord c)
+        {
+            return _sim.TryGetValue(c, out var unit) && unit.team == Team.Enemy;
+        }
+
+        void SimMove(SimUnit unit, Coord to)
+        {
+            _sim.Remove(unit.coord);
+            unit.coord = to;
+            _sim[to] = unit;
+        }
+
+        public void PredictThreats(IEnumerable<WaveSpawner.Landing> landings, HashSet<Piece> threatened)
+        // 다음 적 턴을 실제로 움직이지 않고 똑같은 규칙으로 따라 해 보는 함수 -> 잡히거나 깔릴 아군 기물(킹 포함)을 threatened에 담음
+        // -> 순서도 실제 적 턴과 같음: 예정된 웨이브 착지 -> 킹에 가까운 적부터 이동(중갑병은 2칸)
+        {
+            Resolve();
+            threatened.Clear();
+            _sim.Clear();
+            _simEnemies.Clear();
+
+            foreach (var p in _state.AllPieces)
+                _sim[p.Coord] = new SimUnit { piece = p, team = p.Team, king = p.IsObjective, steps = Mathf.Max(1, p.Def.enemyStepsPerTurn), coord = p.Coord };
+
+            if (landings != null)
+            {
+                foreach (var landing in landings)   // 웨이브가 먼저 떨어짐 -> 그 칸의 아군은 깔림
+                {
+                    if (_sim.TryGetValue(landing.cell, out var under) && under.team == Team.Player)
+                        threatened.Add(under.piece);
+                    int steps = landing.enemy != null ? Mathf.Max(1, landing.enemy.enemyStepsPerTurn) : 1;
+                    _sim[landing.cell] = new SimUnit { team = Team.Enemy, steps = steps, coord = landing.cell };
+                }
+            }
+
+            SimUnit king = null;
+            foreach (var unit in _sim.Values)
+            {
+                if (unit.team == Team.Player && unit.king)
+                    king = unit;
+                if (unit.team == Team.Enemy)
+                    _simEnemies.Add(unit);
+            }
+            if (king == null)   // 킹이 이미 깔렸다면 더 볼 것이 없음
+                return;
+
+            BuildDistanceField(king.coord, SimEnemyAt);
+            _simEnemies.Sort((a, b) => DistanceAt(a.coord).CompareTo(DistanceAt(b.coord)));
+
+            foreach (var enemy in _simEnemies)
+            {
+                for (int k = 0; k < enemy.steps; k++)
+                {
+                    var best = BestStep(enemy.coord, SimEnemyAt);
+                    if (!best.IsValid)  // 갇혔다면 첫 걸음에 한해 옆의 아군 하나를 제자리에서 공격
+                    {
+                        if (k == 0)
+                            SimAttackAdjacent(enemy, threatened);
+                        break;
+                    }
+
+                    _sim.TryGetValue(best, out var target);
+                    if (target != null && target.team == Team.Player)
+                    {
+                        if (target.king)    // 킹 칸에 들어감 -> 실제로는 여기서 패배로 끝남
+                        {
+                            threatened.Add(target.piece);
+                            return;
+                        }
+                        if (k > 0)  // 두 번째 걸음부터는 잡지 않고 멈춤
+                            break;
+                        threatened.Add(target.piece);
+                        SimMove(enemy, best);
+                        break;
+                    }
+
+                    SimMove(enemy, best);
+                }
+            }
+        }
+
+        void SimAttackAdjacent(SimUnit enemy, HashSet<Piece> threatened)   // AttackAdjacentPlayerPiece와 같은 규칙의 미리 보기
         {
             foreach (var dir in Directions)
             {
-                var neighbour = enemy.Coord + dir;
+                var neighbour = enemy.coord + dir;
                 if (!_grid.IsInside(neighbour))
                     continue;
-
-                var occupant = _state.GetPiece(neighbour);
-                if (occupant == null || occupant.Team != Team.Player || occupant.IsObjective)
+                if (!_sim.TryGetValue(neighbour, out var occupant) || occupant.team != Team.Player || occupant.king)
                     continue;
-
-                _combat.Capture(enemy, occupant);
+                threatened.Add(occupant.piece);
+                _sim.Remove(neighbour);
                 return;
             }
         }
 
-        void StepInto(Piece enemy, Coord destination, int order)
+        void AttackAdjacentPlayerPiece(Piece enemy) // 갇힌 적이 바로 옆의 아군 기물 하나를 제자리에서 공격하는 함수
         {
-            _state.Move(enemy, destination);
+            foreach (var dir in Directions) // 이웃 칸을 하나씩 확인해서
+            {
+                var neighbour = enemy.Coord + dir;
+                if (!_grid.IsInside(neighbour)) // 보드 밖은 건너뜀
+                    continue;
+
+                var occupant = _state.GetPiece(neighbour);
+                if (occupant == null || occupant.Team != Team.Player || occupant.IsObjective)
+                // 기물이 없거나, 아군이 아니거나, 킹이라면 건너뜀
+                    continue;
+
+                _combat.Capture(enemy, occupant);   // 처음 찾은 아군 기물을 잡고(적은 제자리에 남음) 종료
+                return;
+            }
+        }
+
+        void StepInto(Piece enemy, Coord destination, int order, int stepIndex, Coord from)    // 적을 목적지 칸으로 옮기는 함수
+        // stepIndex·from: 두 번째 걸음이라면 첫 걸음 연출이 끝난 뒤 그 칸에서 이어서 움직이도록 함
+        {
+            _state.Move(enemy, destination);    // 보드 데이터에서 옮기고
 
             var view = _registry.GetView(enemy);
-            if (view != null)
-                Fx.StepTo(view.transform, _grid.CoordToWorld(destination), order);
+            if (view != null)   // 화면 오브젝트가 있다면 미끄러지듯 이동하는 연출(order만큼 늦게 시작, 두 번째 걸음은 첫 걸음 뒤에)
+                Fx.StepTo(view.transform, _grid.CoordToWorld(from), _grid.CoordToWorld(destination), order, stepIndex);
         }
     }
 }

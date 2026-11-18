@@ -1,186 +1,303 @@
-using Gambonanza.Core;
-using Gambonanza.Data;
-using Gambonanza.Tutorial;
-using Gambonanza.UI;
+using System.Collections;
+using Promotion.Core;
+using Promotion.Feel;
+using Promotion.Tutorial;
+using Promotion.UI;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
-namespace Gambonanza.Title
+namespace Promotion.Title
 {
-    /// <summary>
-    /// The first screen: logo, title and the three menu buttons. Starting a game
-    /// asks whether to play the tutorial or go straight to the map.
-    /// </summary>
     public class TitleScreen : MonoBehaviour
+    // 타이틀 화면을 관리하는 클래스 -> 등장 연출, 메뉴 버튼(시작/옵션/종료), 튜토리얼 선택창, 게임 시작 처리를 담당
+    // -> 화면 배치는 프리팹(Assets/UI/Prefabs)에 있고, 이 스크립트는 버튼 연결·켜고 끄기·연출 실행만 함
     {
-        [Header("Text")]
-        public string gameTitle = "Promotion";
-        [Tooltip("Required by the art licences. One line per credit.")]
-        [TextArea(1, 4)]
-        public string credits = "Chess art: Pixel Chess by DANI MACCARI";
+        [Header("흐름")]
+        public TutorialScript tutorial;  // 튜토리얼 대본 에셋 -> 비어 있으면 튜토리얼 선택 없이 바로 시작함
+        public string battleScene = "Game";  // 튜토리얼을 할 때 불러올 전투 씬 이름
+        public string mapScene = "Map";  // 튜토리얼을 건너뛸 때 불러올 맵 씬 이름
 
-        [Header("Flow")]
-        public TutorialScript tutorial;
-        public string battleScene = "Game";
-        public string mapScene = "Map";
+        [Header("구성 요소 (프리팹에서 지정)")]
+        [SerializeField] UiButton _start;  // 게임 시작 버튼
+        [SerializeField] UiButton _options;  // 옵션 버튼 (아직 기능이 없어서 비활성 상태로 둠)
+        [SerializeField] UiButton _quit;  // 게임 종료 버튼
 
-        RectTransform _root;
-        GameObject _choice;
-        bool _starting;
-
-        void Start()
+        [Header("특수 기물 (보스를 처음 이기면 열림)")]
+        [SerializeField] UiButton _fairy;  // 왼쪽 아래 [특수 기물] 버튼 -> 누르면 룰렛 창이 열림
+        [SerializeField] RectTransform _fairyLock;  // 버튼 위의 자물쇠 (잠겨 있는 동안 보임, 풀릴 때 날아감)
+        [SerializeField] Image _fairyLockImage; // 자물쇠 그림 (풀릴 때 사라지는 연출 대상)
+        [SerializeField] GameObject _fairyLockedHint;   // 버튼 아래 "보스를 처치하면 열립니다" 안내
+        [SerializeField] FairyRouletteView _roulette;   // 특수 기물 뽑기 창
+        [SerializeField] UiButton _archiveButton;   // 왼쪽 아래 [기록소] 버튼 (특수 기물 버튼 위)
+        [SerializeField] ArchiveView _archive;      // 기록소 창 -> 저장된 복기 리포트 목록
+        [SerializeField] DialogueView _dialogue;    // 버튼이 풀린 뒤 특수 기물을 소개하는 대화창 (튜토리얼 대화창 프리팹)
+        [TextArea(2, 5)]
+        [SerializeField] string[] _fairyIntroLines = // 버튼이 처음 풀릴 때 안내인이 하는 말
         {
-            // Arriving here from anywhere means any overlay that blocked the board is gone.
-            InputGate.Reset();
-            Build();
+            "첫 보스 클리어를 축하합니다!",
+            "당신은 이미 정석 체스의 기본 기물들의 행마법과 운용법을 모두 완벽히 숙지하고 활용해 내고 있습니다.",
+            "그런 당신을 위한 새로운 기물을 소개합니다!",
+            "Fairy 체스 룰에 기반한 특수 기물들은 기존 체스 기물들의 행마법이 섞여 있습니다.",
+            "보스를 처치할 때마다 얻는 '검은 왕관'으로 룰렛을 돌려 특수 기물을 얻으면, 다음 런부터 상점에 등장합니다.",
+            "이들을 잘 활용하여 더 압도적인 승리를 거둬 보세요!",
+        };
+
+        [Header("튜토리얼 선택")]
+        [SerializeField] GameObject _choice;  // 튜토리얼을 할지 고르는 선택창 전체 (평소에는 꺼져 있음)
+        [SerializeField] Button _choiceBackdrop;  // 선택창 뒤의 어두운 배경 -> 클릭하면 선택창이 닫힘
+        [SerializeField] RectTransform _choicePanel;  // 선택창 패널 (등장 연출 대상)
+        [SerializeField] UiButton _playTutorial;  // "튜토리얼 하기" 버튼
+        [SerializeField] UiButton _skipTutorial;  // "튜토리얼 건너뛰기" 버튼
+
+        [Header("등장 연출 (프리팹에서 지정)")]
+        [Tooltip("킹이 착지할 때 함께 흔들리는 묶음. 배경은 빠져 있어 화면 가장자리가 비지 않는다.")]
+        [SerializeField] RectTransform _stage;  // 킹 로고가 착지할 때 '쿵' 하고 함께 흔들리는 화면 요소 묶음
+        [Tooltip("체스판 무늬 칸들의 부모. GridLayoutGroup의 열 수로 대각선 순서를 계산한다.")]
+        [SerializeField] UnityEngine.UI.GridLayoutGroup _tiles;  // 배경 체스판 무늬 칸들의 부모 -> 칸들이 대각선 순서로 물결처럼 나타남
+        [SerializeField] RectTransform _logo;  // 킹 로고 이미지 (위에서 떨어지는 연출 대상)
+        [SerializeField] TMP_Text _title;  // 게임 제목 텍스트 (한 글자씩 솟아오르는 연출 대상)
+        [SerializeField] CanvasGroup _credits;  // 화면 아래 크레딧 묶음 (서서히 나타나는 연출 대상)
+        [Tooltip("오른쪽 위 버전 표기. Player Settings의 Version 값을 그대로 보여 준다.")]
+        [SerializeField] TMP_Text _version;  // 빌드 버전 표기 (피드백을 받을 때 어느 빌드인지 구분)
+        [Tooltip("연출 중에만 켜지는 투명한 판. 어디를 클릭해도 연출을 건너뛴다.")]
+        [SerializeField] Button _skipCatcher;  // 연출 중 화면 아무 곳이나 클릭하면 연출을 건너뛰게 해주는 투명 버튼
+
+        bool _starting;  // 게임 시작(씬 이동)을 이미 눌렀는지 여부 -> 버튼 중복 클릭으로 씬을 두 번 불러오지 않도록 함
+        bool _introDone;  // 등장 연출이 끝났는지(또는 건너뛰었는지) 여부
+        Coroutine _intro;  // 실행 중인 등장 연출 코루틴 -> 건너뛸 때 중단하기 위해 저장
+
+        void Start()  // 타이틀 화면이 시작될 때 버튼을 연결하고 등장 연출을 시작하는 함수
+        {
+            InputGate.Reset();  // 이전 씬에서 남아 있을 수 있는 입력 차단 수를 0으로 초기화
+            if (_version != null)
+                _version.text = "Beta v" + Application.version;  // 버전은 Player Settings에서만 바꿈
+
+            // 메뉴 버튼 연결
+            _start.Clicked += OpenChoice;  // 시작 버튼 → 튜토리얼 선택창 열기
+            _options.SetInteractable(false);  // 옵션 버튼은 아직 기능이 없으므로 누를 수 없게 함
+            _quit.Clicked += Quit;  // 종료 버튼 → 게임 종료
+            _choiceBackdrop.onClick.AddListener(CloseChoice);  // 선택창 바깥(배경) 클릭 → 선택창 닫기
+            _playTutorial.Clicked += () => Begin(true);  // 튜토리얼 하기 → 튜토리얼과 함께 시작
+            _skipTutorial.Clicked += () => Begin(false);  // 건너뛰기 → 바로 맵으로 시작
+
+            _fairy.Clicked += OpenRoulette;  // 특수 기물 버튼 → 룰렛 창 열기
+            _roulette.Closed += ApplyFairyLock;  // 룰렛 창을 닫으면 버튼 상태를 다시 그림
+            _roulette.gameObject.SetActive(false);  // 룰렛 창은 처음에 숨겨 둠
+            _archiveButton.Clicked += OpenArchive;  // 기록소 버튼 → 기록소 창 열기
+            _archive.gameObject.SetActive(false);
+            if (_dialogue != null)
+                _dialogue.gameObject.SetActive(false);  // 대화창도 숨겨 둠
+            ApplyFairyLock();  // 보스를 이겼는지에 따라 잠금/풀림 상태로 그림
+            MetaProgress.Changed += ApplyFairyLock;  // 개발자 도구 등으로 기록이 바뀌면 다시 그림
+
+            _choice.SetActive(false);  // 선택창은 처음에 숨겨 둠
+            _skipCatcher.onClick.AddListener(FinishIntro);  // 연출 중 화면을 클릭하면 연출을 바로 끝냄
+            _intro = StartCoroutine(PlayIntro());  // 등장 연출 시작
         }
 
-        void Update()
+        void OnDestroy()
         {
-            var keyboard = Keyboard.current;
-            if (_choice != null && keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
-                CloseChoice();
+            MetaProgress.Changed -= ApplyFairyLock;
         }
 
-        void Build()
+        void Update()  // 매 프레임 키보드 입력을 확인하는 함수
         {
-            var canvas = UiBuilder.OverlayCanvas("TitleCanvas", 0);
-            canvas.transform.SetParent(transform, false);
-            var root = (RectTransform)canvas.transform;
-            _root = root;
-
-            var background = UiBuilder.Panel("Background", root, UiTheme.Panel, false);
-            UiBuilder.Stretch(background.rectTransform);
-
-            // Placeholder logo: the king the whole game is about protecting.
-            var logo = UiBuilder.Icon("Logo", root, IconId.King, UiTheme.Gold);
-            UiBuilder.Place(logo.rectTransform, UiBuilder.Centre, UiBuilder.Centre,
-                new Vector2(0f, 280f), new Vector2(170f, 170f));
-
-            var title = UiBuilder.Label("Title", root, gameTitle, 120f, UiTheme.Ink,
-                TextAlignmentOptions.Center, FontStyles.Bold);
-            UiBuilder.Place(title.rectTransform, UiBuilder.Centre, UiBuilder.Centre,
-                new Vector2(0f, 120f), new Vector2(1400f, 150f));
-            title.characterSpacing = 8f;
-
-            var start = MenuButton(root, "Start", "게임 시작", IconId.Arrow, -90f, UiTheme.Confirm);
-            start.Clicked += OpenChoice;
-
-            var options = MenuButton(root, "Options", "옵션", IconId.Star, -180f, UiTheme.CardWell);
-            options.SetInteractable(false);
-
-            var quit = MenuButton(root, "Quit", "게임 종료", IconId.Chevrons, -270f, UiTheme.CardWell);
-            quit.Clicked += Quit;
-
-            start.PlayIn(0);
-            options.PlayIn(1);
-            quit.PlayIn(2);
-
-            var credit = UiBuilder.Label("Credits", root, credits, 18f, UiTheme.InkFaint,
-                TextAlignmentOptions.BottomRight);
-            UiBuilder.Place(credit.rectTransform, new Vector2(1f, 0f), new Vector2(1f, 0f),
-                new Vector2(-30f, 20f), new Vector2(700f, 100f));
-        }
-
-        static UiButton MenuButton(RectTransform root, string name, string caption, IconId icon,
-            float y, Color face)
-        {
-            var content = face == UiTheme.Confirm ? UiTheme.InkOnAccent : UiTheme.Ink;
-            return UiButton.CreateAction(root, name, icon, caption,
-                UiBuilder.Centre, UiBuilder.Centre, new Vector2(0f, y), new Vector2(380f, 72f),
-                face, content, 26f);
-        }
-
-        // ---------- Tutorial choice ----------
-
-        /// <summary>Asks whether to play the tutorial. Clicking outside or Esc backs out.</summary>
-        void OpenChoice()
-        {
-            if (_choice != null || _starting)
+            var keyboard = Keyboard.current;  // 신 Input System으로 현재 키보드를 가져옴
+            if (keyboard == null)  // 키보드가 연결되지 않았다면 -> 아무것도 하지 않음
                 return;
 
-            if (tutorial == null)
+            if (!_introDone && keyboard.anyKey.wasPressedThisFrame)  // 만약 연출 중에 아무 키나 눌렀다면 -> 연출 건너뛰기
+                FinishIntro();
+            else if (_choice.activeSelf && keyboard.escapeKey.wasPressedThisFrame)  // 만약 선택창이 열린 상태에서 ESC를 눌렀다면 -> 선택창 닫기
+                CloseChoice();
+            else if (_roulette.IsOpen && keyboard.escapeKey.wasPressedThisFrame)  // 룰렛 창이 열려 있다면 ESC로 닫기
+                _roulette.Close();
+            else if (_archive.IsOpen && keyboard.escapeKey.wasPressedThisFrame)  // 기록소가 열려 있다면 ESC로 리포트 또는 기록소 닫기
+                _archive.Back();
+        }
+
+        IEnumerator PlayIntro()  // 타이틀 등장 연출을 순서대로 재생하는 코루틴
+        // 순서: 체스판 칸이 대각선 물결로 깔림 → 킹 로고가 떨어져 '쿵' → 제목 글자가 솟아오름 → 크레딧 페이드 → 메뉴 버튼 등장
+        // -> 각 연출의 시작 시간(지연)은 TweenPresets 에셋에서 조정함
+        {
+            var p = Fx.P;  // 연출 수치 에셋
+            _skipCatcher.gameObject.SetActive(true);  // 연출 중에는 클릭으로 건너뛸 수 있도록 투명 판을 켬
+
+            foreach (var button in new[] { _start, _options, _quit, _archiveButton, _fairy })  // 메뉴 버튼 4개를
+                UiBuilder.Group(button.gameObject).alpha = 0f;  // 처음에는 투명하게 숨겨 둠 (나중에 차례로 등장)
+
+            // 배경 체스판 칸 연출: 왼쪽 위 칸부터 대각선 방향으로 차례차례 나타남
+            int columns = Mathf.Max(1, _tiles.constraintCount);  // 한 줄에 놓인 칸 수 (0으로 나누지 않도록 최소 1)
+            for (int i = 0; i < _tiles.transform.childCount; i++)  // 모든 칸에 대해
+            {
+                var tile = _tiles.transform.GetChild(i);
+                var graphic = tile.GetComponent<Graphic>();
+                if (graphic == null)  // 그래픽이 없는 칸은 건너뜀
+                    continue;
+                int diagonal = i % columns + i / columns;  // 열 번호 + 행 번호 = 몇 번째 대각선인지 -> 같은 대각선의 칸은 동시에 나타남
+                Fx.TileIn(tile, graphic, graphic.color.a, p.titleTileStart + diagonal * p.titleTileStagger);  // 대각선 순서만큼 늦게 시작해서 원래 투명도까지 나타남
+            }
+
+            Fx.DropOnto(_logo, p.titleLogoDelay, () =>  // 킹 로고를 위에서 떨어뜨리고, 착지하면
+            {
+                if (!_introDone)  // 아직 연출을 건너뛰지 않았을 때만 (건너뛴 뒤에 화면이 흔들리면 어색하므로)
+                    Fx.TitleImpact(_logo, _stage);  // 로고가 눌렸다 퍼지고 화면 전체가 '쿵' 흔들림
+            });
+            Fx.LettersRise(_title, p.titleLetterDelay);  // 제목 글자가 한 글자씩 아래에서 솟아오름
+            Fx.FadeInGroup(_credits, p.titleCreditDelay);  // 크레딧이 서서히 나타남
+
+            yield return new WaitForSecondsRealtime(p.titleMenuDelay);  // 메뉴가 등장할 시간까지 기다렸다가 (Realtime: 게임 시간이 멈춰도 진행)
+            _start.PlayIn(0);  // 메뉴 버튼을 위에서부터 차례로 등장시킴
+            _options.PlayIn(1);
+            _quit.PlayIn(2);
+            _archiveButton.PlayIn(3);
+            _fairy.PlayIn(4);
+
+            yield return new WaitForSecondsRealtime(
+                Mathf.Max(p.titleCreditDelay + p.titleCreditFade, p.titleShakeDuration + p.titleLogoDelay) - p.titleMenuDelay + 0.3f);
+            // 크레딧 페이드와 로고 흔들림 중 늦게 끝나는 쪽 + 여유 0.3초까지 기다린 뒤
+            FinishIntro();  // 연출 마무리
+        }
+
+        void FinishIntro()  // 등장 연출을 끝내고 모든 요소를 최종 상태로 맞추는 함수 -> 연출이 정상 종료될 때와 건너뛸 때 모두 사용
+        {
+            if (_introDone)  // 만약 이미 끝났다면 -> 중복 실행 방지
+                return;
+
+            _introDone = true;  // 연출 끝으로 표시하고
+            if (_intro != null)
+                StopCoroutine(_intro);  // 아직 진행 중인 연출 코루틴이 있다면 중단
+
+            Fx.CompleteAll();  // 진행 중인 모든 트윈을 즉시 끝 상태로 만듦 (칸·로고·제목이 바로 제자리에)
+            foreach (var button in new[] { _start, _options, _quit, _archiveButton, _fairy })
+                UiBuilder.Group(button.gameObject).alpha = 1f;  // 메뉴 버튼이 확실히 보이도록 불투명하게
+            _credits.alpha = 1f;  // 크레딧도 확실히 보이게
+            _stage.anchoredPosition = Vector2.zero;  // 흔들리던 화면 묶음을 제자리로
+
+            _skipCatcher.gameObject.SetActive(false);  // 건너뛰기용 투명 판을 꺼서 메뉴 버튼을 누를 수 있게 함
+            Fx.IdleBreathe(_logo);  // 이후 킹 로고가 천천히 숨 쉬듯 커졌다 작아지는 대기 연출 시작
+
+            if (MetaProgress.FairyUnlocked && !MetaProgress.FairyIntroShown)  // 보스를 처음 이기고 돌아왔다면 -> 자물쇠가 풀리는 연출과 소개
+                PlayFairyUnlock();
+        }
+
+        // ---------- 특수 기물 ----------
+
+        bool _fairyUnlocking;  // 자물쇠가 풀리는 연출·소개 대사가 진행 중인지 여부
+
+        void ApplyFairyLock()  // 특수 기물 버튼을 기록에 맞게 잠금/풀림 상태로 그리는 함수
+        {
+            if (_fairyUnlocking)  // 풀리는 연출 중에는 건드리지 않음
+                return;
+
+            bool open = MetaProgress.FairyUnlocked && MetaProgress.FairyIntroShown;  // 보스를 이겼고 소개까지 봤다면 열림
+            bool pendingIntro = MetaProgress.FairyUnlocked && !MetaProgress.FairyIntroShown;  // 이겼지만 아직 풀리는 연출을 안 봤다면 연출 전까지 잠긴 모습
+            _fairy.SetInteractable(open);
+            _fairyLock.gameObject.SetActive(!open);
+            _fairyLockImage.color = Color.white;
+            _fairyLock.localRotation = Quaternion.identity;
+            _fairyLock.anchoredPosition = Vector2.zero;
+            _fairyLockedHint.SetActive(!open && !pendingIntro);  // "보스를 처치하면 열립니다"는 정말 잠겨 있을 때만
+        }
+
+        void PlayFairyUnlock()  // 자물쇠가 풀리는 연출 -> 소개 대사 -> 버튼 열림 순서로 진행하는 함수
+        {
+            _fairyUnlocking = true;
+            _fairyLockedHint.SetActive(false);
+            _skipCatcher.gameObject.SetActive(true);  // 연출 중에는 메뉴를 누르지 못하게 투명 판으로 막음 (클릭해도 건너뛰지 않음)
+            _skipCatcher.onClick.RemoveListener(FinishIntro);
+            Sfx.Play(SfxId.Lock);  // '철컥'
+            Fx.FairyUnlock(_fairy.transform, _fairyLock, _fairyLockImage, () => StartCoroutine(FairyIntro()));
+        }
+
+        IEnumerator FairyIntro()  // 안내인이 특수 기물을 소개하는 대사를 차례로 보여 주는 코루틴
+        {
+            _fairyLock.gameObject.SetActive(false);
+            _skipCatcher.gameObject.SetActive(false);
+
+            if (_dialogue != null && tutorial != null)
+            {
+                _dialogue.Init(tutorial.speakerName, tutorial.portrait, null, 0f, tutorial.charactersPerSecond);
+                foreach (var line in _fairyIntroLines)
+                    yield return _dialogue.Say(line);
+                _dialogue.HideAll();
+                _dialogue.gameObject.SetActive(false);
+            }
+
+            MetaProgress.MarkFairyIntroShown(true);  // 다시 보지 않도록 기록
+            _fairyUnlocking = false;
+            ApplyFairyLock();
+            UiFx.Punch(_fairy.transform);  // 이제 누를 수 있다는 걸 알리듯 한 번 더 톡
+        }
+
+        void OpenRoulette()  // 특수 기물 버튼을 눌렀을 때 룰렛 창을 여는 함수
+        {
+            if (_starting || _roulette.IsOpen || _fairyUnlocking)
+                return;
+            _roulette.Open();
+        }
+
+        void OpenArchive()  // 기록소 버튼을 눌렀을 때 기록소 창을 여는 함수
+        {
+            if (_starting || _roulette.IsOpen || _archive.IsOpen || _fairyUnlocking)
+                return;
+            _archive.Open();
+        }
+
+        void OpenChoice()  // 시작 버튼을 눌렀을 때 튜토리얼 선택창을 여는 함수
+        {
+            if (_choice.activeSelf || _starting)  // 만약 이미 열려 있거나 시작 중이라면 -> 무시
+                return;
+
+            if (tutorial == null)  // 만약 튜토리얼 대본이 연결되지 않았다면 -> 선택창 없이 바로 일반 시작
             {
                 Begin(false);
                 return;
             }
 
-            var backdrop = UiBuilder.Panel("TutorialChoice", _root, UiTheme.Backdrop, false);
-            UiBuilder.Stretch(backdrop.rectTransform);
-            backdrop.gameObject.AddComponent<UnityEngine.UI.Button>().onClick.AddListener(CloseChoice);
-            _choice = backdrop.gameObject;
-
-            var edge = UiBuilder.Panel("PanelEdge", backdrop.transform, UiTheme.PanelEdge);
-            UiBuilder.Place(edge.rectTransform, UiBuilder.Centre, UiBuilder.Centre, Vector2.zero,
-                new Vector2(766f, 336f));
-
-            var panel = UiBuilder.Panel("Panel", backdrop.transform, UiTheme.Panel);
-            UiBuilder.Place(panel.rectTransform, UiBuilder.Centre, UiBuilder.Centre, Vector2.zero,
-                new Vector2(760f, 330f));
-
-            var question = UiBuilder.Label("Question", panel.transform, "튜토리얼을 진행할까요?", 38f,
-                UiTheme.Ink, TextAlignmentOptions.Center, FontStyles.Bold);
-            UiBuilder.Place(question.rectTransform, UiBuilder.Centre, UiBuilder.Centre,
-                new Vector2(0f, 90f), new Vector2(700f, 54f));
-
-            var note = UiBuilder.Label("Note", panel.transform,
-                "처음 플레이한다면 튜토리얼을 추천해요.", 22f, UiTheme.InkMuted);
-            UiBuilder.Place(note.rectTransform, UiBuilder.Centre, UiBuilder.Centre,
-                new Vector2(0f, 38f), new Vector2(700f, 34f));
-
-            var play = UiButton.CreateAction(panel.transform, "PlayTutorial", IconId.Arrow, "튜토리얼 보기",
-                UiBuilder.Centre, UiBuilder.Centre, new Vector2(-170f, -70f), new Vector2(310f, 72f),
-                UiTheme.Confirm, UiTheme.InkOnAccent, 24f);
-            play.Clicked += () => Begin(true);
-
-            var skip = UiButton.CreateAction(panel.transform, "SkipTutorial", IconId.Chevrons, "건너뛰기",
-                UiBuilder.Centre, UiBuilder.Centre, new Vector2(170f, -70f), new Vector2(310f, 72f),
-                UiTheme.CardWell, UiTheme.Ink, 24f);
-            skip.Clicked += () => Begin(false);
-
-            UiFx.BackdropIn(UiBuilder.Group(backdrop.gameObject));
-            UiFx.PanelIn(panel.rectTransform, UiBuilder.Group(panel.gameObject));
-            play.PlayIn(0);
-            skip.PlayIn(1);
+            _choice.SetActive(true);  // 선택창을 켜고
+            UiFx.BackdropIn(UiBuilder.Group(_choice));  // 어두운 배경이 서서히 나타나고
+            UiFx.PanelIn(_choicePanel, UiBuilder.Group(_choicePanel.gameObject));  // 선택창 패널이 커지며 나타남
+            _playTutorial.PlayIn(0);  // 두 버튼이 차례로 등장
+            _skipTutorial.PlayIn(1);
         }
 
-        void CloseChoice()
+        void CloseChoice()  // 튜토리얼 선택창을 닫는 함수
         {
-            if (_choice == null || _starting)
+            if (!_choice.activeSelf || _starting)  // 만약 열려 있지 않거나 이미 시작 중이라면 -> 무시
                 return;
 
-            Destroy(_choice);
-            _choice = null;
+            _choice.SetActive(false);
         }
 
-        /// <summary>A fresh run, either through the tutorial battle or straight onto the map.</summary>
-        void Begin(bool withTutorial)
+        void Begin(bool withTutorial)  // 새 게임을 시작하는 함수 (withTutorial: 튜토리얼을 할지 여부)
         {
-            if (_starting)
+            if (_starting)  // 만약 이미 시작 처리 중이라면 -> 중복 실행 방지
                 return;
 
             _starting = true;
-            RunState.Instance.ResetRun();
+            RunState.Instance.ResetRun();  // 이전 판의 골드·기물·유물 등 진행 정보를 초기화
 
-            if (withTutorial)
+            if (withTutorial)  // 만약 튜토리얼을 선택했다면
             {
-                TutorialSession.Begin(tutorial);
-                SceneManager.LoadScene(battleScene);
+                TutorialSession.Begin(tutorial);  // 튜토리얼 대본을 등록하고
+                SceneManager.LoadScene(battleScene);  // 전투 씬으로 바로 이동 -> 전투 씬이 등록된 대본을 보고 튜토리얼로 진행
                 return;
             }
 
-            TutorialSession.Complete();
-            SceneManager.LoadScene(mapScene);
+            TutorialSession.Complete();  // 튜토리얼을 건너뛰면 등록된 대본을 지워서 일반 전투로 진행되게 하고
+            SceneManager.LoadScene(mapScene);  // 맵 씬으로 이동
         }
 
-        static void Quit()
+        static void Quit()  // 게임을 종료하는 함수
         {
 #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
+            UnityEditor.EditorApplication.isPlaying = false;  // 에디터에서는 플레이 모드를 멈춤
 #else
-            Application.Quit();
+            Application.Quit();  // 빌드된 게임에서는 프로그램 종료
 #endif
         }
     }

@@ -163,7 +163,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: WhitePieces_Simplified_Rook
+      name: WhitePieces_Simplified_Knight
       rect:
         serializedVersion: 2
         x: 16
@@ -185,7 +185,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: WhitePieces_Simplified_Knight
+      name: WhitePieces_Simplified_Rook
       rect:
         serializedVersion: 2
         x: 32
@@ -288,10 +288,10 @@ TextureImporter:
     nameFileIdTable:
       WhitePieces_Simplified_Bishop: 796373695
       WhitePieces_Simplified_King: -1605344288
-      WhitePieces_Simplified_Knight: 1445096090
+      WhitePieces_Simplified_Knight: 667199470
       WhitePieces_Simplified_Pawn: 192859809
       WhitePieces_Simplified_Queen: 1462415107
-      WhitePieces_Simplified_Rook: 667199470
+      WhitePieces_Simplified_Rook: 1445096090
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

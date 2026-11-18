@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 37c380eac55a82a45898c9f029dff8c2, type: 3}
+  m_Name: Guide_DragonKing
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Tutorial.PieceGuideData
+  piece: {fileID: 11400000, guid: 360717d35d6b3414ba2302cbfad80ec6, type: 2}
+  enemy: 0
+  pages:
+  - "\uB4DC\uB798\uACE4\uD0B9\uC740 \uB8E9\uC5D0 \uB300\uAC01\uC120 \uD55C \uCE78\uC744
+    \uB354\uD55C \uAE30\uBB3C\uC785\uB2C8\uB2E4. \uAC00\uB85C\xB7\uC138\uB85C\uB85C\uB294
+    \uC6D0\uD558\uB294 \uB9CC\uD07C, \uB300\uAC01\uC120\uC73C\uB85C\uB294 \uD55C
+    \uCE78 \uC6C0\uC9C1\uC785\uB2C8\uB2E4."
+  - "\uAC00\uB85C\xB7\uC138\uB85C \uAE38\uC5D0 \uAE30\uBB3C\uC774 \uC788\uC73C\uBA74
+    \uADF8 \uB108\uBA38\uB85C\uB294 \uBABB \uAC11\uB2C8\uB2E4. \uADF8 \uAE38\uC758
+    \uCCAB \uBC88\uC9F8 \uC801\uC740 \uC7A1\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+  - "\uB8E9\uC774 \uB2FF\uC9C0 \uBABB\uD558\uB294 \uB300\uAC01\uC120 \uBC14\uB85C
+    \uC606\uC758 \uC801\uB3C4 \uC7A1\uC744 \uC218 \uC788\uC5B4\uC11C, \uAC00\uAE4C\uC774
+    \uBD99\uC740 \uC801\uC5D0\uAC8C\uB3C4 \uAC15\uD569\uB2C8\uB2E4."

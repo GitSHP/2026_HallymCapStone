@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a22d8403a1b6f949a130082aa9daf3b, type: 3}
+  m_Name: UiArt
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.UI.UiArt
+  roundedRect: {fileID: 21300000, guid: 85f52937687fc1645ab21e89fcae64ff, type: 3}
+  square: {fileID: 21300000, guid: 6b986aa188f11284092f2ddcb74e372b, type: 3}
+  circle: {fileID: 21300000, guid: 01bae33ed59b41844b92b5221d6f3123, type: 3}
+  icons:
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 3d0e2d2241a3736498820b35e8553e0a, type: 3}
+  - {fileID: 21300000, guid: 6b0781be43feb864b8a0e611e9eb4b00, type: 3}
+  - {fileID: 21300000, guid: 6ac8f10300775924dae279ed39509334, type: 3}
+  - {fileID: 21300000, guid: e779cd4b150b08f41beb3db01bddcd0f, type: 3}
+  - {fileID: 21300000, guid: 76c8daeed88590142952b894ccf47989, type: 3}
+  - {fileID: 21300000, guid: 4334a80d4dd536f41b7596bad6133f1b, type: 3}
+  - {fileID: 21300000, guid: 8e2678bf47b2f7042b21f917835fc452, type: 3}
+  - {fileID: 21300000, guid: 7e91971600322bf4789394de125413d7, type: 3}
+  - {fileID: 21300000, guid: 4dabdfbcc4d9b27429a99b7afaf8d74b, type: 3}
+  - {fileID: 21300000, guid: f4eb6f6256b186f4dbb2a20fc102790b, type: 3}
+  - {fileID: 21300000, guid: 2742f1a65e987b2429fc9397f2b24418, type: 3}
+  - {fileID: 21300000, guid: 1dcd6e706d6c2e445bb91260b62fcfda, type: 3}
+  - {fileID: 21300000, guid: ad25ad05b92163e4593ab0be2b5214ac, type: 3}
+  - {fileID: 21300000, guid: bb391d5a3dc8ff64392ef53fe022393d, type: 3}
+  - {fileID: 21300000, guid: e4b4bb954e20c8448a2676817a59a1d3, type: 3}
+  - {fileID: 21300000, guid: f2e45a09260e26a40be4fc49695e1d46, type: 3}
+  - {fileID: 21300000, guid: b1d9384de5143614093140a5ca480f29, type: 3}

@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 613212a060560a54e8e54e4478fe287d, type: 3}
+  m_Name: FairyRoulette
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Data.FairyRoulette
+  entries:
+  - piece: {fileID: 11400000, guid: 5a2f88df5a4bae24e8ce48d1a6ed87b2, type: 2}
+    left: "\uB8E9"
+    right: "\uB098\uC774\uD2B8"
+  - piece: {fileID: 11400000, guid: 736357e17181b834c9d4822b2d05fe27, type: 2}
+    left: "\uBE44\uC20D"
+    right: "\uB098\uC774\uD2B8"
+  - piece: {fileID: 11400000, guid: 360717d35d6b3414ba2302cbfad80ec6, type: 2}
+    left: "\uB4DC\uB798\uACE4"
+    right: "\uC655\uAD00"
+  - piece: {fileID: 11400000, guid: 66293109ae5ad8643af61774cabda9b9, type: 2}
+    left: "\uB4DC\uB798\uACE4"
+    right: "\uB098\uC774\uD2B8"
+  - piece: {fileID: 11400000, guid: 7397ba58d9b891743b9f74d47e258fa7, type: 2}
+    left: "\uBE44\uC20D"
+    right: "\uD55C \uAC78\uC74C"
+  - piece: {fileID: 11400000, guid: f606db7c0c43e154c98ff2e5756bd636, type: 2}
+    left: "\uB098\uC774\uD2B8"
+    right: "\uB099\uD0C0"

@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e41d9406b4d991b4f8bb6cbf37388e1f, type: 3}
+  m_Name: Stage_Final
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Data.StageDefinition
+  mode: 1
+  boardArt: {fileID: 21300000, guid: 7ee5d3ec9ac033b4fac1032fe20cd55f, type: 3}
+  apPerTurn: 1
+  deployRows: 2
+  kingDefinition: {fileID: 11400000, guid: 4673ccbc3890e1143b1bce35a79076e4, type: 2}
+  startingDeck: []
+  waves: []
+  spawnRows: 2
+  enemiesMoveDiagonally: 1
+  enemyLayout:
+  - piece: {fileID: 11400000, guid: 9ec2daed356162a47bb402d293a0c8a9, type: 2}
+    square: {x: 0, y: 7}
+  - piece: {fileID: 11400000, guid: 9cbeaf401e4fa9f43a4208a4b707b602, type: 2}
+    square: {x: 0, y: 6}
+  - piece: {fileID: 11400000, guid: 1c48c9228ef6cc14d96083af0e1804a1, type: 2}
+    square: {x: 1, y: 7}
+  - piece: {fileID: 11400000, guid: 9cbeaf401e4fa9f43a4208a4b707b602, type: 2}
+    square: {x: 1, y: 6}
+  - piece: {fileID: 11400000, guid: 54f87a6fd608e8241ae3ae1dd82ee643, type: 2}
+    square: {x: 2, y: 7}
+  - piece: {fileID: 11400000, guid: 9cbeaf401e4fa9f43a4208a4b707b602, type: 2}
+    square: {x: 2, y: 6}
+  - piece: {fileID: 11400000, guid: d78b5575554df5742a56e92de4d2e10f, type: 2}
+    square: {x: 3, y: 7}
+  - piece: {fileID: 11400000, guid: 9cbeaf401e4fa9f43a4208a4b707b602, type: 2}
+    square: {x: 3, y: 6}
+  - piece: {fileID: 11400000, guid: 4673ccbc3890e1143b1bce35a79076e4, type: 2}
+    square: {x: 4, y: 7}
+  - piece: {fileID: 11400000, guid: 9cbeaf401e4fa9f43a4208a4b707b602, type: 2}
+    square: {x: 4, y: 6}
+  - piece: {fileID: 11400000, guid: 54f87a6fd608e8241ae3ae1dd82ee643, type: 2}
+    square: {x: 5, y: 7}
+  - piece: {fileID: 11400000, guid: 9cbeaf401e4fa9f43a4208a4b707b602, type: 2}
+    square: {x: 5, y: 6}
+  - piece: {fileID: 11400000, guid: 1c48c9228ef6cc14d96083af0e1804a1, type: 2}
+    square: {x: 6, y: 7}
+  - piece: {fileID: 11400000, guid: 9cbeaf401e4fa9f43a4208a4b707b602, type: 2}
+    square: {x: 6, y: 6}
+  - piece: {fileID: 11400000, guid: 9ec2daed356162a47bb402d293a0c8a9, type: 2}
+    square: {x: 7, y: 7}
+  - piece: {fileID: 11400000, guid: 9cbeaf401e4fa9f43a4208a4b707b602, type: 2}
+    square: {x: 7, y: 6}
+  freePawn: {fileID: 11400000, guid: 9cbeaf401e4fa9f43a4208a4b707b602, type: 2}
+  maxFreePawns: 8
+  moveLimit: 100
+  promotionChoices:
+  - {fileID: 11400000, guid: d78b5575554df5742a56e92de4d2e10f, type: 2}
+  - {fileID: 11400000, guid: 9ec2daed356162a47bb402d293a0c8a9, type: 2}
+  - {fileID: 11400000, guid: 54f87a6fd608e8241ae3ae1dd82ee643, type: 2}
+  - {fileID: 11400000, guid: 1c48c9228ef6cc14d96083af0e1804a1, type: 2}
+  aiProfile: {fileID: 11400000, guid: 18f6822d3280e694b86f0e594e497db2, type: 2}

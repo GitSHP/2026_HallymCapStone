@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e41d9406b4d991b4f8bb6cbf37388e1f, type: 3}
+  m_Name: Stage_FairyTest
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Data.StageDefinition
+  mode: 0
+  boardArt: {fileID: 0}
+  apPerTurn: 5
+  deployRows: 3
+  kingDefinition: {fileID: 11400000, guid: 4673ccbc3890e1143b1bce35a79076e4, type: 2}
+  startingDeck: []
+  enemyLayout:
+  - piece: {fileID: 11400000, guid: 9a27053adb279ae4ca9ef6b909d2b154, type: 2}
+    square: {x: 3, y: 4}
+  - piece: {fileID: 11400000, guid: 9a27053adb279ae4ca9ef6b909d2b154, type: 2}
+    square: {x: 1, y: 5}
+  - piece: {fileID: 11400000, guid: 9a27053adb279ae4ca9ef6b909d2b154, type: 2}
+    square: {x: 6, y: 3}
+  waves:
+  - spawnOnTurn: 2
+    enemy: {fileID: 11400000, guid: 9a27053adb279ae4ca9ef6b909d2b154, type: 2}
+    count: 3
+    mixedEnemy: {fileID: 11400000, guid: 49515688913d10542b4e1d0e82fa22b0, type: 2}
+    mixedCount: 1
+    mixedFromStage: 3
+  - spawnOnTurn: 4
+    enemy: {fileID: 11400000, guid: 9a27053adb279ae4ca9ef6b909d2b154, type: 2}
+    count: 4
+    mixedEnemy: {fileID: 11400000, guid: 49515688913d10542b4e1d0e82fa22b0, type: 2}
+    mixedCount: 1
+    mixedFromStage: 3
+  - spawnOnTurn: 6
+    enemy: {fileID: 11400000, guid: 9a27053adb279ae4ca9ef6b909d2b154, type: 2}
+    count: 5
+    mixedEnemy: {fileID: 11400000, guid: 49515688913d10542b4e1d0e82fa22b0, type: 2}
+    mixedCount: 1
+    mixedFromStage: 3
+  spawnRows: 2
+  extraEnemyEveryStages: 2
+  extraEnemyPerStep: 1
+  maxExtraEnemies: 3
+  enemiesMoveDiagonally: 1
+  freePawn: {fileID: 0}
+  maxFreePawns: 8
+  moveLimit: 100
+  promotionChoices:
+  - {fileID: 11400000, guid: d78b5575554df5742a56e92de4d2e10f, type: 2}
+  - {fileID: 11400000, guid: 9ec2daed356162a47bb402d293a0c8a9, type: 2}
+  - {fileID: 11400000, guid: 54f87a6fd608e8241ae3ae1dd82ee643, type: 2}
+  - {fileID: 11400000, guid: 1c48c9228ef6cc14d96083af0e1804a1, type: 2}
+  aiProfile: {fileID: 0}

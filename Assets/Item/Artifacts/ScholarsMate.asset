@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a463e3b92670e64198289cca9643bdd, type: 3}
+  m_Name: ScholarsMate
+  m_EditorClassIdentifier: Assembly-CSharp::ScholarsMateArtifactData
+  itemName: "\uC2A4\uCF5C\uB77C\uC2A4 \uBA54\uC774\uD2B8"
+  itemType: 0
+  itemImage: {fileID: 2741031, guid: 926817b4392111947b37226efea629f9, type: 3}
+  itemPrefab: {fileID: 0}
+  maxClearTurn: 5
+  bonusGold: 20

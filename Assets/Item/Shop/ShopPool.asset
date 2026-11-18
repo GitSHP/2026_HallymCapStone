@@ -11,18 +11,75 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 547e6032780b03448a000b690fbd58ff, type: 3}
   m_Name: ShopPool
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Data.ShopPool
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Data.ShopPool
   artifactSlots: 3
   pieceSlots: 3
-  artifacts:
-  - {fileID: 11400000, guid: 1be7592b22d62674e9eabfb61945bf16, type: 2}
-  - {fileID: 11400000, guid: 85297d29d8d169646a43ec221ca233b5, type: 2}
-  - {fileID: 11400000, guid: 181a0bd6d97316342b0bfd3a2cf8d2bb, type: 2}
-  - {fileID: 11400000, guid: 6c8888da646219c409c40a75ba75d355, type: 2}
-  - {fileID: 11400000, guid: 8d3baee944da7c740a3aa582650a3fc1, type: 2}
-  - {fileID: 11400000, guid: 4ef81764dcafcd64693917c0a2b472c2, type: 2}
+  fixedOrder: 0
+  rerollCost: 2
+  rerollCostStep: 1
+  artifactOffers:
+  - item: {fileID: 11400000, guid: a99f9e4c21917cc419716d16532a5739, type: 2}
+    cost: 15
+    weight: 1
+    unique: 1
+    blurb: "\uD3F0 3\uAE30\uAC00 \uD76C\uC0DD\uB418\uBA74 \uD038 1\uAE30\uB97C \uC9C0\uAE09"
+  - item: {fileID: 11400000, guid: 4862c18f414960c4cbe33f5ebcc91204, type: 2}
+    cost: 12
+    weight: 1
+    unique: 1
+    blurb: "\uD0B9\uC73C\uB85C \uC801 \uC720\uB2DB\uC744 \uC7A1\uC744 \uC2DC \uD589\uB3D9\uB825
+      +1"
+  - item: {fileID: 11400000, guid: 72b4ed7d9ee5d894b8585ac6f99b0a5b, type: 2}
+    cost: 11
+    weight: 1
+    unique: 1
+    blurb: "\uB9E4 \uC2A4\uD14C\uC774\uC9C0 \uCCAB \uC2DC\uC791 \uC2DC\uC5D0\uB9CC
+      \n\uB098\uC774\uD2B8\uC640 \uBE44\uC20D\uC744 1\uAE30\uC529 \uC9C0\uAE09"
+  - item: {fileID: 11400000, guid: 34eeca2a61c714c40b590154790678cb, type: 2}
+    cost: 13
+    weight: 1
+    unique: 1
+    blurb: "\uC2A4\uD14C\uC774\uC9C0\uB97C 5\uD134 \uC774\uB0B4\uB85C \uD074\uB9AC\uC5B4
+      \uC2DC \uCD94\uAC00 \uACE8\uB4DC \uC9C0\uAE09"
+  - item: {fileID: 11400000, guid: dd9bc7d6ba18f544b8c1351f05a9e8bf, type: 2}
+    cost: 13
+    weight: 1
+    unique: 1
+    blurb: "\uC2A4\uD14C\uC774\uC9C0 \uD074\uB9AC\uC5B4 \uC2DC \uD604\uC7AC \uBCF4\uC720
+      \uACE8\uB4DC \uB2F9 \uCD94\uAC00 \uACE8\uB4DC \uC9C0\uAE09"
+  - item: {fileID: 11400000, guid: caf17ef54fc1b454f8378ac1048ea9b2, type: 2}
+    cost: 11
+    weight: 1
+    unique: 1
+    blurb: "\uC2A4\uD14C\uC774\uC9C0 \uD074\uB9AC\uC5B4 \uC2DC \uAE30\uBB3C\uC774
+      \uD558\uB098\uB77C\uB3C4 \uC8FD\uC9C0 \uC54A\uC558\uB2E4\uBA74 \uCD94\uAC00
+      \uACE8\uB4DC \uC9C0\uAE09"
+  - item: {fileID: 11400000, guid: 29ecc23f7017e824b8d04a06a00bf5e8, type: 2}
+    cost: 15
+    weight: 1
+    unique: 1
+    blurb: "\uC801\uC744 \uC7A1\uC744 \uB54C\uB9C8\uB2E4 +1 \uACE8\uB4DC\n\uD55C
+      \uC2A4\uD14C\uC774\uC9C0 \uB2F9 \uCD5C\uB300 10\uACE8\uB4DC \uD68D\uB4DD \uAC00\uB2A5"
+  - item: {fileID: 11400000, guid: 2adf362a6dd56014687e71c1a2d373a1, type: 2}
+    cost: 15
+    weight: 1
+    unique: 1
+    blurb: "\uC544\uAD70 \uAE30\uBB3C\uC774 \uC801\uC5D0\uAC8C \uC7A1\uD614\uC744
+      \uB54C \n\uC801\uC5D0\uAC8C \uC7A1\uD78C \uC544\uAD70 \uAE30\uBB3C\uC774 \uD655\uB960\uC801\uC73C\uB85C\n\uC790\uC2E0\uC758
+      \uC778\uBCA4\uD1A0\uB9AC\uB85C \uB418\uB3CC\uC544\uAC10"
+  - item: {fileID: 11400000, guid: aa1b00f0f37295e4b8a928a1e4de0983, type: 2}
+    cost: 10
+    weight: 1
+    unique: 1
+    blurb: "\uD604\uC7AC \uD134 \uC0AC\uC6A9\uD558\uC9C0 \uC54A\uACE0 \n\uB0A8\uC740
+      AP\uB97C \uB2E4\uC74C \uD134\uC73C\uB85C \uC774\uC6D4"
+  - item: {fileID: 11400000, guid: 7d8a53627add2fb40b305b93c061db71, type: 2}
+    cost: 14
+    weight: 1
+    unique: 1
+    blurb: "\uD0B9\uACFC \uD3F0\uC744 \uC81C\uC678, \uCC98\uC74C \uC18C\uD658\uD558\uB294\uB370
+      \n\uC0AC\uC6A9\uD55C \uAE30\uBB3C \uC18C\uD658 AP\uB97C \uB2E4\uC2DC \uB418\uB3CC\uB824\uC90C"
   pieces:
-  - {fileID: 11400000, guid: f67a518ee14ae324484f9ab773792fbc, type: 2}
   - {fileID: 11400000, guid: 1c48c9228ef6cc14d96083af0e1804a1, type: 2}
   - {fileID: 11400000, guid: 54f87a6fd608e8241ae3ae1dd82ee643, type: 2}
   - {fileID: 11400000, guid: 9ec2daed356162a47bb402d293a0c8a9, type: 2}

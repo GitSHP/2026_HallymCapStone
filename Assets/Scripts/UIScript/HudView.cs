@@ -1,6 +1,7 @@
-using System.Collections.Generic;
-using Gambonanza.Core;
-using Gambonanza.Gameplay;
+using Promotion.Core;
+using Promotion.Data;
+using Promotion.Feel;
+using Promotion.Gameplay;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -8,64 +9,87 @@ using UnityEngine.InputSystem.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-namespace Gambonanza.UI
+namespace Promotion.UI
 {
-    /// <summary>
-    /// The stage HUD, built in code so the scene needs no wiring.
-    /// Korean renders through the Pretendard fallback registered in TMP Settings,
-    /// so labels can be translated without touching the font setup.
-    /// </summary>
     public class HudView : MonoBehaviour
+    // 전투 화면의 HUD(상태 줄, AP 표시, 행동 버튼, 덱 카드, 승패 배너, 승격 선택창)를 관리하는 클래스
+    // -> HUD 배치는 프리팹(Assets/UI/Prefabs)에 있고, 이 스크립트는 내용을 채우고 버튼을 연결·켜고 끄기만 함
+    // -> 게임 진행 이벤트(턴·AP·단계 변경 등)를 구독해서 바뀔 때마다 Refresh로 화면 전체를 다시 그림
     {
-        static readonly Color Panel = new Color(0.07f, 0.07f, 0.10f, 0.85f);
-        static readonly Color Ink = new Color(0.94f, 0.93f, 0.90f);
-        static readonly Color ButtonIdle = new Color(0.20f, 0.20f, 0.26f, 0.95f);
-        static readonly Color ButtonOff = new Color(0.14f, 0.14f, 0.17f, 0.80f);
-        static readonly Color CardIdle = new Color(0.18f, 0.18f, 0.24f, 0.95f);
-        static readonly Color CardPicked = new Color(0.95f, 0.78f, 0.25f, 0.95f);
-        static readonly Color CardLocked = new Color(0.13f, 0.13f, 0.16f, 0.75f);
+        // -----HUD 색상-----
+        public static readonly Color Panel = new Color(0.07f, 0.07f, 0.10f, 0.85f);  // 기본 패널 바탕 색 (AP 패널 등)
+        public static readonly Color Ink = new Color(0.94f, 0.93f, 0.90f);  // 기본 글자 색
+        public static readonly Color ButtonIdle = new Color(0.20f, 0.20f, 0.26f, 0.95f);  // 누를 수 있는 버튼 색
+        static readonly Color ButtonOff = new Color(0.14f, 0.14f, 0.17f, 0.80f);  // 누를 수 없는 버튼 색
+        static readonly Color ApLockedPanel = new Color(0.32f, 0.10f, 0.10f, 0.90f);  // 최종전(체스 결투)에서 AP를 못 쓴다는 표시용 붉은 패널 색
+        static readonly Color CheckInk = new Color(1f, 0.45f, 0.45f);  // 내 킹이 체크 상태일 때 상태 줄 글자 색 (빨강)
 
-        StageDirector _director;
-        TurnManager _turn;
-        DeployController _deploy;
+        const string TitleScene = "Title";  // 타이틀로 돌아갈 때 불러올 씬 이름
 
-        TextMeshProUGUI _status;
-        TextMeshProUGUI _ap;
-        TextMeshProUGUI _banner;
-        TextMeshProUGUI _actionLabel;
-        Button _action;
-        Button _restart;
-        RectTransform _deckBar;
+        StageDirector _director;  // 스테이지 진행·승패 판정을 담당하는 오브젝트
+        TurnManager _turn;  // 턴·AP·현재 단계(배치/플레이어 턴/적 턴/승리/패배)를 관리하는 오브젝트
+        DeployController _deploy;  // 기물 배치를 담당하는 오브젝트 -> 킹 배치 여부가 바뀌면 시작 버튼을 갱신하려고 구독함
+        // -> 기물 소환 UI는 인벤토리(InventoryManager)의 기물 슬롯이 맡음 (예전 오른쪽 "소환" 목록은 삭제)
 
-        readonly List<Button> _deckButtons = new();
+        [Header("구성 요소 (프리팹에서 지정)")]
+        [SerializeField] TextMeshProUGUI _status;  // 화면 위쪽 상태 줄 (턴·웨이브·적 수 또는 안내 문구)
+        [SerializeField] TextMeshProUGUI _ap;  // AP(행동력) 표시 텍스트 UI
+        [SerializeField] Image _apPanel;  // AP 표시 뒤 패널 이미지 -> 최종전에서는 붉게 바뀜
+        [SerializeField] GameObject _bannerPanel;  // 승리/패배 배너 패널 (게임이 끝났을 때만 켜짐)
+        [SerializeField] TextMeshProUGUI _banner;  // 승리/패배 문구를 표시하는 텍스트 UI
+        [SerializeField] Button _action;  // 행동 버튼 (스테이지 시작 / 턴 종료 / 결투 시작)
+        [SerializeField] TextMeshProUGUI _actionLabel;  // 행동 버튼의 글자
+        [SerializeField] Button _toTitle;  // 타이틀로 버튼 -> 패배(런 종료)하거나 최종전에서 이겼을 때 보임
+        [SerializeField] RectTransform _promotionPanel;  // 폰 승격 시 기물을 고르는 선택창
+        [SerializeField] RectTransform _promotionRow;  // 승격 선택 버튼들이 들어가는 줄
+        [SerializeField] Promotion.Gameplay.PromotionCard _promotionCardPrefab;  // 승격 선택 카드 프리팹 (기물 그림 + 이름 + 행마법) -> 비어 있으면 글자 버튼 사용
+        [SerializeField] RectTransform _promotionBox;  // 승격 선택창의 가운데 패널 (등장 연출용)
+        [SerializeField] Button _choiceButtonPrefab;// 승격 선택 버튼 프리팹 -> 선택지 수만큼 복제
+        [SerializeField] Promotion.Analysis.RunReportView _reportPrefab;  // 런이 끝났을 때 타이틀로 가기 전에 띄우는 복기 리포트 화면
 
-        void Start()
+        [Header("최종전 AP 잠김 연출")]
+        [Tooltip("최종전 대화가 끝나기 전까지 AP 패널에 보여 줄 평소 AP 값이다. 잠기는 순간 '사용 불가'로 바뀐다.")]
+        [SerializeField] int _duelIntroAp = 5;  // 잠기기 전 AP 패널에 보여 줄 평소 AP (일반 스테이지의 턴당 AP)
+
+        bool _holdApUnlocked;  // true면 최종전이어도 AP 패널을 아직 평소 모습으로 그림 -> 대화가 끝나고 잠김 연출이 끝나면 false
+
+        void Start()  // 시작할 때 필요한 오브젝트를 찾고, 버튼과 이벤트를 연결하는 함수
         {
-            _director = FindAnyObjectByType<StageDirector>();
-            if (_director == null)
+            _director = FindAnyObjectByType<StageDirector>();  // 씬에서 StageDirector를 찾아서
+            if (_director == null)  // 만약 없다면 (전투 씬이 아님) -> 경고를 남기고 HUD를 끔
             {
                 Debug.LogWarning("[HudView] No StageDirector in the scene - HUD disabled.");
                 enabled = false;
                 return;
             }
 
-            _turn = _director.GetComponent<TurnManager>();
-            _deploy = _director.GetComponent<DeployController>();
+            _turn = _director.GetComponent<TurnManager>();  // 같은 오브젝트에 붙은 TurnManager와
+            _deploy = _director.GetComponent<DeployController>();  // DeployController를 가져옴
 
-            EnsureEventSystem();
-            Build();
+            EnsureEventSystem();  // 버튼 클릭을 받기 위한 EventSystem 확인
 
-            _turn.PhaseChanged += OnPhaseChanged;
-            _turn.ApChanged += OnApChanged;
-            _turn.TurnChanged += OnTurnChanged;
-            _director.StateChanged += Refresh;
-            _deploy.DeckChanged += RebuildDeck;
+            // 버튼을 눌렀을 때 실행할 함수 연결
+            _action.onClick.AddListener(OnActionPressed);  // 행동 버튼 → 스테이지 시작 / 턴 종료
+            _toTitle.onClick.AddListener(OnToTitleClicked);  // 타이틀로 버튼 → 런 초기화 후 타이틀 씬으로
 
-            RebuildDeck();
-            Refresh();
+            // 처음에는 결과 관련 UI를 모두 숨겨 둠
+            _bannerPanel.SetActive(false);
+            _toTitle.gameObject.SetActive(false);
+            _promotionPanel.gameObject.SetActive(false);
+
+            // 게임 상태가 바뀔 때마다 HUD가 갱신되도록 이벤트 구독
+            _turn.PhaseChanged += OnPhaseChanged;  // 단계(배치/플레이어 턴/적 턴/승패) 변경
+            _turn.ApChanged += OnApChanged;  // AP 변경
+            _turn.TurnChanged += OnTurnChanged;  // 턴 수 변경
+            _director.StateChanged += Refresh;  // 스테이지 상태(웨이브·적 수 등) 변경
+            _director.CheckDeclared += OnCheckDeclared;  // 최종전에서 체크 발생
+            _director.PromotionRequested += ShowPromotionChoice;  // 최종전에서 폰이 끝 줄에 도달해 승격 선택이 필요할 때
+            _deploy.DeckChanged += Refresh;  // 덱·선택이 바뀌었을 때 (킹 배치 → 시작 버튼 활성화)
+
+            Refresh();  // HUD 전체를 한 번 그림
         }
 
-        void OnDestroy()
+        void OnDestroy()  // HUD가 파괴될 때 구독했던 이벤트를 모두 해제하는 함수 -> 씬 이동 후 사라진 HUD가 호출되는 에러 방지
         {
             if (_turn != null)
             {
@@ -75,246 +99,284 @@ namespace Gambonanza.UI
             }
 
             if (_director != null)
+            {
                 _director.StateChanged -= Refresh;
+                _director.CheckDeclared -= OnCheckDeclared;
+                _director.PromotionRequested -= ShowPromotionChoice;
+            }
 
             if (_deploy != null)
-                _deploy.DeckChanged -= RebuildDeck;
+                _deploy.DeckChanged -= Refresh;
         }
 
-        void OnPhaseChanged(TurnPhase phase) => Refresh();
-        void OnApChanged(int current, int max) => Refresh();
-        void OnTurnChanged(int turn) => Refresh();
+        // 각 이벤트는 넘겨받는 값이 달라서 함수 모양을 맞춰 주기만 하고, 실제로는 모두 Refresh로 HUD 전체를 다시 그림
+        void OnPhaseChanged(TurnPhase phase)  // 단계가 바뀌었을 때
+        {
+            Refresh();
+        }
 
-        // ---------- construction ----------
+        void OnApChanged(int current, int max)  // AP가 바뀌었을 때
+        {
+            Refresh();
+        }
 
-        static void EnsureEventSystem()
+        void OnTurnChanged(int turn)  // 턴이 바뀌었을 때
+        {
+            Refresh();
+        }
+
+        void OnCheckDeclared(Team side)  // 체크가 선언됐을 때
+        {
+            Refresh();
+        }
+
+        static void EnsureEventSystem()  // UI 클릭을 받을 EventSystem을 준비하는 함수
         {
             var existing = FindAnyObjectByType<EventSystem>();
-            if (existing == null)
+            if (existing == null)  // 만약 씬에 EventSystem이 없다면 -> 신 Input System용 모듈과 함께 새로 만듦
             {
                 new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
                 return;
             }
 
-            // This project uses the Input System package, so the legacy module cannot drive UI.
-            if (existing.GetComponent<InputSystemUIInputModule>() == null)
+            if (existing.GetComponent<InputSystemUIInputModule>() == null)  // 만약 있는데 신 Input System 모듈이 아니라면
+            // -> 이 프로젝트는 신 Input System을 쓰므로 구식 모듈로는 UI를 조작할 수 없음
             {
-                var legacy = existing.GetComponent<BaseInputModule>();
+                var legacy = existing.GetComponent<BaseInputModule>();  // 기존(구식) 입력 모듈을 찾아서
                 if (legacy != null)
-                    Destroy(legacy);
+                    Destroy(legacy);  // 제거하고
 
-                existing.gameObject.AddComponent<InputSystemUIInputModule>();
+                existing.gameObject.AddComponent<InputSystemUIInputModule>();  // 신 Input System용 모듈로 교체
             }
         }
 
-        void Build()
+
+        void OnToTitleClicked()  // 타이틀로 버튼을 눌렀을 때 -> 기록된 런이 끝났다면 복기 리포트를 먼저 보여 줌 (튜토리얼은 기록이 없어 바로 이동)
         {
-            var canvas = gameObject.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 100;
+            var log = Promotion.Analysis.RunLog.Current;
+            if (_reportPrefab == null || log == null || !log.finished || Promotion.Tutorial.TutorialSession.Active != null)
+            {
+                ReturnToTitle();
+                return;
+            }
 
-            var scaler = gameObject.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.5f;
-
-            gameObject.AddComponent<GraphicRaycaster>();
-
-            var root = (RectTransform)transform;
-
-            var top = MakePanel(root, "TopBar", new Vector2(0.5f, 1f), new Vector2(0f, -46f), new Vector2(900f, 64f));
-            _status = MakeText(top, "Status", 30f);
-
-            var apPanel = MakePanel(root, "ApPanel", new Vector2(0f, 0f), new Vector2(200f, 70f), new Vector2(320f, 76f));
-            _ap = MakeText(apPanel, "Ap", 34f);
-
-            _action = MakeButton(root, "ActionButton", new Vector2(1f, 0f), new Vector2(-220f, 70f),
-                new Vector2(340f, 84f), out _actionLabel, OnActionPressed);
-
-            // The deck sits in the right-hand strip the camera already reserves,
-            // so it never overlaps the board at any aspect ratio.
-            var deckPanel = MakePanel(root, "DeckBar", new Vector2(1f, 0.5f), new Vector2(-150f, 0f), new Vector2(220f, 660f));
-            var layout = deckPanel.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.childAlignment = TextAnchor.UpperCenter;
-            layout.spacing = 8f;
-            layout.padding = new RectOffset(12, 12, 16, 16);
-            layout.childForceExpandWidth = false;
-            layout.childForceExpandHeight = false;
-            _deckBar = deckPanel;
-
-            var deckTitle = MakePanel(root, "DeckTitle", new Vector2(1f, 0.5f), new Vector2(-150f, 360f), new Vector2(220f, 52f));
-            MakeText(deckTitle, "DeckTitleText", 26f).text = "소환";
-
-            var bannerPanel = MakePanel(root, "Banner", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760f, 200f));
-            _banner = MakeText(bannerPanel, "BannerText", 64f);
-
-            _restart = MakeButton(root, "RestartButton", new Vector2(0.5f, 0.5f), new Vector2(0f, -150f),
-                new Vector2(260f, 76f), out var restartLabel, ReloadStage);
-            restartLabel.text = "다시 시작";
-
-            bannerPanel.gameObject.SetActive(false);
-            _restart.gameObject.SetActive(false);
+            _toTitle.interactable = false;  // 두 번 눌러 리포트가 겹치지 않게 함
+            Instantiate(_reportPrefab).Show(log, ReturnToTitle);
         }
 
-        static void ReloadStage() => SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-
-        static RectTransform MakePanel(RectTransform parent, string name, Vector2 anchor, Vector2 position, Vector2 size)
+        static void ReturnToTitle()  // 런을 끝내고 타이틀 화면으로 돌아가는 함수 (최종전 승리 후)
         {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
-            var rect = (RectTransform)go.transform;
-            rect.SetParent(parent, false);
-            rect.anchorMin = anchor;
-            rect.anchorMax = anchor;
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = position;
-            rect.sizeDelta = size;
-            go.GetComponent<Image>().color = Panel;
-            return rect;
+            Promotion.Analysis.RunLog.Current = null;  // 끝난 런의 기록을 비움
+            RunState.Instance.ResetRun();  // 골드·보유 기물·유물 등 이번 판 진행 정보를 초기화하고
+            SceneManager.LoadScene(TitleScene);  // 타이틀 씬으로 이동
         }
 
-        static TextMeshProUGUI MakeText(RectTransform parent, string name, float size)
+        void ShowPromotionChoice()  // 폰 승격 시 고를 수 있는 기물 버튼들을 만들어 선택창을 띄우는 함수
+        // -> 결투는 버튼 중 하나가 눌릴 때까지 기다림
         {
-            var go = new GameObject(name, typeof(RectTransform));
-            var rect = (RectTransform)go.transform;
-            rect.SetParent(parent, false);
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = new Vector2(12f, 6f);
-            rect.offsetMax = new Vector2(-12f, -6f);
+            for (int i = _promotionRow.childCount - 1; i >= 0; i--)  // 이전에 만들어 둔 선택 버튼이 있다면 뒤에서부터 모두 삭제
+                Destroy(_promotionRow.GetChild(i).gameObject);
 
-            var text = go.AddComponent<TextMeshProUGUI>();
-            text.fontSize = size;
-            text.alignment = TextAlignmentOptions.Center;
-            text.color = Ink;
-            text.textWrappingMode = TextWrappingModes.NoWrap;
-            return text;
+            var choices = _director.PromotionChoices;  // 승격 가능한 기물 목록 (퀸, 룩 등)
+            for (int i = 0; i < choices.Count; i++)  // 선택지마다 버튼을 하나씩 만듦
+            {
+                var def = choices[i];
+                if (def == null)  // 비어 있는 선택지는 건너뜀
+                    continue;
+
+                if (_promotionCardPrefab != null)  // 기물 그림이 들어간 카드로 보여 줌
+                {
+                    var card = Instantiate(_promotionCardPrefab, _promotionRow);
+                    card.name = "Promote_" + i;
+                    card.Fill(def, () => ChoosePromotion(def));
+                    card.PlayIn(i);  // 카드가 차례로 올라오며 등장
+                    continue;
+                }
+
+                var button = Instantiate(_choiceButtonPrefab, _promotionRow);  // (카드 프리팹이 없을 때) 글자 버튼으로 보여 줌
+                button.name = "Promote_" + i;
+                button.GetComponentInChildren<TextMeshProUGUI>().text = def.itemName;  // 버튼 글자에 기물 이름 표시
+                button.onClick.AddListener(() => ChoosePromotion(def));
+            }
+
+            _promotionPanel.gameObject.SetActive(true);  // 선택창을 화면에 표시
+            if (_promotionBox != null)
+                UiFx.PanelIn(_promotionBox, UiBuilder.Group(_promotionBox.gameObject));  // 다른 창과 같은 등장 연출
         }
 
-        static Button MakeButton(RectTransform parent, string name, Vector2 anchor, Vector2 position, Vector2 size,
-            out TextMeshProUGUI label, UnityEngine.Events.UnityAction onClick)
+        void ChoosePromotion(PieceDefinition def)  // 승격할 기물을 골랐을 때
         {
-            var rect = MakePanel(parent, name, anchor, position, size);
-            var image = rect.GetComponent<Image>();
-            image.color = ButtonIdle;
-
-            var button = rect.gameObject.AddComponent<Button>();
-            button.targetGraphic = image;
-            button.onClick.AddListener(onClick);
-
-            label = MakeText(rect, "Label", 30f);
-            return button;
+            _promotionPanel.gameObject.SetActive(false);  // 선택창을 닫고
+            _director.ChoosePromotion(def);  // 고른 기물로 승격하라고 StageDirector에 전달
         }
 
-        // ---------- reactions ----------
-
-        void OnActionPressed()
+        void OnActionPressed()  // 행동 버튼을 눌렀을 때 실행되는 함수 -> 현재 단계에 따라 하는 일이 다름
         {
-            if (_turn.Phase == TurnPhase.Deploy)
+            if (_turn.Phase == TurnPhase.Deploy)  // 만약 배치 단계라면 -> 배치를 끝내고 스테이지 시작
                 _director.ConfirmDeploy();
-            else if (_turn.Phase == TurnPhase.PlayerTurn)
+            else if (_turn.Phase == TurnPhase.PlayerTurn)  // 만약 플레이어 턴이라면 -> 턴 종료 요청 (적 턴으로 넘어감)
                 _director.RequestEndTurn();
         }
 
-        void Refresh()
+        void Refresh()  // 현재 게임 상태에 맞게 HUD 전체(상태 줄, AP, 행동 버튼, 배너, 덱 카드 색)를 다시 그리는 함수
         {
-            if (_turn == null)
+            if (_turn == null)  // 아직 Start에서 준비가 안 됐다면 -> 아무것도 하지 않음
                 return;
 
+            if (_director.IsChessDuel)  // 만약 최종전(체스 결투)이라면 -> 결투 전용 표시로 그리고 끝냄
+            {
+                RefreshDuel();
+                return;
+            }
+
+            // 일반 스테이지: 결투에서 바뀌었을 수 있는 표시를 기본값으로 되돌림
+            _status.color = Ink;
+            _ap.fontSize = 34f;
+            _apPanel.color = Panel;
+
+            // 상태 줄: 배치 단계라면 안내 문구, 전투 중이라면 턴·웨이브·적 수를 표시
             _status.text = _turn.Phase == TurnPhase.Deploy
                 ? (_director.KingPlaced
                     ? "배치 완료 - 스테이지 시작을 누르세요"
-                    : "킹을 배치해야 시작합니다 - 오른쪽 덱에서 선택하세요")
+                    : "킹을 배치해야 시작합니다 - 인벤토리 기물 칸에서 킹을 고르세요")
                 : "턴 " + _turn.Turn
                   + "   |   웨이브 " + _director.WavesSent + "/" + _director.TotalWaves
-                  + "   |   적 " + _director.EnemiesOnBoard;
+                  + "   |   적 " + _director.EnemiesOnBoard
+                  + (_director.AwaitingPromotion ? "   |   승격할 기물을 고르세요" : "");
 
+            // AP 표시: 배치 단계에서는 기물을 무료로 놓으므로 "무료", 전투 중에는 현재 AP / 최대 AP
             _ap.text = _turn.Phase == TurnPhase.Deploy
                 ? "배치: 무료"
                 : "AP  " + _turn.Ap + " / " + _turn.MaxAp;
 
-            bool over = _turn.IsOver;
-            _action.gameObject.SetActive(!over);
+            bool over = _turn.IsOver;  // 승리 또는 패배로 스테이지가 끝났는지 여부
+            _action.gameObject.SetActive(!over);  // 끝났다면 행동 버튼을 숨김
 
-            if (!over)
+            if (!over)  // 만약 아직 진행 중이라면 -> 행동 버튼의 상태와 글자를 단계에 맞게 설정
             {
-                bool interactable = _turn.Phase == TurnPhase.PlayerTurn
+                bool interactable = (_turn.Phase == TurnPhase.PlayerTurn && !_director.AwaitingPromotion)
                                     || (_turn.Phase == TurnPhase.Deploy && _director.KingPlaced);
+                // 버튼을 누를 수 있는 경우: 플레이어 턴이거나(승격 선택 중 제외), 배치 단계에서 킹을 이미 놓았을 때 (킹 없이는 시작 불가)
                 _action.interactable = interactable;
-                _action.image.color = interactable ? ButtonIdle : ButtonOff;
+                _action.image.color = interactable ? ButtonIdle : ButtonOff;  // 누를 수 없으면 어두운 색
 
-                if (_turn.Phase == TurnPhase.Deploy)
+                if (_turn.Phase == TurnPhase.Deploy)  // 배치 단계 -> 킹을 놓았는지에 따라 문구 변경
                     _actionLabel.text = _director.KingPlaced ? "스테이지 시작" : "킹을 먼저 배치";
-                else if (_turn.Phase == TurnPhase.PlayerTurn)
+                else if (_turn.Phase == TurnPhase.PlayerTurn)  // 플레이어 턴
                     _actionLabel.text = "턴 종료";
-                else
+                else  // 적 턴 (버튼은 비활성 상태)
                     _actionLabel.text = "적 턴...";
             }
 
-            var bannerPanel = _banner.transform.parent.gameObject;
-            bannerPanel.SetActive(over);
-            // A win moves on (shop, or the tutorial's closing lines); only a loss offers a retry.
-            _restart.gameObject.SetActive(_turn.Phase == TurnPhase.Defeat);
+            _bannerPanel.SetActive(over);  // 끝났을 때만 승패 배너를 보여 주고
+            _toTitle.gameObject.SetActive(_turn.Phase == TurnPhase.Defeat);  // 패배하면 런이 끝나므로 타이틀로 버튼을 보여 줌
+            // -> 승리하면 다른 시스템(상점 등)이 결과를 받아서 다음으로 넘어감
 
-            if (over)
+            if (over)  // 만약 끝났다면 -> 승패에 맞는 문구와 색(초록/빨강)을 배너에 표시
             {
                 bool won = _turn.Phase == TurnPhase.Victory;
-                _banner.text = won ? "승리" : "패배";
+                _banner.text = won ? "승리" : "패배\n<size=50%>런 종료</size>";
                 _banner.color = won ? new Color(0.55f, 0.95f, 0.55f) : new Color(1f, 0.45f, 0.45f);
             }
 
-            RefreshDeckColors();
         }
 
-        void RebuildDeck()
+        void DrawApUnlocked()  // AP 패널을 평소(일반 스테이지) 모습으로 그리는 함수
         {
-            foreach (var button in _deckButtons)
-                if (button != null)
-                    Destroy(button.gameObject);
+            _apPanel.color = Panel;
+            _ap.fontSize = 34f;
+            _ap.text = "AP  " + _duelIntroAp + " / " + _duelIntroAp;
+        }
 
-            _deckButtons.Clear();
+        void DrawApLocked() // AP 패널을 최종전 잠김 모습(붉은 패널 + "AP 사용 불가 / 봉인됨")으로 그리는 함수
+        {
+            _apPanel.color = ApLockedPanel;
+            _ap.fontSize = 24f;
+            _ap.text = "AP 사용 불가\n<size=80%>봉인됨</size>";
+        }
 
-            var deck = _deploy.Deck;
-            for (int i = 0; i < deck.Count; i++)
+        public void HoldDuelApUnlocked()  // 최종전 대화가 시작될 때 AP 패널을 잠기기 전 모습으로 되돌려 두는 함수 (DuelStoryDirector가 호출)
+        // -> 대화가 끝나고 체스판이 드러난 뒤 PlayDuelApLock으로 '잠기는 순간'을 보여 주기 위함
+        {
+            _holdApUnlocked = true;
+            if (_turn != null && _director.IsChessDuel)
+                DrawApUnlocked();
+        }
+
+        public void PlayDuelApLock()  // AP 패널이 '철컥' 흔들리며 붉게 잠기는 연출을 재생하는 함수 (DuelStoryDirector가 대화를 마친 뒤 호출)
+        {
+            if (!_holdApUnlocked)   // 이미 잠긴 모습이라면 할 일이 없음
+                return;
+
+            DrawApUnlocked();
+            Fx.ApLock(_apPanel.rectTransform, _apPanel, ApLockedPanel, () =>    // 잠기는 순간(패널이 흔들리기 시작할 때)
             {
-                int index = i;
-                var def = deck[i];
+                _holdApUnlocked = false;
+                DrawApLocked(); // 글자를 "AP 사용 불가"로 바꾸고
+                Sfx.Play(SfxId.Lock);   // 쇠가 맞물리는 소리
+            });
+        }
 
-                var button = MakeButton(_deckBar, "Card_" + i, new Vector2(0.5f, 0.5f), Vector2.zero,
-                    new Vector2(192f, 62f), out var label, () => _deploy.Select(index));
+        void RefreshDuel()  // 최종전(체스 결투)용 HUD를 그리는 함수
+        // -> 한 턴에 한 수만 두므로 AP는 사용 불가로 표시하고, 상태 줄에는 수 진행·체크 여부·AI 상태를 보여 줌
+        {
+            var phase = _turn.Phase;  // 현재 단계
+            bool over = _turn.IsOver;  // 결투가 끝났는지 여부
 
-                var element = button.gameObject.AddComponent<LayoutElement>();
-                element.preferredWidth = 192f;
-                element.preferredHeight = 62f;
+            if (_holdApUnlocked)  // 잠김 연출 전이라면 -> AP 패널을 평소 모습으로 둠 (대화가 끝나면 PlayDuelApLock이 잠금)
+                DrawApUnlocked();
+            else  // AP 패널을 붉게 바꾸고 "AP 사용 불가"로 표시
+                DrawApLocked();
 
-                label.fontSize = 22f;
-                label.text = def.displayName + "\n" + def.deployApCost + " AP"
-                             + (_deploy.IsUnlimited(i) ? "  · 상시" : "");
-                _deckButtons.Add(button);
+            _status.color = _director.InCheck == Team.Player && !over ? CheckInk : Ink;  // 내 킹이 체크 상태라면 상태 줄을 빨간 글자로
+            if (phase == TurnPhase.Deploy)  // 만약 배치 단계라면 -> 킹을 놓았는지에 따라 안내 문구 표시
+            {
+                _status.text = _director.KingPlaced
+                    ? "킹과 기물(폰 최대 8)을 배치한 뒤 결투 시작을 누르세요"
+                    : "최종전 - 킹을 배치해야 시작합니다";
+            }
+            else  // 결투 진행 중이거나 끝난 상태라면
+            {
+                string line = "최종전   |   " + (_director.DuelMovesPlayed + (phase == TurnPhase.PlayerTurn ? 1 : 0))
+                              + "수 / " + _director.stage.moveLimit;
+                // 기본 문구: "최종전 | 현재 수 / 제한 수" -> 플레이어 차례라면 지금 둘 수까지 포함해서 +1
+                if (over)  // 끝났다면 수 진행만 표시
+                    _status.text = line;
+                else if (_director.AwaitingPromotion)  // 폰 승격 선택을 기다리는 중
+                    _status.text = line + "   |   승격할 기물을 고르세요";
+                else if (_director.AIThinking)  // 적(흑) AI가 수를 계산하는 중
+                    _status.text = line + "   |   흑이 생각하는 중...";
+                else if (_director.InCheck == Team.Player)  // 내 킹이 체크 상태
+                    _status.text = line + "   |   체크! 킹을 지키세요";
+                else if (_director.InCheck == Team.Enemy)  // 상대 킹이 체크 상태
+                    _status.text = line + "   |   체크!";
+                else  // 그 외에는 누구 차례인지 표시
+                    _status.text = line + (phase == TurnPhase.PlayerTurn ? "   |   백의 차례" : "   |   흑의 차례");
             }
 
-            // Deploying the king is what unlocks the start button, and that
-            // arrives as a deck change - so refresh the whole HUD, not just
-            // the card colours.
-            Refresh();
-        }
-
-        void RefreshDeckColors()
-        {
-            var deck = _deploy.Deck;
-
-            for (int i = 0; i < _deckButtons.Count; i++)
+            bool deploying = phase == TurnPhase.Deploy;
+            _action.gameObject.SetActive(deploying);  // 결투에서는 수를 두면 바로 턴이 넘어가므로 행동 버튼은 결투 시작용으로만 사용 -> 배치 단계에서만 보임
+            if (deploying)
             {
-                if (_deckButtons[i] == null)
-                    continue;
+                _action.interactable = _director.KingPlaced;  // 킹을 놓아야 누를 수 있음
+                _action.image.color = _director.KingPlaced ? ButtonIdle : ButtonOff;
+                _actionLabel.text = _director.KingPlaced ? "결투 시작" : "킹을 먼저 배치";
+            }
 
-                // During setup only the king is playable, so the rest of the
-                // deck is shown greyed out rather than silently doing nothing.
-                bool playable = i < deck.Count && _deploy.IsDeployableNow(deck[i]);
-                _deckButtons[i].interactable = playable;
+            bool won = phase == TurnPhase.Victory;
+            _bannerPanel.SetActive(over);  // 끝났을 때만 배너 표시
+            _toTitle.gameObject.SetActive(over);  // 이기든 지든 최종전이 끝나면 런이 끝나므로 타이틀로 버튼
 
-                _deckButtons[i].image.color = !playable
-                    ? CardLocked
-                    : (i == _deploy.SelectedIndex ? CardPicked : CardIdle);
+            if (over)  // 만약 결투가 끝났다면 -> 결과 배너 문구를 채움
+            {
+                string reason = _director.OutcomeReason;  // 결투가 끝난 이유 (체크메이트, 수 제한 등)
+                if (!won && reason == "체크메이트")  // 만약 졌는데 이유가 체크메이트라면 -> 플레이어 입장에 맞게 "당함"을 붙임
+                    reason = "체크메이트 당함";
+
+                _banner.text = won
+                    ? "체크메이트!\n<size=50%>런 클리어</size>"
+                    : "패배\n<size=50%>" + reason + "</size>";
+                _banner.color = won ? new Color(0.55f, 0.95f, 0.55f) : new Color(1f, 0.45f, 0.45f);  // 승리는 초록, 패배는 빨강
             }
         }
     }

@@ -11,10 +11,12 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e8f5ffa668bab104ebcf0900180ce568, type: 3}
   m_Name: Pawn
-  m_EditorClassIdentifier: Assembly-CSharp::Gambonanza.Data.PieceDefinition
-  displayName: "\uD3F0"
+  m_EditorClassIdentifier: Assembly-CSharp::Promotion.Data.PieceDefinition
+  itemName: "\uD3F0"
+  itemType: 2
+  itemImage: {fileID: -557970522, guid: fc1a88760a585a946aa63ed7cefc2f25, type: 3}
+  itemPrefab: {fileID: 0}
   glyph: P
-  sprite: {fileID: -557970522, guid: fc1a88760a585a946aa63ed7cefc2f25, type: 3}
   playerColor: {r: 1, g: 1, b: 1, a: 1}
   enemyColor: {r: 1, g: 1, b: 1, a: 1}
   moveApCost: 1
@@ -30,6 +32,7 @@ MonoBehaviour:
     canMoveToEmpty: 1
     canCapture: 0
     relativeToFacing: 1
+    firstMoveOnly: 0
   - directions:
     - {x: 1, y: 1}
     - {x: -1, y: 1}
@@ -38,3 +41,7 @@ MonoBehaviour:
     canMoveToEmpty: 0
     canCapture: 1
     relativeToFacing: 1
+    firstMoveOnly: 0
+  enemySprite: {fileID: 444040597, guid: b60a7a02e80929949960283b107ffcf0, type: 3}
+  aiValue: 1
+  canPromote: 1

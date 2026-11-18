@@ -1,40 +1,64 @@
-using Gambonanza.Core;
+using Promotion.Core;
 using UnityEngine;
 
-namespace Gambonanza.Data
+namespace Promotion.Data
 {
-    /// <summary>
-    /// Everything that makes a piece what it is: art, cost, and how it moves.
-    /// Swapping in real art later means assigning <see cref="sprite"/> here — no code changes.
-    /// </summary>
-    [CreateAssetMenu(menuName = "Gambonanza/Piece Definition", fileName = "Piece")]
-    public class PieceDefinition : ScriptableObject
+    [CreateAssetMenu(menuName = "Promotion/Piece Definition", fileName = "Piece")]
+    public class PieceDefinition : ItemData // 기물 한 종류의 모든 정보(외형, 비용, 행마법)를 담는 데이터 - 인벤토리 아이템(ItemData)을 상속함
+    // -> 실제 그림으로 교체할 때는 itemImage만 지정하면 되고 코드는 고치지 않음
     {
-        [Header("Identity")]
-        public string displayName = "Pawn";
-        [Tooltip("Placeholder glyph shown until real art is assigned.")]
-        public string glyph = "P";
+        // 이름(itemName), 그림(itemImage), 유형(itemType)은 부모 클래스인 ItemData에서 물려받음
+        [Header("정체성")]
+        [Tooltip("실제 그림이 지정되기 전까지 보여 주는 임시 글자다.")]
+        public string glyph = "P";  // 그림이 없을 때 기물 위에 표시할 임시 글자 (예: 킹 "K", 퀸 "Q")
 
-        [Header("Art (leave empty to use the placeholder)")]
-        public Sprite sprite;
-        public Color playerColor = new Color(0.95f, 0.95f, 0.92f);
-        public Color enemyColor = new Color(0.25f, 0.22f, 0.28f);
+        [Header("외형 (itemImage를 비워 두면 임시 그림을 쓴다)")]
+        public Color playerColor = new Color(0.95f, 0.95f, 0.92f); // 아군 기물일 때 임시 그림에 칠할 색 (흰색 계열)
+        public Color enemyColor = new Color(0.25f, 0.22f, 0.28f);  // 적 기물일 때 칠할 색 (어두운 색 계열)
 
-        [Header("Cost")]
-        [Tooltip("Action points spent to move this piece.")]
-        public int moveApCost = 1;
-        [Tooltip("Action points spent to deploy it from the deck.")]
-        public int deployApCost = 1;
-        [Tooltip("Gold price when this piece is offered in the shop.")]
-        [Min(0)] public int shopCost = 3;
-        [Tooltip("Higher weight appears in the shop more often. Zero keeps it out of the shop entirely.")]
-        [Min(0f)] public float shopWeight = 1f;
+        [Header("비용")]
+        [Tooltip("이 기물을 이동할 때 소모하는 AP다.")]
+        public int moveApCost = 1;  // 이 기물을 한 번 이동할 때 소모하는 AP
+        [Tooltip("덱에서 꺼내 배치할 때 소모하는 AP다.")]
+        public int deployApCost = 1;    // 전투 중 이 기물을 판 위에 소환할 때 소모하는 AP
+        [Tooltip("상점에 이 기물이 나왔을 때의 골드 가격이다.")]
+        [Min(0)] public int shopCost = 3;   // 상점에서 이 기물을 살 때 드는 골드
+        [Tooltip("가중치가 클수록 상점에 자주 나온다. 0이면 상점에 아예 나오지 않는다.")]
+        [Min(0f)] public float shopWeight = 1f; // 상점 진열 확률 가중치 -> 다른 기물보다 클수록 자주 등장, 0이면 등장하지 않음
 
-        [Header("Role")]
-        [Tooltip("The king: it has no HP and is never attacked. Enemies win by stepping onto its tile.")]
-        public bool isObjective;
+        [Header("역할")]
+        [Tooltip("킹이다. 체력이 없고 공격받지도 않는다. 적이 이 칸에 들어서면 적이 승리한다.")]
+        public bool isObjective;    // true면 이 기물이 킹(지켜야 할 목표) -> 적이 이 칸에 들어오면 즉시 패배
 
-        [Header("Movement")]
-        public MovePattern[] patterns = new MovePattern[0];
+        [Header("행마법")]
+        public MovePattern[] patterns = new MovePattern[0]; // 이 기물이 움직일 수 있는 규칙들의 목록 -> 여러 규칙을 합쳐 하나의 행마법이 됨
+
+        [Header("체스 대결")]
+        [Tooltip("이 기물이 적(흑) 편으로 싸울 때 쓰는 그림이다. 비워 두면 플레이어 그림에 enemyColor를 입혀 쓴다.")]
+        public Sprite enemySprite;  // 최종전에서 적(흑) 기물로 나올 때 쓰는 그림
+        [Tooltip("체스 AI가 매기는 기물의 가치로, 폰 단위다(폰 1, 나이트/비숍 3, 룩 5, 퀸 9).")]
+        [Min(0f)] public float aiValue = 1f;    // 체스 AI가 판세를 계산할 때 쓰는 이 기물의 점수
+        [Tooltip("맨 끝 랭크에 도달하면 다른 기물로 바뀐다(폰).")]
+        public bool canPromote; // true면 상대편 끝 줄에 도착했을 때 프로모션(다른 기물로 승격) 가능
+        [Tooltip("디펜스 스테이지에서 같은 가로줄의 킹과 자리를 맞바꿀(캐슬링) 수 있다(룩). 둘 사이가 비어 있어야 하고 스테이지마다 한 번.")]
+        public bool canCastle;  // true면 킹과 캐슬링할 수 있는 기물 (룩)
+
+        [Header("디펜스 적 전용")]
+        [Tooltip("적으로 나왔을 때 한 턴에 걷는 칸 수다. 한 칸씩 나눠 걸으며, 첫 걸음에 아군을 잡으면 그 자리에서 멈춘다.")]
+        [Min(1)] public int enemyStepsPerTurn = 1;  // 적일 때 한 턴에 다가오는 칸 수 (중갑병 2)
+        [Tooltip("이 기물을 잡을 수 없는 기물들이다. 이 기물로 잡으려 하면 '막힘!'이 뜨고 되돌아간다.")]
+        public PieceDefinition[] captureImmuneTo = new PieceDefinition[0];   // 이 기물을 잡지 못하는 기물 목록 (중갑병: 폰)
+        [Tooltip("이 기물에 늘 붙어 있는 오라 이펙트 프리팹(FireAura)이다. 비우면 없다.")]
+        public GameObject idleAura; // 보드에 나오는 순간부터 계속 타오르는 오라 (중갑병: 보라·검정 오라)
+
+        public bool IsImmuneTo(PieceDefinition attacker)    // attacker가 이 기물을 잡을 수 없는지 확인하는 함수
+        {
+            if (attacker == null || captureImmuneTo == null)
+                return false;
+            foreach (var def in captureImmuneTo)
+                if (def == attacker)
+                    return true;
+            return false;
+        }
     }
 }
