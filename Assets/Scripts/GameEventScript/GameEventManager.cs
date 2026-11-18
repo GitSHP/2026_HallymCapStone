@@ -23,6 +23,12 @@ public static class GameEventManager
     // 스테이지 종료 -> (Victory 또는 Defeat)
     public static event Action<ItemData> ItemPurchased;     
     // 상점에서 아이템 구매 -> (구매한 아이템)
+    public static event Action<Piece> OwnedPieceLost;
+    // 인벤토리에서 꺼낸 아군 기물이 적에게 잡혀 인벤토리에서 영구히 사라졌을 때 발생 -> (잃은 기물)
+    // PieceCaptured와 달리 킹·상시 폰 같은 임시 기물이 잡혔을 때는 발생하지 않음
+    public static event Action<Piece, int> PieceSummoned;
+    // 아군 기물을 보드에 소환했을 때 발생 -> (소환된 기물, 소환에 실제로 소모한 AP)
+    // 배치 단계에서 놓은 기물은 소모한 AP가 0으로 전달됨
 
     // ---------- 이벤트 보내기 ----------
     public static void RaisePieceCaptured(Piece attacker, Piece target) // 공격 기물이 타겟 기물을 공격했을 때 발생하는 이벤트 함수
@@ -31,7 +37,7 @@ public static class GameEventManager
         {
             PieceCaptured.Invoke(attacker, target); 
             // RaisePieceCaptured 함수가 실행됐는지 듣고 있는 모든 스크립트들에게 이벤트가 발생했음을 알려줌  
-            Debug.Log(attacker + "가" + target + "을 공격함");
+            Debug.Log("GameEventManager 기물 공격 확인" + attacker + "가" + target + "을 공격함");
         }
     }
 
@@ -41,6 +47,7 @@ public static class GameEventManager
         {
             PlayerTurnStarted.Invoke(turn);
         }
+        Debug.Log("GameEventManager 플레이어 턴 시작 확인" + turn.ToString());
     }
 
     public static void RaisePlayerTurnEnded(int turn)
@@ -49,6 +56,7 @@ public static class GameEventManager
         {
             PlayerTurnEnded.Invoke(turn);
         }
+        Debug.Log("GameEventManager 플레이어 턴 종료 확인" + turn.ToString());
     }
 
     public static void RaiseStageStarted()
@@ -57,6 +65,7 @@ public static class GameEventManager
         {
             StageStarted.Invoke();
         }
+        Debug.Log("GameEventManager 스테이지 시작 확인");
     }
 
     public static void RaiseStageEnded(TurnPhase outcome)
@@ -65,6 +74,7 @@ public static class GameEventManager
         {
             StageEnded.Invoke(outcome);
         }
+        Debug.Log("GameEventManager 스테이지 종료 확인" + outcome.ToString());
     }
 
     public static void RaiseItemPurchased(ItemData item)
@@ -73,6 +83,26 @@ public static class GameEventManager
         {
             ItemPurchased.Invoke(item);
         }
+        Debug.Log("GameEventManager 아이템 구매 확인" + item.ToString());
+    }
+
+    public static void RaiseOwnedPieceLost(Piece piece) 
+    // 킹, 폰은 상시로 주워지는 기물이므로 이 함수가 호출되지 않음
+    {
+        if (OwnedPieceLost != null)
+        {
+            OwnedPieceLost.Invoke(piece);
+        }
+        Debug.Log("GameEventManager 아군 기물 잃음 감지" + piece.Def.ToString());
+    }
+
+    public static void RaisePieceSummoned(Piece piece, int spentAp)
+    {
+        if (PieceSummoned != null)
+        {
+            PieceSummoned.Invoke(piece, spentAp);
+        }
+        Debug.Log("GameEventManager 기물 소환 감지" + piece.Def.itemName.ToString() + "소모된 AP : " + spentAp);
     }
 
     // ---------- 초기화 ----------
@@ -87,5 +117,7 @@ public static class GameEventManager
         StageStarted = null;
         StageEnded = null;
         ItemPurchased = null;
+        OwnedPieceLost = null;
+        PieceSummoned = null;
     }
 }

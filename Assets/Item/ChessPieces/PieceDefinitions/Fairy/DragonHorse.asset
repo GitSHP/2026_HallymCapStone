@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Promotion.Data.PieceDefinition
   itemName: "\uB4DC\uB798\uACE4\uD638\uC2A4"
   itemType: 2
-  itemImage: {fileID: 21300000, guid: 6cd114fa8403f0947bfb79ad0e8df906, type: 3}
+  itemImage: {fileID: -7621818096288816453, guid: 98f91ba02285e514388812e804ad1622, type: 3}
   itemPrefab: {fileID: 0}
   glyph: DH
   playerColor: {r: 1, g: 1, b: 1, a: 1}

@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SicilianDefenseArtifactData
   itemName: "\uC2DC\uC2E4\uB9AC\uC548 \uB514\uD39C\uC2A4"
   itemType: 0
-  itemImage: {fileID: 21300000, guid: dfc2c28926ab3544a8cf8e536371e7b4, type: 3}
+  itemImage: {fileID: -1766677140, guid: 9e66f522d767de54caaae22f82811be4, type: 3}
   itemPrefab: {fileID: 0}
   apReward: 1

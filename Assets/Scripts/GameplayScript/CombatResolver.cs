@@ -62,6 +62,8 @@ namespace Promotion.Gameplay
                 Finish(target, targetView);
                 CaptureFinished?.Invoke(target, victimWorld);
             }
+            GameEventManager.RaisePieceCaptured(attacker, target);
+            // GameEventManager 에게 attacker 가 target 을 잡았다는 것을 알려줌
 
             return true;
         }
@@ -112,6 +114,9 @@ namespace Promotion.Gameplay
 
             target.Owned = false;   // 먼저 보유 표시를 끔 -> 연출이 끝나 보드에서 사라지기 전에도 "보드에 나가 있는 보유 기물"로 세지 않게 함
             RunState.Instance.RemovePiece(target.Def);   // 런 인벤토리에서 하나 지움 -> 다음 스테이지에 돌아오지 않음 (인벤토리는 이 신호로 다시 그려짐)
+
+            GameEventManager.RaiseOwnedPieceLost(target);
+            // GameEventManager 에게 인벤토리 기물을 영구히 잃었다는 것을 알림
         }
 
         static bool CanCapture(Piece target)    // 잡을 수 있는 대상인지 검사하는 함수 -> 킹(목표 기물)은 잡히지 않음
